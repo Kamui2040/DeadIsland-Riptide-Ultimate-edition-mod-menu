@@ -74,9 +74,7 @@ Windows-only implementation details to replace include:
 
 `docs/FEATURE_PARITY.md` is the authoritative Milestone-1 control inventory.
 
-The released top-level user-facing control inventory is now complete. It includes application controls, all active gameplay checkboxes/dropdowns, FOV behavior, automatic upstream mutations, and commented/inactive controls.
-
-Direct-value mappings have been extracted for FOV, intros, sprint/jump stamina, sunflare, run-with-weapons, improved loot, movement, deeper pockets, vehicle noclip, ammo capacity, break-door effectiveness, durability, and bullet penetration.
+The released top-level user-facing control inventory is complete. Direct-value mappings are documented for FOV, intros, sprint/jump stamina, sunflare, run-with-weapons, improved loot, movement, deeper pockets, vehicle noclip, ammo capacity, break-door effectiveness, durability, and bullet penetration.
 
 Complex remaining mapping work is concentrated in:
 
@@ -98,18 +96,41 @@ Important upstream quirks recorded for parity decisions:
 
 The Linux port will preserve implemented gameplay values where feasible while correcting GUI/control-flow bugs and replacing brittle line-number mechanics with validated semantic transforms.
 
+## Implemented Linux core
+
+The initial Python core scaffold is implemented under `src/dirue/` with no proprietary game content:
+
+- native Linux game-root validation using the ELF executable and required Data0 entries;
+- ZIP-compatible Data0 validation with CRC, required-entry, traversal, backslash-path, and duplicate-member checks;
+- safe temporary extraction;
+- archive rebuilding from a working tree while preserving source member order/metadata where practical;
+- strict semantic regex patch primitives for XML properties and `VarFloat` values;
+- one-time pristine backup creation that will not overwrite an existing backup;
+- validated atomic candidate installation;
+- validated atomic restore;
+- deterministic JSON CLI commands for game/archive validation.
+
+Current synthetic validation:
+
+- 12 standard-library `unittest` tests pass;
+- Python bytecode compilation passes;
+- `pyproject.toml` parses with SPDX license `GPL-3.0-only`;
+- a wheel builds successfully with setuptools without network dependencies.
+
+The synthetic tests verify, among other things, that an invalid candidate leaves the live archive unchanged and that an existing pristine backup is not overwritten.
+
+This core has **not yet been run against or used to modify the installed Steam game**. Native-install QA remains a separate gate.
+
 ## Planned Linux architecture
 
-Expected implementation direction:
-
-- Python
-- PySide6 GUI
+- Python core and CLI
+- PySide6 GUI after patch-engine parity is sufficiently established
 - standard-library ZIP/file processing where sufficient
 - deterministic patch engine independent of GUI
 - declarative patch definitions with semantic match validation
 - verified pristine-base model for repeatable option toggling
 - backup/restore and transactional archive replacement
-- CLI/test surface for local deterministic validation
+- local deterministic tests
 - AppImage or other packaging only after parity validation
 
 ## Current gates
@@ -117,12 +138,12 @@ Expected implementation direction:
 1. Expand the two large firearm transforms into semantic patch definitions.
 2. Audit/diff bundled replacement files and ZIP presets and classify redistribution provenance.
 3. Verify every resulting target/default state against the native Linux `Data0.pak` without committing extracted game content.
-4. Implement native game discovery and archive validation.
-5. Implement deterministic semantic patch primitives and tests.
-6. Implement pristine backup/restore and atomic replacement.
-7. Reproduce all Milestone-1 gameplay options.
-8. Add the Linux-native GUI.
-9. Validate against the native Steam installation.
+4. Add concrete Milestone-1 patch definitions on top of the validated semantic primitives.
+5. Exercise read-only game/archive validation against the native Steam installation.
+6. Exercise candidate rebuild/validation against a disposable copy before any live-game write.
+7. Validate pristine backup/restore and atomic replacement against the QA installation only after the transaction path is reviewed.
+8. Reproduce all Milestone-1 gameplay options.
+9. Add the Linux-native GUI.
 10. Package only after functional validation.
 
 ## Publication state

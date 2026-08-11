@@ -1,4 +1,4 @@
-
+# Upstream Windows build/helper artifacts
 *.exe
 @@@@@TODO FOR BOTH GAMES MENUES.txt
 smartzip.ahk
@@ -13,3 +13,13 @@ README.txt
 Deadisland Riptide Ultimate Edition mod menu version 1.1.zip
 Deadisland Riptide Ultimate Edition mod menu version 1.2.zip
 DIRUE.zip
+
+# Native Linux port / Python local outputs
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+build/
+dist/
+*.egg-info/
