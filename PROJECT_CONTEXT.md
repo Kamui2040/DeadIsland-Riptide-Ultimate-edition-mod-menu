@@ -48,49 +48,55 @@ This is evidence for compatibility of core Data0 transformations, not yet proof 
 
 The inherited upstream repository contains `Data0.pak` with size 7,647,523 bytes. It differs from the validated native Linux Steam archive above.
 
-The Linux port must not install or patch from that inherited archive. Runtime patching must begin from the user's validated installed archive and use backup, temporary working storage, validation, and atomic replacement.
+The Linux port must not install or patch from that inherited archive. Runtime patching must begin from a validated installed archive or a verified pristine backup derived from it and use temporary working storage, validation, and atomic replacement.
 
 ## Upstream implementation observations
 
 `DIRUE.ahk` is the behavioral specification for Milestone 1. The original implementation combines GUI behavior, file extraction, hard-coded line edits, preset merges, archive rebuilding, and Windows helper processes.
 
+Confirmed hazards that must not be copied into the Linux implementation:
+
+- upstream extracts its bundled repository `Data0.pak` rather than the user's installed archive;
+- finalization deletes the live `Data0.pak` before the candidate has been safely validated/replaced;
+- many edits use fixed line numbers tied to the bundled archive;
+- some option-disable paths depend on placeholder/default content already present in the bundled archive;
+- several options replace complete files/directories from bundled presets with unresolved redistribution provenance.
+
 Windows-only implementation details to replace include:
 
 - AutoHotkey GUI/runtime
 - `.exe`-based helper processes
-- Windows executable/path validation
+- Windows executable/DLL path validation
 - AHK ZIP/text helper libraries
-- optional menu sound/music helper process behavior where it has no gameplay effect
+- optional menu sound/music helper behavior where it has no gameplay effect
 
-## User-facing feature inventory status
+## Feature inventory status
 
-Initial active controls identified from the AHK GUI:
+`docs/FEATURE_PARITY.md` is the authoritative Milestone-1 control inventory.
 
-- FOV: 62/default, 72, 82
-- Skip intro videos
-- Reduce sunflare by 90%
-- Reduce sprint stamina cost
-- Reduce jump stamina cost
-- Enable running with weapons
-- Improved loot
-- Better movement tweaks
-- Better firearms POV
-- Better firearms upgrading
-- Remove reverb/echo sound
-- Even Deeper Pockets
-- NoClip vehicles
-- Hold more ammo
-- Instantly break doors
-- Increase weapon durability
-- Bullet penetration for enemies
-- Zombie size presets
-- Weather/time presets
-- Zombie difficulty presets
-- Forced zombie/bandit spawn presets
+The released top-level user-facing control inventory is now complete. It includes application controls, all active gameplay checkboxes/dropdowns, FOV behavior, automatic upstream mutations, and commented/inactive controls.
 
-Commented/inactive controls observed in upstream source include high-FOV recoil fix, custom weapons, and a Night-time Paradise checkbox. Their underlying handlers/assets must still be reviewed before deciding whether they are part of the released behavioral surface.
+Direct-value mappings have been extracted for FOV, intros, sprint/jump stamina, sunflare, run-with-weapons, improved loot, movement, deeper pockets, vehicle noclip, ammo capacity, break-door effectiveness, durability, and bullet penetration.
 
-The complete option-to-target/default/modified/preset mapping is **not yet complete** and remains the next inventory task.
+Complex remaining mapping work is concentrated in:
+
+- per-weapon/per-FOV `Better firearms POV` transforms;
+- per-weapon/per-upgrade `Better firearms upgrading` transforms;
+- reverb replacement-file diff;
+- AI difficulty ZIPs;
+- zombie-size ZIPs;
+- forced-spawn ZIPs;
+- weather/time ZIPs.
+
+Important upstream quirks recorded for parity decisions:
+
+- movement enable compares checkbox value to `1s` instead of `1`;
+- instant-door disable checks the durability checkbox variable;
+- durability tooltip describes `1.0 -> 0.5`, while the handler writes `-9.0` to four durability-loss properties;
+- the NoClip vehicle handler names trucks but released edits affect car/old-boat physics while truck edits are commented;
+- FOV label `62 default` writes `62.5`.
+
+The Linux port will preserve implemented gameplay values where feasible while correcting GUI/control-flow bugs and replacing brittle line-number mechanics with validated semantic transforms.
 
 ## Planned Linux architecture
 
@@ -101,24 +107,24 @@ Expected implementation direction:
 - standard-library ZIP/file processing where sufficient
 - deterministic patch engine independent of GUI
 - declarative patch definitions with semantic match validation
+- verified pristine-base model for repeatable option toggling
 - backup/restore and transactional archive replacement
 - CLI/test surface for local deterministic validation
 - AppImage or other packaging only after parity validation
 
 ## Current gates
 
-1. Complete the authoritative inventory of every released user-facing AHK option and handler.
-2. Map each option to target archive paths, expected default values/content, modified values/content, and bundled preset/replacement dependencies.
-3. Audit bundled upstream files for provenance/redistribution suitability before reusing any of them.
-4. Verify every required target against the native Linux `Data0.pak` without committing extracted game content.
-5. Implement game discovery and archive validation.
-6. Implement deterministic semantic patch primitives and tests.
-7. Implement backup/restore and atomic replacement.
-8. Reproduce all Milestone 1 gameplay options.
-9. Add the Linux-native GUI.
-10. Validate against the native Steam installation.
-11. Package only after functional validation.
+1. Expand the two large firearm transforms into semantic patch definitions.
+2. Audit/diff bundled replacement files and ZIP presets and classify redistribution provenance.
+3. Verify every resulting target/default state against the native Linux `Data0.pak` without committing extracted game content.
+4. Implement native game discovery and archive validation.
+5. Implement deterministic semantic patch primitives and tests.
+6. Implement pristine backup/restore and atomic replacement.
+7. Reproduce all Milestone-1 gameplay options.
+8. Add the Linux-native GUI.
+9. Validate against the native Steam installation.
+10. Package only after functional validation.
 
 ## Publication state
 
-No release, Nexus publication, upstream submission, or other external publication has been authorized. The fork is a development repository; `linux-port` is the active porting branch.
+No release, Nexus publication, upstream submission, or other external publication has been authorized. The public fork is the development repository; `linux-port` is the active porting branch.
