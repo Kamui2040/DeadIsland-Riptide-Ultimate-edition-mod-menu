@@ -80,11 +80,13 @@ Complex remaining mapping work is concentrated in:
 
 - per-weapon/per-FOV `Better firearms POV` transforms;
 - per-weapon/per-upgrade `Better firearms upgrading` transforms;
-- reverb replacement-file diff;
+- native installed-file verification for the reverb transform, including exact call counts;
 - AI difficulty ZIPs;
 - zombie-size ZIPs;
 - forced-spawn ZIPs;
 - weather/time ZIPs.
+
+The upstream reverb replacement pair has now been audited far enough to replace the full-file copy approach with a semantic transform. The modded form comments the `ReverbPreset` and `ReverbWetDryMix` declarations and uses. The nearby `Echo(...)` uses inspected in the default form are already commented, so the Linux transform leaves them unchanged. Exact counts still need validation against the installed native archive before this option is wired into a concrete patch definition.
 
 Important upstream quirks recorded for parity decisions:
 
@@ -98,26 +100,28 @@ The Linux port will preserve implemented gameplay values where feasible while co
 
 ## Implemented Linux core
 
-The initial Python core scaffold is implemented under `src/dirue/` with no proprietary game content:
+The Python core scaffold is implemented under `src/dirue/` with no proprietary game content:
 
 - native Linux game-root validation using the ELF executable and required Data0 entries;
 - ZIP-compatible Data0 validation with CRC, required-entry, traversal, backslash-path, and duplicate-member checks;
 - safe temporary extraction;
 - archive rebuilding from a working tree while preserving source member order/metadata where practical;
 - strict semantic regex patch primitives for XML properties and `VarFloat` values;
+- semantic reverb enable/disable handling with exact expected call counts, mixed-state rejection, and newline preservation;
 - one-time pristine backup creation that will not overwrite an existing backup;
 - validated atomic candidate installation;
 - validated atomic restore;
 - deterministic JSON CLI commands for game/archive validation.
 
-Current synthetic validation:
+Validation evidence currently recorded:
 
-- 12 standard-library `unittest` tests pass;
-- Python bytecode compilation passes;
-- `pyproject.toml` parses with SPDX license `GPL-3.0-only`;
-- a wheel builds successfully with setuptools without network dependencies.
+- the original core scaffold's 12-test standard-library `unittest` suite passed before the reverb change;
+- the current `tests/test_patches.py` module passes all 8 tests, including four reverb-specific cases;
+- Python compilation passes for the changed patch module and its tests;
+- `pyproject.toml` previously parsed with SPDX license `GPL-3.0-only`;
+- a wheel previously built successfully with setuptools without network dependencies.
 
-The synthetic tests verify, among other things, that an invalid candidate leaves the live archive unchanged and that an existing pristine backup is not overwritten.
+The reverb tests verify comment-only transformation, round-trip restoration with CRLF preservation, exact-count failure, and rejection of mixed source state.
 
 This core has **not yet been run against or used to modify the installed Steam game**. Native-install QA remains a separate gate.
 
@@ -136,8 +140,8 @@ This core has **not yet been run against or used to modify the installed Steam g
 ## Current gates
 
 1. Expand the two large firearm transforms into semantic patch definitions.
-2. Audit/diff bundled replacement files and ZIP presets and classify redistribution provenance.
-3. Verify every resulting target/default state against the native Linux `Data0.pak` without committing extracted game content.
+2. Audit/diff the remaining bundled replacement files and ZIP presets and classify redistribution provenance.
+3. Verify every resulting target/default state, including reverb call counts, against the native Linux `Data0.pak` without committing extracted game content.
 4. Add concrete Milestone-1 patch definitions on top of the validated semantic primitives.
 5. Exercise read-only game/archive validation against the native Steam installation.
 6. Exercise candidate rebuild/validation against a disposable copy before any live-game write.
