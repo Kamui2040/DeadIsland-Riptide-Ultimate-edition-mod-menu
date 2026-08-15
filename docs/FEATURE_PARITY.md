@@ -119,15 +119,20 @@ Status: four non-default modes **Native-validated**; normal baseline/no patch.
 
 ## Forced-spawn dropdown
 
-Target replaced by the release: `data/presets/aispawnbox_pre.def`.
+Target: `data/presets/aispawnbox_pre.def`.
 
-Choices: normal, Butchers, Rams, Bloaters, Thugs, Suiciders, bandits with guns, bandits with melee.
+Released choices: normal, Butchers, Rams, Bloaters, Thugs, Suiciders, bandits with guns, bandits with melee.
 
-Default matches native. Every non-default preset changes active `m_AIPresets` values in a 165-call vector. Sanitized evidence proves exact pristine donors exist for Suicider and bandits-with-guns. Butcher, Ram, Bloater, Thug, and bandits-with-melee have no exact quoted donor anywhere in the audited native Data0.
+Default matches native. Every non-default preset changes active `m_AIPresets` values in a 165-call vector. Sanitized global donor evidence proves exact pristine desired-value donors exist only for Suicider and bandits-with-guns.
 
-The literal identifier lists remain provenance-sensitive and are not copied into source. A narrow private-QA probe now records only the pristine 165-value vector digest so the two donor-backed modes can be implemented with complete prior-state validation.
+The private native probe records only the complete pristine vector SHA-256, not its identifier strings. The Linux transforms use that digest plus semantic call ordinals:
 
-Status: **Research / preset unresolved** as a complete dropdown. Two donor-backed choices are eligible for semantic implementation after the vector digest is collected; five choices remain provenance-gated.
+- **Suiciders**: validate all 165 calls and vector digest, take the value at donor ordinal 6, validate its SHA-256, preserve ordinal 6, replace the other 164 values.
+- **Bandits with guns**: take the value at donor ordinal 119, validate its SHA-256, preserve ordinals 60 and 119, replace the other 163 values.
+
+Only quoted `m_AIPresets` value spans are replaced; layout and comments remain intact. The two implemented modes are mutually exclusive and are **Candidate-ready**.
+
+Butcher, Ram, Bloater, Thug, and bandits-with-melee have no exact desired-value donor anywhere in the audited native Data0. Their literal identifier lists remain provenance-sensitive and are not copied into source, so those five choices remain **Preset unresolved**.
 
 ## Weather/time dropdown
 
@@ -143,18 +148,22 @@ Released choices:
 - Rain (Darker night)
 - Storm (Darker night)
 
-Vanilla matches native. Sanitized structural evidence proves:
+Vanilla matches native. Accepted structural, ambient, and private value-probe evidence establishes the complete released non-default behavior:
 
-- rain/storm variants add a recognized `set("f_game_weather", ...)` call to `logic_script.scr`;
-- day variants keep `f_weather_interior` commented while night variants activate it;
-- night variants activate the native-commented `time = ...` and `Set("f_game_time", ...)` sites in `weather.scr`;
-- day rain/storm leave `weather.scr` unchanged;
-- ordinary night uses `f_engine_envprobe_factor -> 0.01`;
-- darker night uses `0.0099` plus `f_lighting_indirect_factor 0.45 -> 0.05`.
+| Choice | Weather | Interior | Time | Ambient |
+|---|---|---|---|---|
+| Just night | unchanged | active `0.3` | freeze `TIME * 0.0`, game-time scale `8.0` | envprobe `0.01` |
+| Rain day | `0.8` | commented `0.1` | native comments unchanged | native |
+| Rain night | `0.8` | active `0.3` | night behavior | envprobe `0.01` |
+| Storm day | `1.0` | commented `0.1` | native comments unchanged | native |
+| Storm night | `1.0` | active `0.3` | night behavior | envprobe `0.01` |
+| Just night darker | unchanged | active `1.0` | night behavior | envprobe `0.0099`, indirect `0.05` |
+| Rain darker night | `0.8` | commented `0.3` | night behavior | envprobe `0.0099`, indirect `0.05` |
+| Storm darker night | `1.0` | commented `0.3` | night behavior | envprobe `0.0099`, indirect `0.05` |
 
-The accepted detail-v1 report confirmed those ambient values but its simple recognized-call parser did not recover the argument tails of the logic/time calls. A new research-only probe handles nested arguments, comments, and CRLF and emits only those four whitelisted argument tails.
+The native time sites are comments containing `float time = TIME * 0.1` and `Set("f_game_time", (time - floor(time)) * 24.0)`. Linux validates those exact semantic priors, activates them as `float time = TIME * 0.0` and scale `8.0`, and preserves the native trailing explanatory comment. Logic overrides are inserted at the named WEATHER section and `interior_inv` calculation anchors, not by line number. Ambient changes use strict named `VarFloat` prior-value validation.
 
-Status: **Research** pending that final private value probe.
+All eight non-default choices are mutually exclusive and **Candidate-ready**.
 
 ## Inactive/commented upstream controls
 
@@ -185,8 +194,8 @@ Native transaction QA passed: one validated candidate was atomically installed, 
 
 ## Current validation boundary
 
-All **27** semantic non-default catalog options are native disposable-candidate validated. Material FOV/Upgrading/POV interactions, a maximal compatible candidate, choice-conflict rejection, and native backup/install/restore transaction QA pass.
+The catalog contains **37** semantic non-default options. The original 27 are native disposable-candidate validated. Eight weather/time modes and two donor-backed forced-spawn modes are candidate-ready from accepted native read-only evidence plus focused semantic regression coverage.
 
-Remaining released parity work is weather/time, five provenance-gated forced-spawn choices, the upstream unconditional `game.ini` / `menumain_pc.xui` replacement review, then bounded gameplay/visual QA and Linux-native GUI/packaging. The research-only weather probe is the next physical read gate.
+The next physical gate is full-suite/compile validation plus disposable native candidates for those ten new options, choice-conflict rejection, and a material maximal compatible combination. Five forced-spawn modes remain provenance-gated.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized.
