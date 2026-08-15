@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Mapping
 import re
 
 from .errors import PatchError
@@ -85,6 +86,32 @@ def replace_call_value(
     )
 
 
+def replace_named_call_value(
+    text: str,
+    call_name: str,
+    argument: str,
+    expected_value: str,
+    new_value: str,
+    *,
+    expected_matches: int = 1,
+) -> str:
+    """Replace `Call("name", value)` by call and named-argument identity."""
+    pattern = (
+        rf'(?P<prefix>\b{re.escape(call_name)}\(\s*"{re.escape(argument)}"\s*,\s*)'
+        rf'{re.escape(expected_value)}'
+        rf'(?P<suffix>\s*\))'
+    )
+    return apply_regex_patch(
+        text,
+        RegexPatch(
+            name=f"{call_name} {argument}",
+            pattern=pattern,
+            replacement=rf"\g<prefix>{new_value}\g<suffix>",
+            expected_matches=expected_matches,
+        ),
+    )
+
+
 def replace_deeper_pockets_skill(
     text: str,
     *,
@@ -144,6 +171,116 @@ def _line_parts(line: str) -> tuple[str, str]:
     if line.endswith("\n"):
         return line[:-1], "\n"
     return line, ""
+
+
+def set_quoted_call_commented(
+    text: str,
+    *,
+    call_name: str,
+    argument: str,
+    commented: bool,
+    expected_matches: int = 1,
+) -> str:
+    """Comment or uncomment one quoted-argument call without copying its full line."""
+    if expected_matches < 1:
+        raise PatchError(f"{call_name} {argument}: expected match count must be positive")
+
+    pattern = re.compile(
+        rf'^(?P<indent>[ \t]*)(?P<comment>//[ \t]*)?'
+        rf'(?P<body>{re.escape(call_name)}\(\s*"{re.escape(argument)}"\s*\)\s*;?)'
+        rf'(?P<suffix>[ \t]*(?://.*)?)$'
+    )
+    states: list[bool] = []
+    for line in text.splitlines(keepends=True):
+        body, _ = _line_parts(line)
+        match = pattern.match(body)
+        if match:
+            states.append(match.group("comment") is not None)
+
+    if len(states) != expected_matches:
+        raise PatchError(
+            f"{call_name} {argument}: expected {expected_matches} match(es), found {len(states)}"
+        )
+    if any(state != states[0] for state in states[1:]):
+        raise PatchError(f"{call_name} {argument}: mixed source state")
+    if states[0] is commented:
+        return text
+
+    updated: list[str] = []
+    for line in text.splitlines(keepends=True):
+        body, newline = _line_parts(line)
+        match = pattern.match(body)
+        if not match:
+            updated.append(line)
+            continue
+        marker = "//" if commented else ""
+        updated.append(
+            f'{match.group("indent")}{marker}{match.group("body")}{match.group("suffix")}{newline}'
+        )
+    return "".join(updated)
+
+
+def replace_color_weight_set(
+    text: str,
+    color_set: str,
+    expected_weights: Mapping[str, str],
+    new_weights: Mapping[str, str],
+) -> str:
+    """Replace all weights inside one named `DefColorSet` block."""
+    if set(expected_weights) != set(new_weights):
+        raise PatchError(f"{color_set}: expected and desired color keys differ")
+
+    block_pattern = re.compile(
+        rf'(?P<header>^[ \t]*DefColorSet\(\s*{re.escape(color_set)}\s*\)[ \t]*'
+        rf'(?:\r?\n[ \t]*)?\{{[ \t]*\r?$)'
+        r'(?P<body>.*?)'
+        r'(?P<close>^[ \t]*\}[ \t]*\r?$)',
+        re.MULTILINE | re.DOTALL,
+    )
+    matches = list(block_pattern.finditer(text))
+    if len(matches) != 1:
+        raise PatchError(f"{color_set}: expected 1 block, found {len(matches)}")
+
+    block = matches[0]
+    body = block.group("body")
+    weight_pattern = re.compile(
+        r'^(?![ \t]*//)'
+        r'(?P<prefix>[ \t]*ColorWeight\(\s*(?P<color>Color_[A-Za-z]+)\s*,\s*)'
+        r'(?P<value>[-+0-9.]+)'
+        r'(?P<suffix>\s*\)\s*;?)',
+        re.MULTILINE,
+    )
+    found: dict[str, str] = {}
+    for match in weight_pattern.finditer(body):
+        color = match.group("color")
+        if color in found:
+            raise PatchError(f"{color_set}: duplicate {color}")
+        found[color] = match.group("value")
+
+    if set(found) != set(expected_weights):
+        raise PatchError(
+            f"{color_set}: expected colors {sorted(expected_weights)}, found {sorted(found)}"
+        )
+    for color, value in expected_weights.items():
+        if found[color] != value:
+            raise PatchError(
+                f"{color_set} {color}: expected {value}, found {found[color]}"
+            )
+
+    def replace_weight(match: re.Match[str]) -> str:
+        return (
+            f'{match.group("prefix")}{new_weights[match.group("color")]}''
+            f'{match.group("suffix")}'
+        )
+
+    new_body, count = weight_pattern.subn(replace_weight, body)
+    if count != len(expected_weights):
+        raise PatchError(
+            f"{color_set}: expected {len(expected_weights)} weights, found {count}"
+        )
+
+    new_block = block.group("header") + new_body + block.group("close")
+    return text[: block.start()] + new_block + text[block.end() :]
 
 
 def _reverb_line_state(
