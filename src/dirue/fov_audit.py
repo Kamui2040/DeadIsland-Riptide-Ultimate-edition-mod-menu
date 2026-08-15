@@ -74,7 +74,8 @@ def _item_block_spans(text: str, item: str) -> list[tuple[int, int, int]]:
 def _active_relevant_calls(block: str, header_line: int) -> list[dict[str, object]]:
     pattern = re.compile(
         r'^(?![ \t]*//)[ \t]*(?P<call>[A-Za-z_][A-Za-z0-9_]*)'
-        r'\(\s*(?P<args>[^\r\n)]*?)\s*\)\s*;?[ \t]*(?://.*)?$',
+        r'\(\s*(?P<args>[^\r\n)]*?)\s*\)\s*;?[ \t]*'
+        r'(?://[^\r\n]*)?(?P<cr>\r?)$',
         re.MULTILINE,
     )
     calls: list[dict[str, object]] = []
