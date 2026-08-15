@@ -153,7 +153,7 @@ Released camera choices are 62 default, 72, and 82.
 
 The first compact physical FOV audit exposed an incorrect Linux-port assumption. Native `Firearm_ShotgunShortGen` has one active `ShootVertRecoil` call rather than the five calls written by the released Windows handler. Retained block-aware evidence shows the shotgun/Crowd families have one active base recoil call plus four tier-local sway sites, while the five pistol families already have five native recoil calls across their repeated item group.
 
-The revised read-only `audit-fov-recoil` no longer assumes the Windows five-write shape already exists natively. For each of the 13 relevant firearm groups it now validates and reports:
+The revised read-only `audit-fov-recoil` no longer assumes the Windows five-write shape already exists natively. For each of the 13 relevant firearm groups it validates and reports:
 
 - eight contiguous repeated `Item(...)` blocks;
 - `UpgradeLevel(0,0,1,1,2,2,3,3)`;
@@ -162,7 +162,7 @@ The revised read-only `audit-fov-recoil` no longer assumes the Windows five-writ
 - one recoil plus four sway sites for the seven shotgun families and CrowdPleaser;
 - five recoil plus four sway sites for Colt, Magnum, M9, Desert Eagle, and McCall.
 
-The shotgun/Crowd records are explicitly research-only tier-recoil insertion candidates. No Linux FOV 72/82 runtime definition will be added until the revised physical audit proves which repeated blocks correspond to the released four additional recoil writes.
+Its first physical test checkout stopped inside the synthetic test suite before any native read because `_active_relevant_calls()` did not accept CRLF line endings for indented calls. The parser is now CRLF-safe, and the full repeated-block fixture plus wrong-upgrade and wrong-recoil negative cases pass in focused local checks. The shotgun/Crowd records remain explicitly research-only tier-recoil insertion candidates until the corrected physical audit is collected.
 
 ## Other preset-backed controls
 
@@ -202,15 +202,16 @@ Verified evidence is scoped to the code state that produced it:
 - the repeated-item fix checkout passed 111 tests, `git diff --check`, and Python compilation;
 - that same physical retry passed all 20 individual disposable candidates, all six maximal compatible combinations, and both conflict-rejection checks before continuing;
 - the hardened preset-v5 command then completed, but its temporary report was lost when the subsequent FOV audit failed;
-- the FOV audit failed closed on its old five-recoil assumption and did not modify Data0;
-- the revised FOV structural audit passed focused synthetic block-layout checks before submission;
+- the first compact FOV audit failed closed on its old five-recoil assumption and did not modify Data0;
+- the next physical checkout ran 114 tests but stopped with two failures and one error confined to the revised FOV-audit tests because their CRLF fixture exposed an end-of-line parser bug; native Data0 was not reached in that run;
+- the FOV call parser is now CRLF-safe, and the complete repeated-block fixture plus intended negative cases pass focused local checks;
 - no GitHub Actions were used.
 
-Next physical gates are now narrower because candidate behavior has not changed since the successful 20-option phase:
+Next physical gates are narrow because candidate behavior has not changed since the successful 20-option phase:
 
 1. run the current full repository test suite, `git diff --check`, and Python compilation;
 2. rerun hardened preset-v5 and publish its report;
-3. run the revised compact `audit-fov-recoil` and publish its report;
+3. run the corrected compact `audit-fov-recoil` and publish its report;
 4. verify Data0 is unchanged before/after;
 5. use the repeated-block recoil evidence to finish camera FOV 72/82 semantics without line-number runtime targeting;
 6. run disposable native candidates for each FOV option added afterward;
