@@ -6,155 +6,122 @@
 - Project fork: `Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu`
 - Default branch: `main`
 - Active Linux-port branch: `linux-port`
-- License: GNU GPLv3 (inherited and preserved)
+- License: GNU GPLv3, inherited and preserved
 
 ## Current milestone
 
 **Milestone 1: native Linux feature-parity port of the existing DIRUE release.**
 
-Scope is compatibility and faithful behavior. New gameplay tweaks are deferred until parity is complete and validated.
+Scope is compatibility and faithful behavior. New gameplay tweaks stay deferred until parity is complete and validated.
 
-## Verified native Linux compatibility baseline
+## Verified native Linux baseline
 
-A native Linux Steam installation of Dead Island: Riptide Definitive Edition has been validated with these results:
+A native Linux Steam installation has already been checked with these results:
 
 - `DeadIslandRiptideGame` is a native Linux ELF executable.
-- `DeadIslandRiptideGame.exe` is absent.
-- `<DIRDE_ROOT>/DIR/Data0.pak` exists and is ZIP-compatible.
+- `<DIRDE_ROOT>/DIR/Data0.pak` is ZIP-compatible.
 - Archive entry count: 3060.
-- Installed native Linux `Data0.pak` size: 7,932,941 bytes.
-- Installed native Linux `Data0.pak` SHA-256: `0afeadca8fb84147cc2c815ec37d1f3c940d40fab6c0a343b7b84e7f41d3c991`.
+- Archive size: 7,932,941 bytes.
+- SHA-256: `0afeadca8fb84147cc2c815ec37d1f3c940d40fab6c0a343b7b84e7f41d3c991`.
 
-Representative upstream patch targets verified present in that native archive:
+Representative patch targets were present, including `default_levels.xml`, `inventory_gen.scr`, intro movies, weather, and glow scripts.
 
-- `data/skills/default_levels.xml`
-  - `CameraDefaultFOV`
-  - `MoveSprintStaminaConsumption`
-- `data/inventory_gen.scr`
-  - `ShootVertRecoil`
-- `data/menu/movies/intromovies.scr`
-- `data/scripts/weather/weather.scr`
-  - `f_game_time`
-- `data/scripts/varlist_glow.scd`
-  - `f_pp_glow_factor`
-- `data/scripts/varlist_glow.scr`
-  - `f_glow_factor`
+Result: `NATIVE_DATA0_COMPATIBILITY_BASELINE_PASS`.
 
-Baseline result: `NATIVE_DATA0_COMPATIBILITY_BASELINE_PASS`.
-
-This is evidence for compatibility of core Data0 transformations, not yet proof of complete feature parity.
+This is compatibility evidence, not complete feature-parity evidence. The hash is a known baseline, not a permanent requirement.
 
 ## Important upstream archive difference
 
-The inherited upstream repository contains `Data0.pak` with size 7,647,523 bytes. It differs from the validated native Linux Steam archive above.
+The inherited repository `Data0.pak` is an older, different archive. The Linux port must not use it as an install payload or patch source.
 
-The Linux port must not install or patch from that inherited archive. Runtime patching must begin from a validated installed archive or a verified pristine backup derived from it and use temporary working storage, validation, and atomic replacement.
+Runtime work must start from the user's validated installed archive or a verified pristine backup derived from it. Candidate changes must be built in temporary storage, validated, and installed atomically.
 
-## Upstream implementation observations
+## Upstream hazards not carried into Linux
 
-`DIRUE.ahk` is the behavioral specification for Milestone 1. The original implementation combines GUI behavior, file extraction, hard-coded line edits, preset merges, archive rebuilding, and Windows helper processes.
+`DIRUE.ahk` remains the Milestone-1 behavioral specification, but these implementation details are intentionally not copied:
 
-Confirmed hazards that must not be copied into the Linux implementation:
-
-- upstream extracts its bundled repository `Data0.pak` rather than the user's installed archive;
-- finalization deletes the live `Data0.pak` before the candidate has been safely validated/replaced;
-- many edits use fixed line numbers tied to the bundled archive;
-- some option-disable paths depend on placeholder/default content already present in the bundled archive;
-- several options replace complete files/directories from bundled presets with unresolved redistribution provenance.
-
-Windows-only implementation details to replace include:
-
-- AutoHotkey GUI/runtime
-- `.exe`-based helper processes
-- Windows executable/DLL path validation
-- AHK ZIP/text helper libraries
-- optional menu sound/music helper behavior where it has no gameplay effect
+- patching from the bundled repository `Data0.pak`;
+- deleting the live archive before a replacement is validated;
+- hard-coded line numbers as the patch mechanism;
+- placeholder-based disable paths;
+- full-file or directory preset replacement without provenance review;
+- AutoHotkey/Win32 helpers and `.exe` processes.
 
 ## Feature inventory status
 
-`docs/FEATURE_PARITY.md` is the authoritative Milestone-1 control inventory.
+`docs/FEATURE_PARITY.md` is the authoritative released-control inventory.
 
-The released top-level user-facing control inventory is complete. Direct-value mappings are documented for FOV, intros, sprint/jump stamina, sunflare, run-with-weapons, improved loot, movement, deeper pockets, vehicle noclip, ammo capacity, break-door effectiveness, durability, and bullet penetration.
+The top-level released controls are inventoried. Direct source values are known for FOV, sprint/jump stamina, sunflare, run-with-weapons, improved loot, movement, deeper pockets, vehicle noclip, ammo, break doors, durability, and bullet penetration.
 
-Complex remaining mapping work is concentrated in:
+Source audit has also established the intended family/tier values for the large firearm features:
 
-- per-weapon/per-FOV `Better firearms POV` transforms;
-- per-weapon/per-upgrade `Better firearms upgrading` transforms;
-- native installed-file verification for the reverb transform, including exact call counts;
-- AI difficulty ZIPs;
-- zombie-size ZIPs;
-- forced-spawn ZIPs;
-- weather/time ZIPs.
+- FOV 72/82 recoil changes cover the shotgun families plus selected pistols.
+- Better firearms POV covers Fury firearms, shotguns, pistols/revolvers, automatic/burst/single rifles, with FOV-specific offsets, aim FOV, blur and sway values.
+- Better firearms upgrading covers pistol upgrade tiers, automatic/burst/single rifle tiers, and shotgun tiers. Active changes use `ShotTime`, `ReloadTime`, `ShootVertRecoil`, and for automatic rifle families `ShootMaxAngle`. Several apparent `ShotTime`/spread edits in the AHK are commented out and are not part of released behavior.
 
-The upstream reverb replacement pair has now been audited far enough to replace the full-file copy approach with a semantic transform. The modded form comments the `ReverbPreset` and `ReverbWetDryMix` declarations and uses. The nearby `Echo(...)` uses inspected in the default form are already commented, so the Linux transform leaves them unchanged. Exact counts still need validation against the installed native archive before this option is wired into a concrete patch definition.
+The remaining firearm problem is not the desired values; it is mapping those old line-based edits to stable native block/tier identities. Linux will not use the historical line numbers as patch targets.
 
-Vehicle noclip is now represented as a semantic direct definition: exactly two `Ignore(0)` calls in `cardi.phx` and two in `old_boat_a.phx` become `Ignore(1)`. The upstream truck edits are commented out and are not included. Native prior-state verification is still required before live-game use.
+The reverb replacement pair has been reduced to a semantic transform that comments/uncomments `ReverbPreset` and `ReverbWetDryMix` declarations and calls. Nearby `Echo(...)` uses inspected in the default file were already commented and are left alone.
 
-Important upstream quirks recorded for parity decisions:
+Vehicle noclip is represented semantically as exactly two `Ignore(0)` calls in the car file and two in the old-boat file becoming `Ignore(1)`. The upstream truck edits are commented out and excluded.
 
-- movement enable compares checkbox value to `1s` instead of `1`;
-- instant-door disable checks the durability checkbox variable;
-- durability tooltip describes `1.0 -> 0.5`, while the handler writes `-9.0` to four durability-loss properties;
-- the NoClip vehicle handler names trucks but released edits affect car/old-boat physics while truck edits are commented;
-- FOV label `62 default` writes `62.5`.
+Deeper Pockets is represented semantically in all five character skill files by the `DeeperPockets` skill identity: `desc_params` changes from `2;4;6` to `6;12;18` and its `InventorySize` effect changes from `2` to `6`.
 
-The Linux port will preserve implemented gameplay values where feasible while correcting GUI/control-flow bugs and replacing brittle line-number mechanics with validated semantic transforms.
+Improved Loot's six default/enabled weight sets are known from the AHK, but the native loot block identities must still be verified before implementation.
+
+Preset-backed options still need content-delta audit against the native archive:
+
+- AI difficulty;
+- zombie size;
+- forced spawn;
+- weather/time.
 
 ## Implemented Linux core
 
-The Python core scaffold is implemented under `src/dirue/` with no proprietary game content:
+The Python core under `src/dirue/` contains no newly added proprietary game content and currently provides:
 
-- native Linux game-root validation using the ELF executable and required Data0 entries;
-- ZIP-compatible Data0 validation with CRC, required-entry, traversal, backslash-path, and duplicate-member checks;
-- safe temporary extraction;
-- archive rebuilding from a working tree while preserving source member order/metadata where practical;
-- strict semantic regex patch primitives for XML properties, `VarFloat` values, and simple call arguments;
-- semantic reverb enable/disable handling with exact expected call counts, mixed-state rejection, and newline preservation;
-- declarative direct patch definitions for ten source-derived options, including vehicle noclip;
-- one-time pristine backup creation that will not overwrite an existing backup;
-- validated atomic candidate installation;
-- validated atomic restore;
-- deterministic JSON CLI commands for game/archive validation.
+- native Linux game-root validation using the ELF executable;
+- ZIP validation with CRC, required-entry, traversal, backslash-path and duplicate-member checks;
+- safe temporary extraction and rebuild;
+- pristine backup creation without silent overwrite;
+- validated atomic candidate installation and restore;
+- semantic XML, `VarFloat`, call-value, Deeper Pockets, and reverb transforms;
+- declarative direct definitions for 11 source-derived options;
+- deterministic JSON CLI validation;
+- a read-only `audit-native` command for native parity research.
 
-Validation evidence currently recorded:
+The audit command reports selected property values, sunflare state, all five Deeper Pockets states, noclip call counts, reverb counts, short intro statement identifiers, loot block/weight summaries, and firearm block research hints. Historical AHK line numbers are used only to help discover native firearm block identities; they are never patch targets.
 
-- the original core scaffold's 12-test standard-library `unittest` suite passed before the reverb change;
-- the reverb-era `tests/test_patches.py` module passed all 8 tests before the noclip extension;
-- six focused direct-definition tests passed before the noclip extension;
-- three focused call-value/noclip tests pass after the extension, including exact-count rejection and proof that the truck file stays unchanged;
-- Python compilation passes for the focused changed logic and tests;
-- `pyproject.toml` previously parsed with SPDX license `GPL-3.0-only`;
-- a wheel previously built successfully with setuptools without network dependencies.
+## Validation evidence
 
-The direct definitions are source-derived and still require native prior-state verification before live-game use.
+Validation evidence is kept specific to the code state it tested:
 
-This core has **not yet been run against or used to modify the installed Steam game**. Native-install QA remains a separate gate.
+- the original scaffold's 12-test suite passed before later feature additions;
+- reverb, direct-definition and noclip changes each passed focused synthetic tests when introduced;
+- the Deeper Pockets work passed a 22-test focused suite plus Python compilation and corrected whitespace/privacy checks;
+- the read-only native audit passed 9 focused synthetic tests, including a synthetic `Data0.pak` test proving the audit leaves archive bytes unchanged;
+- Python compilation passed for the audit code/tests;
+- the audit submission passed privacy scanning and `git diff --check` in its local validation harness;
+- packaging previously produced a wheel successfully without network dependencies.
 
-## Planned Linux architecture
+No GitHub Actions were used.
 
-- Python core and CLI
-- PySide6 GUI after patch-engine parity is sufficiently established
-- standard-library ZIP/file processing where sufficient
-- deterministic patch engine independent of GUI
-- declarative patch definitions with semantic match validation
-- verified pristine-base model for repeatable option toggling
-- backup/restore and transactional archive replacement
-- local deterministic tests
-- AppImage or other packaging only after parity validation
+The current code has **not yet been run against or used to modify the installed Steam game**. Native execution remains a separate gate.
 
 ## Current gates
 
-1. Expand the two large firearm transforms into semantic patch definitions.
-2. Audit/diff the remaining bundled replacement files and ZIP presets and classify redistribution provenance.
-3. Verify every resulting target/default state, including reverb call counts and direct-definition prior values, against the native Linux `Data0.pak` without committing extracted game content.
-4. Add the remaining Milestone-1 patch definitions on top of the validated semantic primitives.
-5. Exercise read-only game/archive validation against the native Steam installation.
-6. Exercise candidate rebuild/validation against a disposable copy before any live-game write.
-7. Validate pristine backup/restore and atomic replacement against the QA installation only after the transaction path is reviewed.
-8. Reproduce all Milestone-1 gameplay options.
-9. Add the Linux-native GUI.
-10. Package only after functional validation.
+1. Run the repository's read-only native audit against the installed Linux game.
+2. Use that evidence to replace the remaining firearm line references with stable block/tier identities.
+3. Map Improved Loot and intro statements semantically from the same native evidence.
+4. Confirm direct-option prior values and exact reverb call counts.
+5. Audit preset ZIP deltas against the native archive without committing extracted game content.
+6. Implement and test the remaining Milestone-1 definitions.
+7. Run a candidate rebuild/validation against a disposable archive copy before any live write.
+8. Review and then test pristine backup/restore and atomic replacement on the QA installation.
+9. Reproduce all Milestone-1 gameplay options.
+10. Add the Linux-native GUI.
+11. Package only after functional validation.
 
 ## Publication state
 
-No release, Nexus publication, upstream submission, or other external publication has been authorized. The public fork is the development repository; `linux-port` is the active porting branch.
+No main integration, release, public binary, Nexus publication, upstream submission, or other external publication has been authorized. `linux-port` remains the active development branch.
