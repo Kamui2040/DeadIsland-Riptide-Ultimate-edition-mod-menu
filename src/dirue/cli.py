@@ -15,6 +15,7 @@ from .errors import DirueError
 from .game import validate_game_root
 from .preset_audit import audit_presets
 from .research import audit_native_research
+from .source_map import audit_source_map
 
 
 def _archive_payload(info) -> dict[str, object]:
@@ -58,6 +59,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     research_parser.add_argument("root", type=Path)
 
+    source_map_parser = subparsers.add_parser(
+        "audit-source-map",
+        help="correlate released firearm line hints to native semantic context read-only",
+    )
+    source_map_parser.add_argument("root", type=Path)
+    source_map_parser.add_argument("--source", type=Path, default=Path("DIRUE.ahk"))
+
     candidate_parser = subparsers.add_parser(
         "build-candidate", help="build a disposable validated candidate archive"
     )
@@ -90,6 +98,8 @@ def main(argv: list[str] | None = None) -> int:
             payload = {"presets": audit_presets(args.root, args.preset_dir)}
         elif args.command == "audit-research":
             payload = {"research": audit_native_research(args.root)}
+        elif args.command == "audit-source-map":
+            payload = {"source_map": audit_source_map(args.root, args.source)}
         else:
             result = build_candidate(args.source, args.destination, args.options)
             payload = {
