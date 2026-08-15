@@ -60,7 +60,7 @@ Complete and native-candidate validated. Linux changes only `m_ForcedBodyScaleMi
 
 Default matches native. Every non-default preset changes active `m_AIPresets` values in a 165-call vector.
 
-Accepted sanitized evidence proves exact pristine donors exist for **Suicider** and **bandits with guns** only. The private native probe records the pristine 165-value vector SHA-256 `f162dabf233daab2954daf124a673d8beaca2ef92ead2620e9606b00a2dfaebf` without exposing any identifier list.
+Accepted sanitized evidence proves exact pristine donors exist for **Suicider** and **bandits with guns** only. A private native probe records the pristine 165-value vector SHA-256 `f162dabf233daab2954daf124a673d8beaca2ef92ead2620e9606b00a2dfaebf` without exposing any identifier list.
 
 The public-safe runtime definitions therefore:
 
@@ -74,7 +74,7 @@ These two modes are **candidate-ready**. Butcher, Ram, Bloater, Thug, and bandit
 
 ### Weather/time
 
-Vanilla matches native. The accepted structural/detail/probe evidence now proves the full behavior of all eight non-default released choices:
+Vanilla matches native. Accepted structural, ambient, and private value-probe evidence proves the full behavior of all eight non-default released choices:
 
 - Rain uses `f_game_weather = 0.8`; Storm uses `1.0`;
 - day Rain/Storm insert a commented `f_weather_interior = 0.1` override and leave native time comments untouched;
@@ -103,13 +103,13 @@ Accepted evidence is scoped to the code state that produced it:
 
 - 27 current catalog options pass native disposable candidate construction;
 - material FOV/Upgrading/POV interactions and a maximal compatible candidate pass;
-- source-map-v2 supplies complete firearm reconstruction data;
-- preset-v5 supplies Hard-AI/zombie-size value behavior and preset boundaries;
-- FOV-recoil-v2 supplies repeated-block recoil mapping;
-- unresolved-preset-v1 proves Hard AI has no hidden structure and maps weather/spawn structure;
-- unresolved-detail-v1 proves only Suicider and armed-bandit forced-spawn values have exact pristine donors and confirms ambient weather values;
-- weather-probe-v1 supplies the full native spawn-vector digest plus the final whitelisted weather/time statement arguments;
-- transaction-QA-v1 passes with exact-original recovery;
+- accepted firearm source-map evidence supplies complete firearm reconstruction data;
+- hardened preset evidence supplies Hard-AI/zombie-size behavior and preset boundaries;
+- corrected recoil evidence supplies repeated-block camera-recoil mapping;
+- sanitized unresolved-preset evidence proves Hard AI has no hidden structure and maps weather/spawn structure;
+- sanitized detail evidence proves only Suicider and armed-bandit forced-spawn values have exact pristine donors and confirms ambient weather values;
+- the private weather/spawn probe supplies the full native spawn-vector digest plus final whitelisted weather/time statement arguments;
+- native transaction evidence passes with exact-original recovery;
 - the eight weather and two donor-backed spawn implementations have focused synthetic/native-shape regression coverage but still require the next physical full suite and disposable candidates;
 - no GitHub Actions were used.
 
@@ -124,6 +124,6 @@ Accepted evidence is scoped to the code state that produced it:
 
 ## Cleanup and publication
 
-Cleanup is continuous. Superseded QA generations are removed only after replacement evidence is accepted. Current candidate-v5, Hard-v1, preset-v5, FOV-recoil-v2, source-map-v2, native baseline, transaction-QA-v1, unresolved-preset-v1, unresolved-detail-v1, and weather-probe-v1 evidence remain current until their questions are fully promoted into native candidate evidence. The pristine backup is retained recovery material.
+Cleanup is continuous. Superseded QA generations are removed only after replacement evidence is accepted. Current accepted candidate, preset, recoil, source-map, native-baseline, transaction, unresolved-preset/detail, and private weather/spawn evidence remain preserved until their questions are fully promoted into native candidate evidence. The pristine backup is retained recovery material.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized. `linux-port` remains the active development branch.
