@@ -51,10 +51,12 @@ The Linux port must operate on the user's installed `DIR/Data0.pak`:
 4. Work only in temporary storage.
 5. Apply selected transformations with explicit preconditions.
 6. Rebuild and validate the candidate archive.
-7. Replace the live archive atomically only after validation passes.
-8. Retain recovery material and clean proven-obsolete temporary files.
+7. Before replacement, require the live archive and pristine backup to match the candidate source identity and reject entry-count drift.
+8. Recheck the live source hash immediately before atomic replacement.
+9. Replace the live archive atomically only after validation passes.
+10. Retain recovery material and clean proven-obsolete temporary files.
 
-Never perform an in-place partial rewrite of the live archive. A failed validation must leave the live archive unchanged.
+Never perform an in-place partial rewrite of the live archive. Never install over an unexpected live state. A failed validation must leave the live archive unchanged. Validate backup identity before restore, while still permitting recovery when the live archive is missing or corrupt.
 
 ## Patch-engine standards
 

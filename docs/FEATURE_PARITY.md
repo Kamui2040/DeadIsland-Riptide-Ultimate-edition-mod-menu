@@ -5,8 +5,8 @@ This document is the authoritative released-control inventory for the native Lin
 Status terms:
 
 - **Native-validated**: semantic definition passed a disposable build against the validated native Data0.
-- **Candidate-ready**: semantic definition is implemented and synthetically validated, but still needs a native disposable build.
-- **Research**: released behavior is known but native semantic preconditions are not yet complete.
+- **Candidate-ready**: semantic definition is implemented and synthetically validated but still needs a native disposable build.
+- **Research**: released behavior is known but native semantic preconditions are not complete.
 - **Preset unresolved**: released preset behavior is not yet represented by a public-safe complete semantic transform.
 - **Inactive upstream**: handler exists but released GUI control is commented out.
 
@@ -16,7 +16,7 @@ Status terms:
 |---|---|---|
 | Select folder | Validates a Windows `.exe`/DLL/Data0 layout. | Validate native ELF `DeadIslandRiptideGame`, expected `DIR` layout, and safe ZIP-compatible Data0. |
 | Enable music? | Starts/stops bundled Windows helper audio. | Not required for gameplay parity; Windows helper is not carried over. |
-| Confirm modifications | Deletes live Data0 before rebuilding/copying. | Build from a pristine validated base, validate candidate, preserve backup, and use recoverable atomic replacement. |
+| Confirm modifications | Deletes live Data0 before rebuilding/copying. | Build from a verified base, validate a candidate, preserve a pristine backup, bind installation to the source hash, and replace atomically. |
 
 Upstream also unconditionally replaces `data/game.ini` and `data/menu/scr/menumain_pc.xui` from bundled files. These remain provenance-sensitive and are not assumed necessary merely because the Windows script copied them.
 
@@ -63,7 +63,7 @@ Released choices: 62 default, 72, 82.
 
 - pristine `CameraDefaultFOV=62.5`;
 - no active recoil restoration in the released handler;
-- represented on Linux by absence of the 72/82 non-default transform.
+- represented by absence of the 72/82 non-default transform.
 
 Status: baseline/no patch required.
 
@@ -77,7 +77,7 @@ Status: baseline/no patch required.
 
 Native repeated-block evidence maps the four authored tier recoil calls to blocks 2/4/6/8 of each eight-block item group. Runtime targeting validates the full marker sequence and never uses source lines.
 
-Status: **Candidate-ready**.
+Status: **Native-validated**.
 
 ### FOV 82
 
@@ -86,9 +86,9 @@ Status: **Candidate-ready**.
 - active pistol base recoil: Desert Eagle `0.008`, Magnum `0.010`, M9 `0.015`, McCall `0.015`, Colt `0.015`;
 - commented tier lines remain excluded.
 
-Status: **Candidate-ready**.
+Status: **Native-validated**.
 
-Camera FOV 72/82 are mutually exclusive. When Better Firearms Upgrading is also selected, upgrading is applied first; the camera edit changes only the base pistol recoil and preserves the verified upgraded tier tail.
+Camera FOV 72/82 are mutually exclusive. Native candidate interaction checks pass with Better Firearms Upgrading and with matching POV variants. When Upgrading is also selected, it is applied first and the camera edit changes only verified base recoil while preserving the upgraded tier tail.
 
 ## Better Firearms POV
 
@@ -138,7 +138,7 @@ One-hit and headshot-only are mutually exclusive alternatives from the same rele
 
 Released choices: extra-small, midget, normal, large, supersize.
 
-The hardened preset-v5 audit shows that normal matches native and every non-default difference is confined to `m_ForcedBodyScaleMin`/`m_ForcedBodyScaleMax` in exactly four members:
+The hardened preset audit shows normal matches native and every non-default difference is confined to `m_ForcedBodyScaleMin`/`m_ForcedBodyScaleMax` in exactly four members:
 
 - `data/presets/infectedai.pre`;
 - `data/presets/infectedai_pre.def`;
@@ -153,9 +153,9 @@ Released constants:
 - large `2.0`;
 - supersize `5.0`.
 
-Linux does not copy the preset archives. It validates exact native Min/Max sequences with occurrence counts and SHA-256 digests, then changes only those call arguments. The four non-default options are mutually exclusive.
+Linux does not copy preset archives. It validates exact native Min/Max sequences with occurrence counts and SHA-256 digests, then changes only those call arguments. The four non-default options are mutually exclusive.
 
-Status: **Candidate-ready** for extra-small, midget, large, and supersize; normal is baseline/no patch required.
+Status: **Native-validated** for extra-small, midget, large, and supersize; normal is baseline/no patch required.
 
 ## Forced-spawn dropdown
 
@@ -163,7 +163,7 @@ Target replaced by the release: `data/presets/aispawnbox_pre.def`.
 
 Choices: normal, Butchers, Rams, Bloaters, Thugs, Suiciders, bandits with guns, bandits with melee.
 
-Preset-v5 confirms default matches native and non-default modes contain large semantic sets of AI-preset identifier replacements. Those strings are provenance-sensitive and a public-safe algorithmic reconstruction has not yet been proven.
+Hardened preset evidence confirms default matches native and non-default modes contain large semantic sets of AI-preset identifier replacements. Those strings are provenance-sensitive and a public-safe complete algorithmic reconstruction has not been proven.
 
 Status: **Preset unresolved**.
 
@@ -201,17 +201,19 @@ The Linux port intentionally does not reproduce Windows implementation hazards:
 
 1. using the repository-bundled Data0 as a patch base;
 2. deleting live Data0 before validated replacement;
-3. runtime hard-coded line-number targeting;
-4. full-file preset replacement without provenance review;
-5. placeholder disable paths tied to a prearranged bundled archive;
-6. Wine/Proton or Windows helper runtime dependencies.
+3. installing over a live archive whose hash no longer matches the candidate source;
+4. accepting a pristine backup whose hash does not match that source;
+5. runtime hard-coded line-number targeting;
+6. full-file preset replacement without provenance review;
+7. placeholder disable paths tied to a prearranged bundled archive;
+8. Wine/Proton or Windows helper runtime dependencies.
 
-Each transform must specify stable targets, accepted prior state, desired state, exact match/sequence expectations, and fail closed on missing, ambiguous, malformed, or unexpected input.
+Candidate installation validates candidate, live archive, and backup; requires source-hash agreement and matching entry counts; writes through a same-directory temporary file; rechecks the live hash immediately before atomic replacement; and verifies the installed hash afterward. Restore validates the backup and can recover even if the live archive is missing.
+
+Each gameplay transform must specify stable targets, accepted prior state, desired state, exact match/sequence expectations, and fail closed on missing, ambiguous, malformed, or unexpected input.
 
 ## Current validation boundary
 
-Twenty catalog options are native disposable-candidate validated. Six newer non-default options—camera FOV 72/82 and four zombie-size choices—are candidate-ready from accepted read-only native/preset evidence plus focused synthetic tests.
+All 26 semantic non-default catalog options are native disposable-candidate validated. The latest candidate run also passed four material FOV interactions, one maximal compatible combination containing the newly added families, and both camera-FOV and zombie-size conflict checks.
 
-The next physical candidate run should validate only these new options and their material interactions rather than repeat superseded audit collection.
-
-The installed native game has not been modified by the Linux port. Live replacement remains gated behind new-option candidate validation followed by backup/restore and atomic-install QA.
+The installed native game has not been modified by the Linux port. The next physical gate is backup/install/restore transaction QA using the newly hash-bound CLI path. Gameplay/visual QA follows only after the exact original Data0 is restored successfully.

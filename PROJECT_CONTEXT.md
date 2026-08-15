@@ -20,17 +20,15 @@ Accepted physical native-Linux evidence:
 - archive size 7,932,941 bytes;
 - SHA-256 `0afeadca8fb84147cc2c815ec37d1f3c940d40fab6c0a343b7b84e7f41d3c991`.
 
-The hash is evidence for the audited installation, not a permanent compatibility requirement. All read-only audits and disposable candidate runs so far left the installed archive unchanged.
+The hash is evidence for the audited installation, not a permanent compatibility requirement. Read-only audits and disposable candidate work completed so far left the installed archive unchanged.
 
-Raw local reports, machine-specific paths, extracted game content, and temporary candidate archives are not committed to Git.
+Raw local reports, machine-specific paths, extracted game content, authentic backups, and temporary candidate archives are not committed to Git.
 
-## Current candidate catalog
+## Candidate catalog
 
-The catalog now contains 26 semantic non-default options.
+The catalog contains 26 semantic non-default options. All 26 now pass disposable native candidate construction against the accepted 3060-entry baseline.
 
-### Native disposable-candidate validated
-
-Twenty options passed individual disposable builds against the validated native archive. The physical retry also passed all six then-maximal compatible combinations and the then-current conflict-rejection checks:
+The first 20 validated options are:
 
 - better movement;
 - bullet penetration;
@@ -53,9 +51,7 @@ Twenty options passed individual disposable builds against the validated native 
 - Better Firearms POV 72;
 - Better Firearms POV 82.
 
-### Candidate-ready, native build pending
-
-Six options were added from the accepted read-only FOV and preset audits and focused synthetic tests:
+The latest native candidate run additionally validated:
 
 - camera FOV 72;
 - camera FOV 82;
@@ -64,155 +60,132 @@ Six options were added from the accepted read-only FOV and preset audits and foc
 - zombie size large (`2.0`);
 - zombie size supersize (`5.0`).
 
-Default camera FOV 62.5 and normal zombie size are pristine-baseline states, so they are intentionally represented by the absence of a non-default patch rather than no-op definitions.
+That run also passed:
+
+- camera FOV 72 with Better Firearms Upgrading when supplied in reverse order;
+- camera FOV 82 with Better Firearms Upgrading when supplied in reverse order;
+- camera FOV 72 with Better Firearms POV 72;
+- camera FOV 82 with Better Firearms POV 82;
+- one maximal compatible candidate using headshot-only AI, POV 82, camera FOV 82, Better Upgrading, supersize, and the compatible direct options;
+- camera-FOV conflict rejection;
+- zombie-size conflict rejection.
+
+Every candidate retained 3060 archive entries. Candidate validation did not install any candidate into the game.
+
+Default camera FOV 62.5 and normal zombie size are pristine-baseline states and are represented by absence of a non-default patch rather than no-op definitions.
 
 Choice groups fail closed on conflicting selections: one-hit/headshot-only AI, the three Better Firearms POV variants, camera FOV 72/82, and the four non-default zombie-size variants.
 
-## Repeated firearm item groups
+## Firearm reconstruction
 
-Native `inventory_gen.scr` represents each audited firearm as a contiguous group of repeated same-name `Item(...)` blocks rather than one large block.
+Native `inventory_gen.scr` represents audited firearms as contiguous repeated same-name `Item(...)` groups. Runtime firearm transforms therefore:
 
-Runtime firearm transforms therefore:
-
-- require the matching same-name blocks to be contiguous;
-- reject interleaved `Item(...)` groups;
+- require matching same-name blocks to be contiguous;
+- reject interleaved groups;
 - validate complete call sequences across the ordered group;
 - validate `UpgradeLevel(0,0,1,1,2,2,3,3)` before tier-local insertions;
 - preserve CRLF;
 - never use historical line numbers as runtime targets.
 
-This grouping model passed the physical 20-option candidate retry.
+The accepted source-map evidence accounts for 744 active released firearm targets.
 
-## Direct and AI controls
+Better Firearms Upgrading accounts for all 157 active targets: 58 existing-call changes plus 99 tier-local `ShotTime`/`ReloadTime` insertions. Commented rifle `ShotTime` source lines remain excluded.
 
-The native-validated semantic set includes the released direct value controls, Improved Loot, Deeper Pockets, intro skipping, reverb removal, vehicle noclip, one-hit AI, and headshot-only AI.
+Better Firearms POV plus the matching sway handlers account for 177/177 active targets at FOV 62 and 205/205 at FOV 72 and 82. All four firearm options are native-candidate validated.
 
-Vehicle noclip is limited to `ContactParams("SimpleObjects")` and `ContactParams("NonODEObjects")` in the released car and old-boat targets. Terrain, ODEObjects, Water, and the commented-out truck source edits remain untouched.
-
-Normal AI matches the represented native tree. One-hit changes only the two audited `ParamBool("one_shot", ...)` values. Headshot-only is represented by the complete named-value delta across 20 audited members.
-
-Hard AI remains unready: 56 of 57 differing members are semantically explained, while one custom vessel member still contains unresolved structure. No partial hard-mode transform is exposed.
-
-## Better Firearms Upgrading and POV
-
-The accepted source-map evidence found all seven requested firearm sections and 744 active released targets.
-
-Better Firearms Upgrading accounts for all 157 active targets:
-
-- 58 existing-call value changes;
-- 99 authored tier-local `ShotTime`/`ReloadTime` insertions.
-
-The commented rifle `ShotTime` source lines remain excluded.
-
-Better Firearms POV plus the matching sway handler accounts for:
-
-- FOV 62: 177/177 active targets;
-- FOV 72: 205/205 active targets;
-- FOV 82: 205/205 active targets.
-
-All four firearm options now pass native disposable candidate builds. POV remains separate from the camera FOV dropdown, matching released control flow.
-
-## Camera FOV reconstruction
+## Camera FOV
 
 Released choices are 62 default, 72, and 82.
 
-- 62 uses pristine `CameraDefaultFOV=62.5` and has no active recoil restoration in the released handler.
-- 72 writes `CameraDefaultFOV=72`.
-- 82 writes `CameraDefaultFOV=82`.
-
-The accepted corrected native recoil audit verifies 13 relevant firearm groups, each with eight repeated `Item(...)` blocks and `UpgradeLevel(0,0,1,1,2,2,3,3)`.
+The accepted corrected recoil audit verifies 13 relevant firearm groups with eight repeated `Item(...)` blocks and `UpgradeLevel(0,0,1,1,2,2,3,3)`.
 
 For the seven shotgun families plus CrowdPleaser:
 
 - pristine native has one base `ShootVertRecoil(0.1)` in block 1;
-- the four tier-local slots map to repeated-item blocks 2, 4, 6, and 8;
+- the four authored tier slots map to blocks 2, 4, 6, and 8;
 - FOV 72 produces `0.06, 0.14, 0.14, 0.14, 0.14`;
 - FOV 82 produces `0.033, 0.14, 0.14, 0.14, 0.14`.
 
-For the five pistol groups, native already has five recoil calls across blocks 1, 2, 4, 6, and 8. The released camera handlers change only the active base calls:
+For the five pistol groups the released camera handlers change only active base recoil calls. FOV 72 changes Desert Eagle, Magnum, M9, and McCall; FOV 82 additionally changes Colt. Commented tier-recoil source lines remain excluded.
 
-- FOV 72: Desert Eagle `0.015`, Magnum `0.017`, M9 `0.015`, McCall `0.015`; Colt is unchanged.
-- FOV 82: Desert Eagle `0.008`, Magnum `0.010`, M9 `0.015`, McCall `0.015`, Colt `0.015`.
+Candidate construction deterministically applies Better Upgrading before camera FOV when both are selected. The native interaction candidates for FOV 72/82 with Upgrading and matching POV variants now pass.
 
-Commented tier-recoil lines remain excluded.
+## AI and preset-backed controls
 
-Camera FOV and Better Upgrading can be selected together. Candidate construction deterministically applies upgrading before camera FOV, and the FOV base-recoil edit accepts either the pristine or verified upgraded pistol tail while preserving that tail.
+Normal AI matches the represented native tree. One-hit changes only the two audited `ParamBool("one_shot", ...)` values. Headshot-only is represented by the complete named-value delta across 20 audited members. Both non-default difficulty modes are native-candidate validated and mutually exclusive.
 
-The implementation accounts for 45 active released writes at FOV 72 and 46 at FOV 82. Both options are candidate-ready and still need disposable native builds.
-
-## Hardened preset evidence
-
-The accepted preset-v5 comparison is read-only and keeps unknown structure fail-closed.
+Hard AI remains unready: 56 of 57 differing members are semantically explained while one custom vessel member still contains unresolved structure. No partial hard-mode transform is exposed.
 
 ### Zombie size
 
-Normal size matches native. Each non-default size differs in exactly four members:
+The hardened preset comparison shows normal size matches native and every non-default difference is confined to `m_ForcedBodyScaleMin`/`m_ForcedBodyScaleMax` in exactly four members:
 
 - `data/presets/infectedai.pre`;
 - `data/presets/infectedai_pre.def`;
 - `data/presets/zombieai.pre`;
 - `data/presets/zombieai_pre.def`.
 
-Every classified difference is a `m_ForcedBodyScaleMin` or `m_ForcedBodyScaleMax` value change, and all four members are semantically complete apart from layout/trailing active comments.
-
-Linux does not copy the preset files. It validates the exact native Min/Max value sequences using occurrence counts and SHA-256 digests, then changes only those named call arguments to the selected released constant. This preserves proprietary native/preset value vectors outside Git.
-
-The four non-default modes are candidate-ready; normal is the pristine baseline.
+Linux validates exact native Min/Max sequences using occurrence counts and SHA-256 digests and changes only those call arguments. No preset file or native value vector is copied into Git. All four non-default size modes now pass native disposable candidates.
 
 ### Forced spawn
 
-Default spawn matches native. Non-default variants now expose large semantic sets of AI-preset identifier replacements in `aispawnbox_pre.def`. Those identifiers are provenance-sensitive and no public-safe algorithmic transform has yet been proven, so forced spawn remains unready rather than copying the preset content.
+Default spawn matches native. Non-default variants expose large semantic sets of AI-preset identifier replacements in `aispawnbox_pre.def`. Those identifiers remain provenance-sensitive and no public-safe complete algorithmic transform is proven, so forced spawn remains unready.
 
 ### Weather/time
 
 Vanilla matches native. Non-default variants still contain unresolved behavior in `logic_script.scr` and/or `weather.scr`, even where ambient named values are understood. They remain unready.
 
-## Linux core and transaction safety
+## Transaction safety
 
-The Python core provides:
+The Linux core now provides:
 
-- native ELF/game-root validation;
 - strict ZIP validation with CRC, unsafe-path, and duplicate checks;
 - safe extraction/rebuild helpers;
 - pristine backup creation without silent overwrite;
-- validated atomic candidate installation and restore primitives;
-- in-memory candidate building from a validated source archive;
-- semantic XML, named-call, named-block, loot, intro, reverb, Deeper Pockets, noclip, AI, firearm-upgrading, firearm-POV, camera-FOV, and zombie-size transforms;
-- one-choice conflict validation;
-- deterministic option interaction ordering where required;
-- deterministic JSON CLI validation;
-- read-only native, preset, research, source-map, and FOV-recoil audits.
+- in-memory candidate construction from validated source archives;
+- same-directory temporary writes followed by atomic replacement;
+- pre-replacement verification that live Data0 still matches the candidate source hash;
+- verification that the pristine backup matches that same source hash;
+- candidate/live/backup entry-count checks before installation;
+- optional expected-candidate hash binding;
+- expected-backup hash verification before restore;
+- recovery that can restore a valid backup even if the live archive is missing;
+- CLI commands for backup creation, candidate installation, and backup restore.
+
+Install replacement rechecks the live destination hash after the temporary candidate copy is fully written and fsynced but before `os.replace`. An unexpected live change therefore fails closed before replacement.
 
 Linux patching must start from the validated installed archive or a verified pristine backup derived from it. The inherited repository `Data0.pak` is never a Linux patch source or install payload.
 
-A failed candidate build or validation must leave the live archive unchanged. The installed game has not yet been modified by the Linux port.
+The installed game has still not been modified by the Linux port.
 
 ## Validation evidence and next gates
 
 Accepted evidence is scoped to the code state that produced it:
 
-- the earlier 15-option catalog passed individual and combined native disposable candidates;
-- the repeated-item fix checkout passed the then-current full suite and the following physical retry passed all 20 individual candidates, all six maximal compatible combinations, and conflict rejection;
-- source-map-v2 supplied complete 744-target firearm reconstruction evidence;
-- preset-v5 supplied durable hardened preset evidence;
-- the corrected FOV-recoil audit supplied durable repeated-block recoil evidence for all 13 requested groups;
-- focused local synthetic checks pass for the newly added FOV and zombie-size transforms;
+- the earlier 15-option catalog passed native disposable candidates;
+- the repeated-item fix and following physical retry passed all 20 then-current options plus compatible combinations and conflicts;
+- source-map evidence supplied complete firearm reconstruction data;
+- hardened preset evidence supplied the zombie-size and remaining preset boundaries;
+- corrected FOV-recoil evidence supplied the repeated-block recoil mapping;
+- the latest physical run passed all six newly added individual native candidates, four material FOV interactions, a maximal compatible candidate, and both new conflict checks;
+- focused synthetic transaction tests pass for wrong-live, wrong-backup, wrong-candidate, entry-count drift, missing-live restore, and CLI backup/install/restore round-trip behavior;
 - no GitHub Actions were used.
 
 Next physical gates:
 
-1. run `git diff --check`, the full unit suite, and Python compilation on the current branch;
-2. build disposable native candidates for the six newly added options;
-3. validate camera FOV with Better Upgrading and representative POV combinations, plus one maximal compatible candidate containing a zombie-size choice;
-4. verify the installed Data0 hash is unchanged before and after;
-5. only after new candidates pass, review pristine backup/restore and atomic live replacement on the QA installation;
-6. finish unresolved forced-spawn, hard-AI, and weather/time parity before release work;
-7. add and validate the Linux-native GUI and packaging.
+1. sync the current `linux-port`, run `git diff --check`, the full unit suite, and Python compilation;
+2. verify the native ELF, live Data0 baseline, and absence/identity of the intended pristine backup;
+3. exercise backup creation without overwriting any existing recovery material;
+4. build one disposable candidate from the verified baseline, atomically install it through the hash-bound transaction path, and verify the installed candidate hash;
+5. restore the pristine backup through the hash-bound restore path and verify the exact original Data0 hash returns;
+6. only after transaction QA succeeds, proceed to native gameplay/visual checks of released features;
+7. finish unresolved forced-spawn, hard-AI, and weather/time parity before release work;
+8. add and validate the Linux-native GUI and packaging.
 
 ## Cleanup and publication
 
 Cleanup is continuous. Superseded versioned QA reports should be removed after replacement evidence is accepted. Current evidence, unresolved diagnostics, pristine backups, hashes, provenance/licensing material, authentic user data, unrelated work, and Git history must be preserved.
 
-The accepted preset-v5 and corrected FOV-recoil reports supersede their older preset/FOV audit generations. The source-map-v2 evidence remains current while firearm parity work is still being completed.
+The latest successful candidate evidence supersedes failed/older candidate generations. Hardened preset, corrected FOV-recoil, and source-map evidence remain current because unresolved parity decisions still depend on them.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized. `linux-port` remains the active development branch.
