@@ -116,6 +116,38 @@ class SourceMapTests(unittest.TestCase):
             ["sub main()", "Item:Firearm_B"],
         )
 
+    def test_upgrade_insertions_report_upgrade_level_anchors(self):
+        native = (
+            "sub main()\n"
+            "{\n"
+            'Item("Firearm_A")\n'
+            "{\n"
+            "    UpgradeLevel(0);\n"
+            "    ReloadTime(3.0);\n"
+            "}\n"
+            'Item("Firearm_B")\n'
+            "{\n"
+            "    UpgradeLevel(1);\n"
+            "    // insertion placeholder\n"
+            "}\n"
+            "}\n"
+        )
+        target = {
+            "section": "better_wep_upgrades_yes",
+            "source_target": "INV_GEN",
+            "historical_line": 11,
+            "desired_call": "ReloadTime",
+            "desired_arguments": "2.65",
+        }
+        result = map_targets_to_native(
+            [target],
+            {"INV_GEN": native, "INV_spec": native},
+        )[0]
+        anchors = result["upgrade_level_candidates"]
+        self.assertEqual(anchors[0]["item"], "Item:Firearm_B")
+        self.assertEqual(anchors[0]["arguments"], "1")
+        self.assertEqual(anchors[0]["line_number"], 10)
+
     def test_cli_parser_defaults_source_to_tracked_ahk(self):
         args = build_parser().parse_args(["audit-source-map", "/game"])
         self.assertEqual(args.command, "audit-source-map")

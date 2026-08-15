@@ -213,6 +213,12 @@ def map_targets_to_native(
             if desired_call is not None
             else []
         )
+        result["upgrade_level_candidates"] = (
+            _same_call_candidates(items, "UpgradeLevel", line_number)
+            if target.get("section") == "better_wep_upgrades_yes"
+            and desired_call in {"ShotTime", "ReloadTime"}
+            else []
+        )
         mapped.append(result)
     return mapped
 

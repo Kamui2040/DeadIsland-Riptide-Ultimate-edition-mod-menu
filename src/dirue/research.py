@@ -15,6 +15,7 @@ INVENTORY_GEN = "data/inventory_gen.scr"
 INVENTORY_SPECIAL = "data/inventory_special.scr"
 
 FIREARM_CALLS = (
+    "UpgradeLevel",
     "ShotTime",
     "ReloadTime",
     "ShootVertRecoil",
