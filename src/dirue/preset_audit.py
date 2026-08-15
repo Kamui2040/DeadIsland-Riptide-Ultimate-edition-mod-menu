@@ -1,0 +1,179 @@
+"""Read-only comparison of inherited preset ZIPs against a native Data0."""
+
+from __future__ import annotations
+
+from collections import Counter
+from hashlib import sha256
+from pathlib import Path
+import re
+from zipfile import ZipFile
+
+from .archive import validate_archive
+from .errors import ValidationError
+from .game import validate_game_root
+
+PRESET_GROUPS = {
+    "ai_difficulty": (
+        "ai_norm.zip",
+        "ai_Onehit.zip",
+        "ai_hard.zip",
+        "ai_Headshot.zip",
+    ),
+    "zombie_size": (
+        "PRESETS_XTRASMOL_ZOMSIZE.zip",
+        "PRESETS_MIDGET_ZOMSIZE.zip",
+        "PRESETS_NORM_ZOMSIZE.zip",
+        "PRESETS_LARGE_ZOMSIZE.zip",
+        "PRESETS_SUPASIZE_ZOMSIZE.zip",
+    ),
+    "forced_spawn": (
+        "Default_spawns.zip",
+        "force_butcher_spawn.zip",
+        "Force_ram_spawn.zip",
+        "Force_bloater_spawn.zip",
+        "Force_thug_spawn.zip",
+        "Force_suicide_spawn.zip",
+        "Force_bandits_spawn_with_guns.zip",
+        "Force_bandits_spawn_with_no_guns.zip",
+    ),
+    "weather_time": (
+        "Time-weather_vanilla.zip",
+        "time-weather_Just_night.zip",
+        "time-weather_Rain_day.zip",
+        "time-weather_Rain_night.zip",
+        "time-weather_storm_day.zip",
+        "time-weather_storm_night.zip",
+        "time-weather_Just_night_darker.zip",
+        "time-weather_Rain_night_darker.zip",
+        "time-weather_storm_night_darker.zip",
+    ),
+}
+
+
+def _digest(data: bytes) -> str:
+    return sha256(data).hexdigest()
+
+
+def _target_member(name: str, native_names: set[str]) -> str | None:
+    clean = name.lstrip("/")
+    candidates = (
+        clean,
+        f"data/{clean}",
+        f"data/presets/{clean}",
+        f"data/ai/{clean}",
+        f"data/scripts/{clean}",
+    )
+    matches = list(dict.fromkeys(candidate for candidate in candidates if candidate in native_names))
+    if len(matches) > 1:
+        raise ValidationError(f"ambiguous native target for preset member {name}")
+    return matches[0] if matches else None
+
+
+def _decode(data: bytes) -> str | None:
+    try:
+        return data.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return None
+
+
+def _semantic_tokens(text: str) -> dict[str, str]:
+    """Extract unique short key/value facts from common DIRDE text forms."""
+    pairs: list[tuple[str, str]] = []
+
+    for match in re.finditer(
+        r'<prop\b(?=[^>]*\bn="(?P<name>[^"]+)")[^>]*\bv="(?P<value>[^"]+)"[^>]*/>',
+        text,
+    ):
+        pairs.append((f'prop:{match.group("name")}', match.group("value")))
+
+    call_pattern = re.compile(
+        r'^(?!\s*//)\s*(?P<call>[A-Za-z_][A-Za-z0-9_]*)\s*\('
+        r'\s*"(?P<name>[^"]+)"\s*,\s*(?P<value>[^)]+?)\s*\)',
+        re.MULTILINE,
+    )
+    for match in call_pattern.finditer(text):
+        pairs.append(
+            (f'{match.group("call")}:{match.group("name")}', match.group("value").strip())
+        )
+
+    assignment_pattern = re.compile(
+        r'^(?!\s*//)\s*(?:float|int|bool|string)?\s*'
+        r'(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?P<value>[^;\r\n]+)',
+        re.MULTILINE,
+    )
+    for match in assignment_pattern.finditer(text):
+        pairs.append((f'assign:{match.group("name")}', match.group("value").strip()))
+
+    counts = Counter(key for key, _ in pairs)
+    return {key: value for key, value in pairs if counts[key] == 1}
+
+
+def _semantic_delta(native_data: bytes, preset_data: bytes) -> list[dict[str, str]]:
+    native_text = _decode(native_data)
+    preset_text = _decode(preset_data)
+    if native_text is None or preset_text is None:
+        return []
+    before = _semantic_tokens(native_text)
+    after = _semantic_tokens(preset_text)
+    changes = []
+    for key in sorted(before.keys() & after.keys()):
+        if before[key] != after[key]:
+            changes.append({"key": key, "native": before[key], "preset": after[key]})
+    return changes
+
+
+def audit_preset_file(preset_path: Path, native_data0: Path) -> dict[str, object]:
+    """Compare one validated preset ZIP to native Data0 without extracting either archive."""
+    info = validate_archive(preset_path)
+    with ZipFile(native_data0, "r") as native, ZipFile(preset_path, "r") as preset:
+        native_names = set(native.namelist())
+        members = []
+        for item in preset.infolist():
+            if item.is_dir():
+                continue
+            target = _target_member(item.filename, native_names)
+            preset_data = preset.read(item)
+            if target is None:
+                members.append(
+                    {
+                        "preset_member": item.filename,
+                        "native_member": None,
+                        "status": "missing_native_target",
+                        "preset_sha256": _digest(preset_data),
+                    }
+                )
+                continue
+            native_data = native.read(target)
+            same = preset_data == native_data
+            members.append(
+                {
+                    "preset_member": item.filename,
+                    "native_member": target,
+                    "status": "same" if same else "different",
+                    "preset_sha256": _digest(preset_data),
+                    "native_sha256": _digest(native_data),
+                    "semantic_changes": [] if same else _semantic_delta(native_data, preset_data),
+                }
+            )
+    return {
+        "name": preset_path.name,
+        "size": info.size,
+        "sha256": info.sha256,
+        "entry_count": info.entry_count,
+        "members": members,
+    }
+
+
+def audit_presets(game_root: Path, preset_dir: Path) -> dict[str, object]:
+    """Validate the native game and compare all released preset ZIPs read-only."""
+    game = validate_game_root(game_root)
+    result: dict[str, object] = {}
+    for group, names in PRESET_GROUPS.items():
+        group_result = []
+        for name in names:
+            path = preset_dir / name
+            if not path.is_file():
+                raise ValidationError(f"missing required preset {name}")
+            group_result.append(audit_preset_file(path, game.data0))
+        result[group] = group_result
+    return result

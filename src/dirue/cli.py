@@ -11,6 +11,7 @@ from .archive import validate_archive
 from .audit import audit_native_game
 from .errors import DirueError
 from .game import validate_game_root
+from .preset_audit import audit_presets
 
 
 def _archive_payload(info) -> dict[str, object]:
@@ -40,6 +41,14 @@ def build_parser() -> argparse.ArgumentParser:
         "audit-native", help="run a read-only native Data0 parity audit"
     )
     audit_parser.add_argument("root", type=Path)
+
+    preset_parser = subparsers.add_parser(
+        "audit-presets", help="compare released preset ZIPs to native Data0 read-only"
+    )
+    preset_parser.add_argument("root", type=Path)
+    preset_parser.add_argument(
+        "--preset-dir", type=Path, default=Path("Required_files_and_scripts")
+    )
     return parser
 
 
@@ -55,8 +64,10 @@ def main(argv: list[str] | None = None) -> int:
                 "executable": str(game.executable),
                 "data0": _archive_payload(game.archive),
             }
-        else:
+        elif args.command == "audit-native":
             payload = {"audit": audit_native_game(args.root)}
+        else:
+            payload = {"presets": audit_presets(args.root, args.preset_dir)}
     except DirueError as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2
