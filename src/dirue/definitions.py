@@ -12,9 +12,9 @@ from .patches import (
     replace_deeper_pockets_skill,
     replace_varfloat_value,
     replace_xml_prop_value,
-    set_quoted_call_commented,
     set_reverb_enabled,
 )
+from .structured import set_first_quoted_argument_call_commented
 
 
 @dataclass(frozen=True)
@@ -88,7 +88,7 @@ class CommentedCallEdit:
     expected_matches: int = 1
 
     def apply(self, text: str) -> str:
-        return set_quoted_call_commented(
+        return set_first_quoted_argument_call_commented(
             text,
             call_name=self.call_name,
             argument=self.argument,
