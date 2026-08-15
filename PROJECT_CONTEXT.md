@@ -108,6 +108,7 @@ The Python core scaffold is implemented under `src/dirue/` with no proprietary g
 - archive rebuilding from a working tree while preserving source member order/metadata where practical;
 - strict semantic regex patch primitives for XML properties and `VarFloat` values;
 - semantic reverb enable/disable handling with exact expected call counts, mixed-state rejection, and newline preservation;
+- declarative direct patch definitions for nine source-derived options, applied to an in-memory member map without mutating the input;
 - one-time pristine backup creation that will not overwrite an existing backup;
 - validated atomic candidate installation;
 - validated atomic restore;
@@ -117,11 +118,12 @@ Validation evidence currently recorded:
 
 - the original core scaffold's 12-test standard-library `unittest` suite passed before the reverb change;
 - the current `tests/test_patches.py` module passes all 8 tests, including four reverb-specific cases;
-- Python compilation passes for the changed patch module and its tests;
+- six focused direct-definition tests pass, including missing-member and wrong-prior-state rejection;
+- Python compilation passes for the changed patch/definition modules and focused tests;
 - `pyproject.toml` previously parsed with SPDX license `GPL-3.0-only`;
 - a wheel previously built successfully with setuptools without network dependencies.
 
-The reverb tests verify comment-only transformation, round-trip restoration with CRLF preservation, exact-count failure, and rejection of mixed source state.
+The reverb tests verify comment-only transformation, round-trip restoration with CRLF preservation, exact-count failure, and rejection of mixed source state. The direct definitions are source-derived and still require native prior-state verification before live-game use.
 
 This core has **not yet been run against or used to modify the installed Steam game**. Native-install QA remains a separate gate.
 
@@ -141,8 +143,8 @@ This core has **not yet been run against or used to modify the installed Steam g
 
 1. Expand the two large firearm transforms into semantic patch definitions.
 2. Audit/diff the remaining bundled replacement files and ZIP presets and classify redistribution provenance.
-3. Verify every resulting target/default state, including reverb call counts, against the native Linux `Data0.pak` without committing extracted game content.
-4. Add concrete Milestone-1 patch definitions on top of the validated semantic primitives.
+3. Verify every resulting target/default state, including reverb call counts and direct-definition prior values, against the native Linux `Data0.pak` without committing extracted game content.
+4. Add the remaining Milestone-1 patch definitions on top of the validated semantic primitives.
 5. Exercise read-only game/archive validation against the native Steam installation.
 6. Exercise candidate rebuild/validation against a disposable copy before any live-game write.
 7. Validate pristine backup/restore and atomic replacement against the QA installation only after the transaction path is reviewed.
