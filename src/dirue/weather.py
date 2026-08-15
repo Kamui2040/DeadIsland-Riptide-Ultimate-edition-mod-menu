@@ -47,7 +47,8 @@ class WeatherLogicEdit:
             r'^(?P<header_indent>[ \t]*)//[ \t]*WEATHER START[^\r\n]*(?P<header_eol>\r?\n)'
             r'(?P<game_line>(?P<game_indent>[ \t]*)extern[ \t]+float[ \t]+'
             r'f_game_weather[ \t]*;[ \t]*(?P<game_eol>\r?\n))'
-            r'(?=[ \t]*extern[ \t]+float[ \t]+f_weather_interior[ \t]*;)',
+            r'(?=(?:[ \t]*\r?\n)*[ \t]*extern[ \t]+float[ \t]+'
+            r'f_weather_interior[ \t]*;)',
             re.MULTILINE,
         )
         weather_match = _single_match(weather_anchor, text, "weather:f_game_weather")
