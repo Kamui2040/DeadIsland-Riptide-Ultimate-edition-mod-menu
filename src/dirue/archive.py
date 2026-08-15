@@ -139,7 +139,14 @@ def _fsync_directory(path: Path) -> None:
         os.close(fd)
 
 
-def _atomic_copy(source: Path, destination: Path, mode: int | None = None) -> None:
+def _atomic_copy(
+    source: Path,
+    destination: Path,
+    mode: int | None = None,
+    *,
+    expected_destination_sha256: str | None = None,
+) -> None:
+    """Copy through a same-directory temp file and replace only after final checks."""
     destination.parent.mkdir(parents=True, exist_ok=True)
     fd, temp_name = tempfile.mkstemp(prefix=f".{destination.name}.", dir=destination.parent)
     temp_path = Path(temp_name)
@@ -150,6 +157,16 @@ def _atomic_copy(source: Path, destination: Path, mode: int | None = None) -> No
             os.fsync(output.fileno())
         if mode is not None:
             os.chmod(temp_path, mode)
+        if expected_destination_sha256 is not None:
+            if not destination.is_file():
+                raise ValidationError(
+                    f"destination disappeared before atomic replacement: {destination}"
+                )
+            current_sha256 = sha256_file(destination)
+            if current_sha256 != expected_destination_sha256:
+                raise ValidationError(
+                    "destination archive changed before atomic replacement"
+                )
         os.replace(temp_path, destination)
         _fsync_directory(destination.parent)
     except BaseException:
@@ -157,37 +174,96 @@ def _atomic_copy(source: Path, destination: Path, mode: int | None = None) -> No
         raise
 
 
-def ensure_pristine_backup(live_archive: Path, backup_path: Path) -> ArchiveInfo:
+def ensure_pristine_backup(
+    live_archive: Path,
+    backup_path: Path,
+    *,
+    expected_live_sha256: str | None = None,
+) -> ArchiveInfo:
     """Create a backup once; never overwrite an existing recoverable original."""
     live_info = validate_archive(live_archive)
+    if expected_live_sha256 is not None and live_info.sha256 != expected_live_sha256:
+        raise ValidationError("live archive hash differs from expected pristine baseline")
+
     backup_path = Path(backup_path)
     if backup_path.exists():
-        return validate_archive(backup_path)
-    _atomic_copy(Path(live_archive), backup_path, mode=Path(live_archive).stat().st_mode & 0o7777)
+        backup_info = validate_archive(backup_path)
+        if (
+            expected_live_sha256 is not None
+            and backup_info.sha256 != expected_live_sha256
+        ):
+            raise ValidationError(
+                "existing pristine backup hash differs from expected baseline"
+            )
+        return backup_info
+
+    _atomic_copy(
+        Path(live_archive),
+        backup_path,
+        mode=Path(live_archive).stat().st_mode & 0o7777,
+    )
     backup_info = validate_archive(backup_path)
     if backup_info.sha256 != live_info.sha256:
         raise ValidationError("pristine backup hash differs from source archive")
     return backup_info
 
 
-def install_candidate(candidate: Path, live_archive: Path, pristine_backup: Path) -> ArchiveInfo:
-    """Validate a candidate and atomically replace the live archive, retaining backup."""
+def install_candidate(
+    candidate: Path,
+    live_archive: Path,
+    pristine_backup: Path,
+    *,
+    expected_live_sha256: str,
+    expected_candidate_sha256: str | None = None,
+) -> ArchiveInfo:
+    """Validate and atomically install a candidate only over its verified source."""
     candidate_info = validate_archive(candidate)
-    validate_archive(pristine_backup)
+    if (
+        expected_candidate_sha256 is not None
+        and candidate_info.sha256 != expected_candidate_sha256
+    ):
+        raise ValidationError("candidate hash differs from expected candidate")
+
+    backup_info = validate_archive(pristine_backup)
+    live_info = validate_archive(live_archive)
+
+    if live_info.sha256 != expected_live_sha256:
+        raise ValidationError("live archive hash differs from expected candidate source")
+    if backup_info.sha256 != expected_live_sha256:
+        raise ValidationError("pristine backup hash differs from expected candidate source")
+    if backup_info.entry_count != live_info.entry_count:
+        raise ValidationError("pristine backup entry count differs from live archive")
+    if candidate_info.entry_count != live_info.entry_count:
+        raise ValidationError("candidate entry count differs from live archive")
+
     live_archive = Path(live_archive)
-    if not live_archive.is_file():
-        raise ValidationError(f"live archive does not exist: {live_archive}")
     mode = live_archive.stat().st_mode & 0o7777
-    _atomic_copy(Path(candidate), live_archive, mode=mode)
+    _atomic_copy(
+        Path(candidate),
+        live_archive,
+        mode=mode,
+        expected_destination_sha256=expected_live_sha256,
+    )
     installed = validate_archive(live_archive)
     if installed.sha256 != candidate_info.sha256:
         raise ValidationError("installed archive hash differs from validated candidate")
     return installed
 
 
-def restore_backup(pristine_backup: Path, live_archive: Path) -> ArchiveInfo:
+def restore_backup(
+    pristine_backup: Path,
+    live_archive: Path,
+    *,
+    expected_backup_sha256: str | None = None,
+) -> ArchiveInfo:
     """Validate and atomically restore the pristine archive."""
     backup_info = validate_archive(pristine_backup)
+    if (
+        expected_backup_sha256 is not None
+        and backup_info.sha256 != expected_backup_sha256
+    ):
+        raise ValidationError("pristine backup hash differs from expected backup")
+
     live_archive = Path(live_archive)
     mode = (live_archive.stat().st_mode & 0o7777) if live_archive.exists() else 0o644
     _atomic_copy(Path(pristine_backup), live_archive, mode=mode)

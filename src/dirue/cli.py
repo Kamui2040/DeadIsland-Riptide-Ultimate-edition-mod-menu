@@ -5,9 +5,15 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
 
-from .archive import validate_archive
+from .archive import (
+    ensure_pristine_backup,
+    install_candidate,
+    restore_backup,
+    validate_archive,
+)
 from .audit import audit_native_game
 from .catalog import READY_PATCHES
 from .engine import build_candidate
@@ -26,6 +32,13 @@ def _archive_payload(info) -> dict[str, object]:
         "sha256": info.sha256,
         "entry_count": info.entry_count,
     }
+
+
+def _sha256_arg(value: str) -> str:
+    normalized = value.lower()
+    if re.fullmatch(r"[0-9a-f]{64}", normalized) is None:
+        raise argparse.ArgumentTypeError("expected a 64-character SHA-256 hex digest")
+    return normalized
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -84,6 +97,44 @@ def build_parser() -> argparse.ArgumentParser:
         choices=sorted(READY_PATCHES),
         help="ready semantic options to apply from the source baseline",
     )
+
+    backup_parser = subparsers.add_parser(
+        "backup-pristine",
+        help="create a validated pristine backup without overwriting an existing one",
+    )
+    backup_parser.add_argument("live", type=Path)
+    backup_parser.add_argument("backup", type=Path)
+    backup_parser.add_argument("--expected-live-sha256", type=_sha256_arg)
+
+    install_parser = subparsers.add_parser(
+        "install-candidate",
+        help="atomically install a validated candidate over its verified source archive",
+    )
+    install_parser.add_argument("candidate", type=Path)
+    install_parser.add_argument("live", type=Path)
+    install_parser.add_argument("backup", type=Path)
+    install_parser.add_argument(
+        "--expected-live-sha256",
+        required=True,
+        type=_sha256_arg,
+    )
+    install_parser.add_argument(
+        "--expected-candidate-sha256",
+        required=True,
+        type=_sha256_arg,
+    )
+
+    restore_parser = subparsers.add_parser(
+        "restore-backup",
+        help="atomically restore a validated pristine backup",
+    )
+    restore_parser.add_argument("backup", type=Path)
+    restore_parser.add_argument("live", type=Path)
+    restore_parser.add_argument(
+        "--expected-backup-sha256",
+        required=True,
+        type=_sha256_arg,
+    )
     return parser
 
 
@@ -109,7 +160,7 @@ def main(argv: list[str] | None = None) -> int:
             payload = {"fov_recoil": audit_fov_recoil(args.root)}
         elif args.command == "audit-source-map":
             payload = {"source_map": audit_source_map(args.root, args.source)}
-        else:
+        elif args.command == "build-candidate":
             result = build_candidate(args.source, args.destination, args.options)
             payload = {
                 "candidate": {
@@ -119,6 +170,38 @@ def main(argv: list[str] | None = None) -> int:
                     "selected_options": list(result.selected_options),
                     "changed_members": list(result.changed_members),
                 }
+            }
+        elif args.command == "backup-pristine":
+            payload = {
+                "backup": _archive_payload(
+                    ensure_pristine_backup(
+                        args.live,
+                        args.backup,
+                        expected_live_sha256=args.expected_live_sha256,
+                    )
+                )
+            }
+        elif args.command == "install-candidate":
+            payload = {
+                "installed": _archive_payload(
+                    install_candidate(
+                        args.candidate,
+                        args.live,
+                        args.backup,
+                        expected_live_sha256=args.expected_live_sha256,
+                        expected_candidate_sha256=args.expected_candidate_sha256,
+                    )
+                )
+            }
+        else:
+            payload = {
+                "restored": _archive_payload(
+                    restore_backup(
+                        args.backup,
+                        args.live,
+                        expected_backup_sha256=args.expected_backup_sha256,
+                    )
+                )
             }
     except DirueError as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, sort_keys=True), file=sys.stderr)

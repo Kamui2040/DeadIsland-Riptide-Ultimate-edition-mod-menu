@@ -57,11 +57,27 @@ class ArchiveTests(unittest.TestCase):
             self.make_zip(live, {"data/value": b"original"})
             self.make_zip(candidate, {"data/value": b"modified"})
 
-            pristine = ensure_pristine_backup(live, backup)
+            live_info = validate_archive(live)
+            candidate_info = validate_archive(candidate)
+            pristine = ensure_pristine_backup(
+                live,
+                backup,
+                expected_live_sha256=live_info.sha256,
+            )
             original_hash = pristine.sha256
-            installed = install_candidate(candidate, live, backup)
+            installed = install_candidate(
+                candidate,
+                live,
+                backup,
+                expected_live_sha256=original_hash,
+                expected_candidate_sha256=candidate_info.sha256,
+            )
             self.assertNotEqual(installed.sha256, original_hash)
-            restored = restore_backup(backup, live)
+            restored = restore_backup(
+                backup,
+                live,
+                expected_backup_sha256=original_hash,
+            )
             self.assertEqual(restored.sha256, original_hash)
 
     def test_rejects_duplicate_member_names(self):
@@ -83,11 +99,20 @@ class ArchiveTests(unittest.TestCase):
             candidate = root / "candidate.pak"
             self.make_zip(live, {"data/value": b"original"})
             original = validate_archive(live).sha256
-            ensure_pristine_backup(live, backup)
+            ensure_pristine_backup(
+                live,
+                backup,
+                expected_live_sha256=original,
+            )
             candidate.write_bytes(b"not a zip")
 
             with self.assertRaises(ValidationError):
-                install_candidate(candidate, live, backup)
+                install_candidate(
+                    candidate,
+                    live,
+                    backup,
+                    expected_live_sha256=original,
+                )
             self.assertEqual(validate_archive(live).sha256, original)
 
     def test_existing_pristine_backup_is_not_overwritten(self):
@@ -96,11 +121,114 @@ class ArchiveTests(unittest.TestCase):
             live = root / "Data0.pak"
             backup = root / "Data0.pak.dirue-pristine"
             self.make_zip(live, {"data/value": b"original"})
-            original_backup = ensure_pristine_backup(live, backup).sha256
+            original = validate_archive(live).sha256
+            original_backup = ensure_pristine_backup(
+                live,
+                backup,
+                expected_live_sha256=original,
+            ).sha256
             self.make_zip(live, {"data/value": b"later"})
 
             existing = ensure_pristine_backup(live, backup)
             self.assertEqual(existing.sha256, original_backup)
+
+    def test_expected_backup_baseline_mismatch_fails_closed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            live = root / "Data0.pak"
+            backup = root / "Data0.pak.dirue-pristine"
+            self.make_zip(live, {"data/value": b"original"})
+            original = validate_archive(live).sha256
+            self.make_zip(backup, {"data/value": b"wrong"})
+
+            with self.assertRaises(ValidationError):
+                ensure_pristine_backup(
+                    live,
+                    backup,
+                    expected_live_sha256=original,
+                )
+            self.assertEqual(validate_archive(live).sha256, original)
+
+    def test_unexpected_live_source_leaves_live_unchanged(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            live = root / "Data0.pak"
+            backup = root / "Data0.pak.dirue-pristine"
+            candidate = root / "candidate.pak"
+            self.make_zip(live, {"data/value": b"original"})
+            original = validate_archive(live).sha256
+            ensure_pristine_backup(
+                live,
+                backup,
+                expected_live_sha256=original,
+            )
+            self.make_zip(candidate, {"data/value": b"modified"})
+            self.make_zip(live, {"data/value": b"unexpected"})
+            unexpected = validate_archive(live).sha256
+
+            with self.assertRaises(ValidationError):
+                install_candidate(
+                    candidate,
+                    live,
+                    backup,
+                    expected_live_sha256=original,
+                )
+            self.assertEqual(validate_archive(live).sha256, unexpected)
+
+    def test_wrong_backup_or_candidate_count_fails_closed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            live = root / "Data0.pak"
+            backup = root / "Data0.pak.dirue-pristine"
+            candidate = root / "candidate.pak"
+            self.make_zip(live, {"data/value": b"original"})
+            original = validate_archive(live).sha256
+            self.make_zip(backup, {"data/value": b"wrong"})
+            self.make_zip(candidate, {"data/value": b"modified"})
+
+            with self.assertRaises(ValidationError):
+                install_candidate(
+                    candidate,
+                    live,
+                    backup,
+                    expected_live_sha256=original,
+                )
+
+            self.make_zip(backup, {"data/value": b"original"})
+            self.make_zip(
+                candidate,
+                {"data/value": b"modified", "data/extra": b"unexpected"},
+            )
+            with self.assertRaises(ValidationError):
+                install_candidate(
+                    candidate,
+                    live,
+                    backup,
+                    expected_live_sha256=original,
+                )
+
+    def test_restore_checks_expected_backup_hash_and_recovers_missing_live(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            live = root / "Data0.pak"
+            backup = root / "Data0.pak.dirue-pristine"
+            self.make_zip(backup, {"data/value": b"original"})
+            original = validate_archive(backup).sha256
+
+            with self.assertRaises(ValidationError):
+                restore_backup(
+                    backup,
+                    live,
+                    expected_backup_sha256="0" * 64,
+                )
+            self.assertFalse(live.exists())
+
+            restored = restore_backup(
+                backup,
+                live,
+                expected_backup_sha256=original,
+            )
+            self.assertEqual(restored.sha256, original)
 
 
 if __name__ == "__main__":
