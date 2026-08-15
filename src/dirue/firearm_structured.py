@@ -18,13 +18,13 @@ def replace_unique_call_in_first_quoted_block(
     desired_call: str,
     desired_argument: str,
 ) -> str:
-    """Replace one uniquely named active call, including its call type, in an item block."""
+    """Replace one unique active call across a contiguous repeated-item group."""
     start, end = _first_quoted_argument_block_span(text, block_call, block_name)
     block = text[start:end]
     pattern = re.compile(
         rf'^(?![ \t]*//)(?P<indent>[ \t]*){re.escape(expected_call)}\(\s*'
         rf'(?P<argument>[^\r\n)]*?)\s*\)'
-        rf'(?P<suffix>\s*;?[ \t]*(?://.*)?)$',
+        rf'(?P<suffix>\s*;?[ \t]*(?://[^\r\n]*)?)(?P<cr>\r?)$',
         re.MULTILINE,
     )
     matches = list(pattern.finditer(block))
@@ -38,7 +38,7 @@ def replace_unique_call_in_first_quoted_block(
     match = matches[0]
     replacement = (
         f'{match.group("indent")}{desired_call}({desired_argument})'
-        f'{match.group("suffix")}'
+        f'{match.group("suffix")}{match.group("cr")}'
     )
     new_block = block[: match.start()] + replacement + block[match.end() :]
     return text[:start] + new_block + text[end:]
