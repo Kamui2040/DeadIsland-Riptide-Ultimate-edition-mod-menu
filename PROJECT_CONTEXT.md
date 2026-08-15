@@ -30,24 +30,62 @@ Result: `NATIVE_DATA0_COMPATIBILITY_BASELINE_PASS`.
 
 The hash is a known baseline, not a permanent requirement.
 
-## Read-only native parity audit
+## Native parity evidence
 
-A physical-machine read-only audit completed successfully on 2026-08-15. The repository's then-current 44-test suite passed first. Native game validation, the parity audit, and preset comparison all completed, and `Data0.pak` kept the exact same SHA-256 before and after the run.
+A physical-machine read-only audit completed successfully on 2026-08-15. The repository's then-current 44-test suite passed first. Native validation, parity inspection, and the first preset comparison completed while `Data0.pak` retained the exact same SHA-256 before and after that run.
 
-The audit verified these native prior states:
+That audit verified these native prior states:
 
 - all direct `default_levels.xml` values used by sprint/jump stamina, running with weapons, movement, ammo, door breaking, durability, bullet penetration, and default FOV;
 - both sunflare variables at `1.0`;
 - all five Deeper Pockets skill files at `desc_params="2;4;6"` and `InventorySize change="2"`;
 - the six Improved Loot target blocks and their default color weights;
-- one active `File("Intro_720p")` intro statement while the inspected DI intro/subtitle statements are already commented;
-- one active reverb declaration for each reverb directive plus 52 active `ReverbPreset` calls and 52 active `ReverbWetDryMix` calls.
+- one active intro `File` statement whose first quoted argument is `Intro_720p`, while the inspected DI intro/subtitle statements are already commented;
+- one active declaration for each reverb directive plus 52 active `ReverbPreset` and 52 active `ReverbWetDryMix` calls.
 
-The same audit exposed a vehicle noclip mismatch that must not be guessed through: the native car file contains four active `Ignore(0)` calls plus one `Ignore(1)`, and the old-boat file contains five active `Ignore(0)` calls. The released AHK edits only two calls in each file. Noclip is therefore excluded from the ready definition catalog until those two calls have stable block identities.
+A later disposable-candidate report exercised the 13-option ready catalog against the same native baseline. Twelve options produced validated 3060-entry candidates. `skip_intro_videos` alone failed closed because its first implementation incorrectly required `File("Intro_720p")` to have no later arguments. The Linux helper has since been corrected to identify the call by its first quoted argument while preserving any later arguments; a regression test now covers that native-style shape. A physical rerun is still required before calling all 13 candidates native-validated.
 
-The first firearm research pass also proved that nearest-line matching is not reliable enough for native mapping. Some old AHK line hints drift into neighboring native weapon blocks. Historical line numbers remain research hints only and are never patch targets.
+Raw local audit output, uploaded QA reports, and machine-specific paths are not committed to Git.
 
-Raw local audit output and machine-specific paths are not committed to Git.
+## Vehicle noclip evidence
+
+The native car file has five active `Ignore` sites:
+
+- `ContactParams:Terrain` = `0`
+- `ContactParams:SimpleObjects` = `0`
+- `ContactParams:NonODEObjects` = `0`
+- `ContactParams:ODEObjects` = `0`
+- `ContactParams:Water` = `1`
+
+The old-boat file has the same five named contact blocks, all at `0`.
+
+The released AHK changes exactly two calls in each file. That source behavior is not enough by itself to choose two native blocks safely. Noclip therefore remains excluded from the ready catalog. `audit-research` now records native line numbers plus block/call ordinals so the historical source lines can be correlated once for research without becoming runtime patch targets.
+
+## Firearm evidence
+
+`DIRUE.ahk` remains the behavioral source for the intended firearm values. The native research report now groups relevant calls by actual `Item:` block. It confirms stable weapon identities for pistols/revolvers, shotgun families, automatic/burst/single-shot rifles, Fury firearms, legendary firearms, and additional native weapons.
+
+The original nearest-line research proved that blindly choosing the call nearest an old AHK line can drift into a neighboring weapon block. Historical line numbers are therefore research hints only.
+
+The remaining firearm task is to correlate source edits to the correct occurrence inside each named native item. The updated research audit reports each relevant call's native line number and ordinal within its item/property sequence. Final Linux patch rules must use named item identity plus validated property sequences and expected prior values, never historical source lines.
+
+Better firearms upgrading is especially sensitive because the AHK writes `ShotTime`/`ReloadTime` into placeholder locations that are not active calls in the pristine native archive. The Linux port must reconstruct those insertions from native semantic anchors rather than reproduce the placeholder mechanism.
+
+## Preset-backed options
+
+The second preset report established the following high-level state:
+
+- `ai_norm.zip` matches the native AI tree represented by the preset;
+- one-hit AI differs in two native AI files;
+- hard AI differs in 57 files;
+- headshot-only AI differs in 20 files;
+- `Default_spawns.zip` matches the native forced-spawn target, while every forced variant changes `aispawnbox_pre.def`;
+- `Time-weather_vanilla.zip` matches the compared native weather targets, while the other weather/time variants change one or three principal files depending on the choice;
+- `PRESETS_NORM_ZOMSIZE.zip` matches the native zombie-size targets, while the four non-default size choices change four principal preset files.
+
+The report also confirmed that many preset differences are structural rather than simple unique key/value replacements. Full preset files are not being copied into Git. The preset audit has since been expanded to number repeated semantic identities and recognize simple generic call-argument changes so the next physical read can distinguish true structural replacements from earlier parser blind spots.
+
+Preset-derived transformations will be accepted only when their entire behavior can be represented by public-safe semantic definitions with validated prior state. Provenance-sensitive full replacements remain out of Git.
 
 ## Important upstream archive difference
 
@@ -66,54 +104,18 @@ Runtime work must start from the user's validated installed archive or a verifie
 - full-file or directory preset replacement without provenance review;
 - AutoHotkey/Win32 helpers and `.exe` processes.
 
-## Feature inventory status
-
-`docs/FEATURE_PARITY.md` is the authoritative released-control inventory.
-
-The top-level released controls are inventoried. Direct source values are known for FOV, sprint/jump stamina, sunflare, run-with-weapons, improved loot, movement, deeper pockets, vehicle noclip, ammo, break doors, durability, and bullet penetration.
-
-Source audit has also established the intended family/tier values for the large firearm features:
-
-- FOV 72/82 recoil changes cover the shotgun families plus selected pistols;
-- Better firearms POV covers Fury firearms, shotguns, pistols/revolvers, automatic/burst/single rifles, with FOV-specific offsets, aim FOV, blur and sway values;
-- Better firearms upgrading covers pistol upgrade tiers, automatic/burst/single rifle tiers, and shotgun tiers. Active changes use `ShotTime`, `ReloadTime`, `ShootVertRecoil`, and for automatic rifle families `ShootMaxAngle`. Several apparent edits in the AHK are commented out and are not part of released behavior.
-
-The remaining firearm problem is mapping source behavior to stable native item/tier identities. A block-aware `audit-research` command now groups relevant calls by actual native `Item:` and nested block identities instead of treating nearby historical line numbers as evidence.
-
-Reverb removal is now a concrete semantic definition using the verified native 52/52 call counts. It comments/uncomments only `ReverbPreset` and `ReverbWetDryMix`; nearby `Echo(...)` uses inspected in the default file are already commented and remain unchanged.
-
-Deeper Pockets is represented semantically in all five character skill files by the `DeeperPockets` skill identity: `desc_params` changes from `2;4;6` to `6;12;18` and its `InventorySize` effect changes from `2` to `6`.
-
-Improved Loot is now a concrete semantic definition scoped to the six verified `DefColorSet` blocks. It does not change the unrelated Suicider or Corrupter sets.
-
-Skip Intro Videos is now a concrete semantic definition that comments the verified active `File("Intro_720p")` statement rather than replacing the full intro script.
-
-Vehicle noclip remains unresolved as described above and is intentionally not exposed in the ready direct catalog.
-
-## Preset-backed options
-
-The first native preset comparison established this high-level delta surface:
-
-- normal AI preset matches native for the compared files;
-- one-hit AI differs in two files and reports `one_shot` changing from `0` to `1`;
-- hard AI differs in 57 compared files;
-- headshot-only AI differs in 20 compared files;
-- default forced-spawn preset matches native, while each forced variant changes `aispawnbox_pre.def`;
-- weather/time presets change a small group of logic/weather/ambient files depending on the selected variant;
-- zombie-size presets change four target files, with the `.pre` files showing forced body-scale values while the paired definition-file changes still need classification.
-
-The preset audit now also reports whether recognized semantic values explain the complete text difference for each member. This must be rerun on the physical machine before large preset-backed transforms are considered fully reconstructed.
-
 ## Implemented Linux core
 
 The Python core under `src/dirue/` contains no newly added proprietary game content and currently provides:
 
 - native Linux game-root validation using the ELF executable;
 - ZIP validation with CRC, required-entry, traversal, backslash-path and duplicate-member checks;
-- safe temporary extraction and rebuild;
+- safe temporary extraction and metadata-preserving rebuild;
 - pristine backup creation without silent overwrite;
 - validated atomic candidate installation and restore;
+- in-memory candidate building that refuses source overwrite, unresolved options, duplicate options, and no-op/non-pristine input;
 - semantic XML, `VarFloat`, simple call, named call, scoped loot, Deeper Pockets, intro-comment and reverb transforms;
+- structured named-block helpers with brace-aware scope validation for future vehicle/firearm work;
 - a ready direct catalog of 13 native-verified text options, with unresolved noclip excluded;
 - deterministic JSON CLI validation;
 - `audit-native`, a read-only native parity audit;
@@ -126,11 +128,14 @@ No audit command extracts, installs, or modifies game content.
 
 Validation evidence is kept specific to the code state it tested:
 
-- the physical read-only audit ran the then-current full 44-test suite successfully before accessing the native game;
+- the first physical read-only audit ran the then-current full 44-test suite successfully before accessing the native game;
 - that physical audit proved `Data0.pak` remained byte-for-byte unchanged by hash;
+- twelve ready options later produced validated individual candidates against the native baseline; the intro option failed closed and exposed the multi-argument call assumption described above;
 - earlier feature work passed its focused synthetic suites when introduced;
-- the newly added intro, loot, reverb-count, block-aware research, and semantic-completeness logic passed 14 focused local tests plus Python compilation in isolated temporary storage;
-- the current remote branch still needs a full-suite run after these latest additions;
+- the previous intro/loot/reverb-count/block-research/preset-completeness work passed 14 focused local tests plus Python compilation before the latest refinements;
+- the corrected multi-argument intro matcher passed a focused synthetic round-trip check after the native failure was analyzed;
+- repeated preset semantic identity numbering passed a focused synthetic check;
+- the current remote branch still needs a full-suite run after the latest structured/research/preset changes;
 - packaging previously produced a wheel successfully without network dependencies.
 
 No GitHub Actions were used.
@@ -141,13 +146,13 @@ GitHub Issues are currently disabled for this repository. An attempt to create a
 
 ## Current gates
 
-1. Rerun the updated read-only preset audit to obtain `semantic_complete` results.
-2. Run `audit-research` once against the physical native installation to capture stable firearm and vehicle block identities.
-3. Use that evidence to finish firearm mapping and identify the two intended noclip calls per native file.
-4. Convert only fully explained preset deltas to minimal semantic transforms and keep provenance-sensitive full replacements out of Git.
-5. Implement and test the remaining Milestone-1 definitions.
-6. Run the full repository test suite and compilation on the physical checkout after the new audit work.
-7. Run a candidate rebuild/validation against a disposable archive copy before any live write.
+1. Run the current full test suite and compilation on the physical checkout.
+2. Rerun `audit-research` to collect line numbers and call ordinals for the already identified native vehicle/firearm blocks.
+3. Rerun the expanded preset audit to separate true structural differences from generic/repeated semantic value changes.
+4. Rerun the 13-option disposable candidate audit and require `skip_intro_videos` plus the combined candidate to pass.
+5. Use that evidence to finish firearm semantic mapping and choose the two intended noclip blocks per native file.
+6. Convert only fully explained preset deltas to minimal semantic transforms and implement the remaining Milestone-1 definitions.
+7. Repeat disposable candidate rebuild/validation for every newly completed option before any live write.
 8. Review and then test pristine backup/restore and atomic replacement on the QA installation.
 9. Reproduce all Milestone-1 gameplay options.
 10. Add the Linux-native GUI.
