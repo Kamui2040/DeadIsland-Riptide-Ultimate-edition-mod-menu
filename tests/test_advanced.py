@@ -7,7 +7,7 @@ from dirue.advanced import (
     OLD_BOAT_PHYSICS,
     ONE_HIT_AI,
 )
-from dirue.catalog import READY_PATCHES
+from dirue.catalog import EXCLUSIVE_PATCH_GROUPS, READY_PATCHES
 from dirue.definitions import DIRECT_PATCHES, apply_definition
 from dirue.errors import PatchError
 
@@ -15,11 +15,24 @@ from dirue.errors import PatchError
 class AdvancedDefinitionTests(unittest.TestCase):
     def test_ready_catalog_adds_native_verified_options(self):
         self.assertEqual(len(DIRECT_PATCHES), 13)
-        self.assertEqual(len(READY_PATCHES), 17)
+        self.assertEqual(len(READY_PATCHES), 20)
         self.assertIn("noclip_vehicles", READY_PATCHES)
         self.assertIn("one_hit_ai", READY_PATCHES)
         self.assertIn("headshot_only_ai", READY_PATCHES)
         self.assertIn("better_firearm_upgrading", READY_PATCHES)
+        self.assertIn("better_firearm_pov_62", READY_PATCHES)
+        self.assertIn("better_firearm_pov_72", READY_PATCHES)
+        self.assertIn("better_firearm_pov_82", READY_PATCHES)
+        self.assertIn(
+            frozenset(
+                {
+                    "better_firearm_pov_62",
+                    "better_firearm_pov_72",
+                    "better_firearm_pov_82",
+                }
+            ),
+            EXCLUSIVE_PATCH_GROUPS,
+        )
 
     def test_noclip_updates_only_released_contact_blocks(self):
         car = (
