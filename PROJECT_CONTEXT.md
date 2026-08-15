@@ -1,167 +1,161 @@
 # PROJECT_CONTEXT.md
 
-## Repository
+## Repository and milestone
 
 - Upstream: `Fireeyeeian/DeadIsland-Riptide-Ultimate-edition-mod-menu`
 - Project fork: `Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu`
-- Default branch: `main`
-- Active Linux-port branch: `linux-port`
+- Stable branch: `main`
+- Active branch: `linux-port`
 - License: GNU GPLv3, inherited and preserved
 
-## Current milestone
-
-**Milestone 1: native Linux feature-parity port of the existing DIRUE release.**
-
-Scope is compatibility and faithful behavior. New gameplay tweaks stay deferred until parity is complete and validated.
+Milestone 1 is a faithful native-Linux feature-parity port of the released DIRUE behavior. New gameplay tweaks remain deferred until parity is implemented and validated.
 
 ## Verified native Linux baseline
 
-A native Linux Steam installation has been checked with these results:
+A native Linux Steam installation has been validated with:
 
-- `DeadIslandRiptideGame` is a native Linux ELF executable.
-- `<DIRDE_ROOT>/DIR/Data0.pak` is ZIP-compatible.
-- Archive entry count: 3060.
-- Archive size: 7,932,941 bytes.
-- SHA-256: `0afeadca8fb84147cc2c815ec37d1f3c940d40fab6c0a343b7b84e7f41d3c991`.
+- native ELF `DeadIslandRiptideGame`;
+- ZIP-compatible `DIR/Data0.pak`;
+- 3060 archive entries;
+- archive size 7,932,941 bytes;
+- SHA-256 `0afeadca8fb84147cc2c815ec37d1f3c940d40fab6c0a343b7b84e7f41d3c991`.
 
-Representative patch targets were present, including `default_levels.xml`, `inventory_gen.scr`, intro movies, weather, and glow scripts.
+The hash is accepted baseline evidence, not a permanent compatibility requirement.
 
-Result: `NATIVE_DATA0_COMPATIBILITY_BASELINE_PASS`.
+A physical read-only parity audit verified the native prior states used by the direct definitions, including default-level values, sunflare variables, all five Deeper Pockets skills, Improved Loot blocks, intro statement identity, and 52 active reverb preset/mix calls. The audit left the native archive byte-for-byte unchanged.
 
-The hash is a known baseline, not a permanent requirement.
+Raw local reports, machine paths, and copied game content are not committed to Git.
 
-## Native parity evidence
+## Ready semantic options
 
-A physical-machine read-only audit completed successfully on 2026-08-15. The repository's then-current 44-test suite passed first. Native validation, parity inspection, and the first preset comparison completed while `Data0.pak` retained the exact same SHA-256 before and after that run.
+The current ready candidate catalog contains 15 options:
 
-That audit verified these native prior states:
+- better movement;
+- bullet penetration;
+- Deeper Pockets;
+- headshot-only AI;
+- hold more ammo;
+- Improved Loot;
+- increased durability;
+- instant break doors;
+- vehicle noclip;
+- reduced jump stamina;
+- reduced sprint stamina;
+- reduced sunflare;
+- reverb/echo removal;
+- run with weapons;
+- skip intro videos.
 
-- all direct `default_levels.xml` values used by sprint/jump stamina, running with weapons, movement, ammo, door breaking, durability, bullet penetration, and default FOV;
-- both sunflare variables at `1.0`;
-- all five Deeper Pockets skill files at `desc_params="2;4;6"` and `InventorySize change="2"`;
-- the six Improved Loot target blocks and their default color weights;
-- one active intro `File` statement whose first quoted argument is `Intro_720p`, while the inspected DI intro/subtitle statements are already commented;
-- one active declaration for each reverb directive plus 52 active `ReverbPreset` and 52 active `ReverbWetDryMix` calls.
+The latest physical disposable-candidate run built every option individually against the native archive and all 15 passed validation with 3060 entries. A combined candidate containing all 15 also passed with 3060 entries. The installed game archive remained unchanged; the candidate files existed only in temporary storage.
 
-The first disposable native-candidate report found one fail-closed bug in `skip_intro_videos`: the helper assumed the target `File` call had only one argument. The helper was corrected to identify the call by its first quoted argument and preserve later arguments.
+The earlier Skip Intro failure was caused by assuming the native `File("Intro_720p", ...)` call had no later arguments. The matcher now identifies the first quoted argument while preserving later arguments, and the corrected option has passed native candidate validation.
 
-A later uploaded candidate report then exercised all 13 original ready options against the native archive. Every individual candidate passed validation with 3060 entries, including `skip_intro_videos`, and the combined 13-option candidate also passed with 3060 entries. The combined candidate changed only the expected 11 semantic target members.
+## Vehicle noclip
 
-Raw local audit output, uploaded QA reports, and machine-specific paths are not committed to Git.
+The released AHK edits the car and old-boat physics files only; truck edits are commented out.
 
-## Vehicle noclip evidence
+Block-aware native evidence maps the released car and old-boat edits to these named blocks in each file:
 
-The native car file has five active `Ignore` sites:
+- `ContactParams("SimpleObjects")`
+- `ContactParams("NonODEObjects")`
 
-- `ContactParams:Terrain` = `0`
-- `ContactParams:SimpleObjects` = `0`
-- `ContactParams:NonODEObjects` = `0`
-- `ContactParams:ODEObjects` = `0`
-- `ContactParams:Water` = `1`
+Linux changes each block's single `Ignore(0)` call to `Ignore(1)` and leaves Terrain, ODEObjects, Water, and truck behavior unchanged. Historical line numbers were used only to establish the released behavior and are not runtime patch targets.
 
-The old-boat file has the same five named contact blocks, all at `0`.
+`noclip_vehicles` has passed native disposable-candidate validation.
 
-The released AHK changes car lines 77 and 91 and old-boat lines 64 and 78. The block-aware native audit maps those historical identities to `ContactParams("SimpleObjects")` and `ContactParams("NonODEObjects")` in both files. Linux therefore patches those two named blocks only, changing their single `Ignore(0)` call to `Ignore(1)` and leaving Terrain, ODEObjects, Water, and the commented-out truck edits unchanged.
+## Headshot-only AI
 
-Historical line numbers were used once to establish provenance and are not runtime patch targets. `noclip_vehicles` is now in the ready catalog, pending disposable native-candidate validation of the new semantic implementation.
+The inherited `ai_Headshot.zip` differs from native in 20 represented AI files. The previous read-only preset audit classified all 20 differences as completely explained by named `ParamFloat`/`ParamBool` values.
 
-## Firearm evidence
+The Linux definition therefore applies those named semantic changes directly and does not copy preset file contents. `headshot_only_ai` has passed native disposable-candidate validation.
 
-`DIRUE.ahk` remains the behavioral source for the intended firearm values. The native research report groups relevant calls by actual `Item:` block and records line numbers and per-call ordinals for research correlation only.
+## Firearm parity status
 
-The latest evidence shows that many active native firearm statements still align with the released AHK's historical target numbers. That is useful for one-time mapping, but line numbers remain forbidden as runtime targets.
+`DIRUE.ahk` remains the behavioral source for Better Firearms POV, FOV-coupled sway/recoil behavior, and Better Firearms Upgrading.
 
-Better firearms upgrading is more sensitive because the released AHK writes `ShotTime` and `ReloadTime` into placeholder locations from its bundled working archive. Those locations are not equivalent active calls in the pristine native archive. The Linux port must reconstruct insertion points from named native items and semantic neighboring calls rather than reproduce the placeholder mechanism.
+The first full source-map report found all seven required released handler sections with no missing sections and produced 744 active source targets. It confirmed that historical AHK line positions are useful one-time provenance evidence but cannot be used as runtime patch targets: many positions land on braces, placeholders, or neighboring calls in pristine native data.
 
-A new read-only `audit-source-map` command parses only the relevant public AHK handler sections and correlates their historical target lines to compact native item/call context. It reports the native item, line classification, and nearest relevant calls without copying native file contents. This is intended to finish POV/upgrading reconstruction on the next physical read.
+The read-only source mapper has therefore been strengthened to report, for every target:
+
+- the compact native block path at the historical position;
+- nearest same-call native candidates across named firearm items;
+- per-call ordinal and native prior arguments;
+- research-only line distance;
+- for upgrading `ShotTime`/`ReloadTime` insertions, nearby `UpgradeLevel(...)` anchors.
+
+`UpgradeLevel` is included only as a research anchor. The intended runtime model remains named `Item` + semantic call/sequence + accepted prior state + exact match count. No runtime firearm definition may depend on historical line numbers.
+
+The enriched mapper still requires one physical read-only execution before POV/upgrading definitions can be completed.
 
 ## Preset-backed options
 
-The latest preset comparison established:
+The accepted preset comparison currently establishes:
 
-- `ai_norm.zip` matches the represented native AI tree;
-- one-hit AI differs in 2 files, with neither complete difference yet explained by the semantic normalizer;
-- hard AI differs in 57 files, with only 1 complete difference currently explained;
-- headshot-only AI differs in 20 files, and all 20 differences are completely explained by named `ParamFloat`/`ParamBool` values;
-- `Default_spawns.zip` matches native, while each forced-spawn variant changes one target file and remains structurally incomplete;
-- vanilla weather matches native; non-default weather/time choices still contain unresolved structural differences even where one ambient file is fully semantic;
-- every zombie-size preset differs from the native target set in the latest comparison, and those differences remain structurally incomplete.
+- normal AI matches the represented native AI tree;
+- one-hit AI differs in two files and exposes `ParamBool("one_shot", 0 -> 1)` in both, but the previous strict structural classifier still reported additional unexplained text difference;
+- hard AI differs in 57 files and remains incomplete;
+- headshot-only AI is fully represented semantically and is implemented;
+- default spawns match native, while forced-spawn variants each change one target file and remain structurally incomplete;
+- vanilla weather matches native, while non-default weather/time variants still contain unresolved structure;
+- zombie-size variants remain structurally incomplete or contain unresolved native-target differences.
 
-Headshot-only AI has therefore been converted to a public-safe semantic definition: six non-head health-influence parameters are set to zero across the 19 affected health files, with the audited `one_shot` exception restored from `1` to `0` in its one affected custom vessel file. No preset file content is copied into Git.
+The preset audit has now gained two additional conservative classifications for the next read:
 
-One-hit, hard, forced-spawn, weather/time, and zombie-size variants remain unready until their entire behavior can be represented by validated semantic transforms. Provenance-sensitive full replacements remain out of Git.
+1. recognized value differences plus indentation/blank/trailing whitespace only;
+2. the same plus differing trailing comments on active code.
 
-## Important upstream archive difference
+Fully commented-out lines remain significant, comments are not globally discarded, and unknown directives remain incomplete. This is intended to distinguish harmless preset formatting/annotation noise from behavior-changing structure without copying preset contents into Git.
 
-The inherited repository `Data0.pak` is an older, different archive. The Linux port must not use it as an install payload or patch source.
+One-hit, hard, forced-spawn, weather/time, and zombie-size variants remain unready until the complete released behavior is explained.
 
-Runtime work must start from the user's validated installed archive or a verified pristine backup derived from it. Candidate changes must be built in temporary storage, validated, and installed atomically.
+## Linux core and transaction safety
 
-## Upstream hazards not carried into Linux
+The Python core currently provides:
 
-`DIRUE.ahk` remains the Milestone-1 behavioral specification, but these implementation details are intentionally not copied:
-
-- patching from the bundled repository `Data0.pak`;
-- deleting the live archive before a replacement is validated;
-- hard-coded line numbers as the patch mechanism;
-- placeholder-based disable paths;
-- full-file or directory preset replacement without provenance review;
-- AutoHotkey/Win32 helpers and `.exe` processes.
-
-## Implemented Linux core
-
-The Python core under `src/dirue/` contains no newly added proprietary game content and currently provides:
-
-- native Linux game-root validation using the ELF executable;
-- ZIP validation with CRC, required-entry, traversal, backslash-path and duplicate-member checks;
-- safe temporary extraction and metadata-preserving rebuild;
+- native ELF/game-root validation;
+- strict ZIP validation with CRC, unsafe-path and duplicate checks;
+- safe extraction/rebuild helpers;
 - pristine backup creation without silent overwrite;
 - validated atomic candidate installation and restore;
-- in-memory candidate building that refuses source overwrite, unresolved options, duplicate options, and no-op/non-pristine input;
-- semantic XML, `VarFloat`, simple call, named call, scoped loot, Deeper Pockets, intro-comment and reverb transforms;
-- structured named-block helpers with brace-aware scope validation;
-- 13 original native-verified direct options plus native-identified semantic noclip and headshot-only AI, for 15 ready candidate options total;
-- deterministic JSON CLI validation;
-- `audit-native`, a read-only native parity audit;
-- `audit-presets`, a read-only preset comparison with semantic completeness classification;
-- `audit-research`, a read-only block-aware firearm/noclip research audit;
-- `audit-source-map`, a read-only source-to-native firearm correlation audit.
+- in-memory candidate building from the validated source archive;
+- semantic XML, call, named-block, loot, intro, reverb, Deeper Pockets, noclip, and AI transformations;
+- deterministic CLI validation;
+- read-only native, preset, research, and source-map audits.
 
-No audit command extracts, installs, or modifies game content.
+Linux patching must always start from the user's validated installed archive or a verified pristine backup derived from it. The inherited repository `Data0.pak` must never be used as the Linux patch source or install payload.
+
+A failed candidate build or validation must leave the live archive unchanged. Live replacement remains gated behind validated pristine backup/recovery and atomic install testing.
 
 ## Validation evidence
 
-Validation evidence is kept specific to the code state it tested:
+Verified evidence is kept scoped to the code state that produced it:
 
-- the first physical read-only audit ran the then-current full 44-test suite successfully before accessing the native game;
-- that physical audit proved `Data0.pak` remained byte-for-byte unchanged by hash;
-- a later native candidate report records successful individual builds for all 13 original ready options plus a successful combined 13-option candidate, all with 3060 entries;
-- earlier feature work passed its focused synthetic suites when introduced;
-- the corrected multi-argument intro matcher passed focused synthetic regression checks before its successful native candidate rerun;
-- the new noclip/headshot semantic definitions passed 4 focused local tests, including wrong-prior-state rejection;
-- the corrected source-map correlation logic passed 2 focused local tests plus Python compilation;
-- the newly committed advanced integration tests and the current full repository suite still require execution on the physical checkout;
-- packaging previously produced a wheel successfully without network dependencies.
+- the initial physical parity run passed the then-current 44-test suite and left native Data0 unchanged;
+- the latest native candidate run passed all 15 ready options individually and as one combined candidate;
+- the current source-map enrichment passed five focused synthetic mapping tests;
+- the current preset classifier passed nine focused synthetic/read-only tests;
+- earlier patch-engine, archive, game, definition, audit, candidate, noclip, headshot, intro, and preset work passed focused tests when introduced;
+- no GitHub Actions were used.
 
-No GitHub Actions were used.
+The latest audit-only commits still require the full repository suite and compilation on the physical checkout. Candidate behavior itself has not changed since the successful 15-option native run.
 
-The installed Steam game has still **not been modified by the Linux port**. Native mutation remains a later, separate gate.
-
-GitHub Issues are currently disabled for this repository. An attempt to create a focused firearm-mapping Issue returned HTTP 410, so unresolved work remains tracked here rather than changing repository settings.
+The installed Steam game has still not been modified by the Linux port.
 
 ## Current gates
 
-1. Run the current full test suite and compilation on the physical checkout.
-2. Run disposable native candidates for the two newly ready options (`noclip_vehicles`, `headshot_only_ai`) and a combined 15-option candidate.
-3. Run `audit-source-map` against the native archive and tracked AHK source to finish firearm POV/upgrading semantic anchors.
-4. Convert the resulting firearm mappings to named item/property definitions; never retain historical line numbers as runtime targets.
-5. Continue semantic reconstruction of one-hit, hard, forced-spawn, weather/time, and zombie-size options only where complete preset behavior is explained.
-6. Repeat disposable candidate rebuild/validation for every newly completed option before any live write.
-7. Review and then test pristine backup/restore and atomic replacement on the QA installation.
-8. Reproduce all Milestone-1 gameplay options.
-9. Add the Linux-native GUI.
-10. Package only after functional validation.
+1. Run the current full repository test suite, compilation, and whitespace checks on the physical checkout.
+2. Run the enriched read-only `audit-source-map` against native Data0 and the tracked released AHK source.
+3. Run the enriched read-only preset comparison to classify formatting/annotation-only residual differences.
+4. Convert the resulting firearm evidence to semantic per-item/per-tier POV, sway/recoil, and upgrading definitions without line-number runtime targeting.
+5. Promote additional preset-backed modes only where the entire released behavior is accounted for.
+6. Run disposable native candidate validation for every newly completed option.
+7. Review and test pristine backup/restore and atomic replacement on the QA installation before the first live game mutation.
+8. Finish all released Milestone-1 behavior, add the Linux-native GUI, and package only after functional validation.
 
-## Publication state
+GitHub Issues are currently disabled in this repository; unresolved work remains tracked here instead of changing repository settings.
 
-No main integration, release, public binary, Nexus publication, upstream submission, or other external publication has been authorized. `linux-port` remains the active development branch.
+## Cleanup and publication
+
+Cleanup is continuous. Superseded versioned QA reports must be removed from temporary and user-facing QA locations once replacement evidence is accepted, while current evidence, unresolved diagnostics, pristine backups, hashes, provenance material, and unrelated work are preserved.
+
+No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized. `linux-port` remains the active development branch.
