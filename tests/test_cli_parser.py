@@ -15,6 +15,20 @@ class CliParserTests(unittest.TestCase):
         self.assertEqual(args.command, "audit-research")
         self.assertEqual(args.root, Path("/game"))
 
+    def test_build_candidate_parser(self):
+        args = build_parser().parse_args(
+            [
+                "build-candidate",
+                "/source.pak",
+                "/candidate.pak",
+                "reduce_sprint_stamina",
+            ]
+        )
+        self.assertEqual(args.command, "build-candidate")
+        self.assertEqual(args.source, Path("/source.pak"))
+        self.assertEqual(args.destination, Path("/candidate.pak"))
+        self.assertEqual(args.options, ["reduce_sprint_stamina"])
+
 
 if __name__ == "__main__":
     unittest.main()
