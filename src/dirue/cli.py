@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 
 from .archive import validate_archive
+from .audit import audit_native_game
 from .errors import DirueError
 from .game import validate_game_root
 
@@ -34,6 +35,11 @@ def build_parser() -> argparse.ArgumentParser:
         "validate-game", help="validate a native Linux DIRDE game root"
     )
     game_parser.add_argument("root", type=Path)
+
+    audit_parser = subparsers.add_parser(
+        "audit-native", help="run a read-only native Data0 parity audit"
+    )
+    audit_parser.add_argument("root", type=Path)
     return parser
 
 
@@ -42,13 +48,15 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "validate-archive":
             payload = _archive_payload(validate_archive(args.path))
-        else:
+        elif args.command == "validate-game":
             game = validate_game_root(args.root)
             payload = {
                 "root": str(game.root),
                 "executable": str(game.executable),
                 "data0": _archive_payload(game.archive),
             }
+        else:
+            payload = {"audit": audit_native_game(args.root)}
     except DirueError as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2
