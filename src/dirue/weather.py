@@ -108,7 +108,7 @@ class WeatherTimeEdit:
 
     def apply(self, text: str) -> str:
         active_time = re.compile(
-            r'^(?![ \t]*//)[ \t]*time[ \t]*=',
+            r'^(?![ \t]*//)[ \t]*(?:float[ \t]+)?time[ \t]*=',
             re.MULTILINE,
         )
         active_game_time = re.compile(
@@ -119,14 +119,15 @@ class WeatherTimeEdit:
             raise PatchError("weather: night-time statements are already active")
 
         time_comment = re.compile(
-            r'^(?P<indent>[ \t]*)//[ \t]*time[ \t]*=[ \t]*TIME[ \t]*\*[ \t]*'
-            r'0\.1[ \t]*;?[ \t]*(?P<eol>\r?\n|$)',
+            r'^(?P<indent>[ \t]*)//[ \t]*float[ \t]+time[ \t]*=[ \t]*TIME[ \t]*\*'
+            r'[ \t]*0\.1[ \t]*;[ \t]*(?P<eol>\r?\n|$)',
             re.MULTILINE,
         )
         game_time_comment = re.compile(
             r'^(?P<indent>[ \t]*)//[ \t]*Set\([ \t]*"f_game_time"[ \t]*,'
             r'[ \t]*\(time[ \t]*-[ \t]*floor\(time\)\)[ \t]*\*[ \t]*24\.0'
-            r'[ \t]*\)[ \t]*;?[ \t]*(?P<eol>\r?\n|$)',
+            r'[ \t]*\)[ \t]*;(?P<trailing>[ \t]*(?://[^\r\n]*)?)'
+            r'(?P<eol>\r?\n|$)',
             re.MULTILINE,
         )
 
@@ -141,7 +142,10 @@ class WeatherTimeEdit:
             (
                 time_match.start(),
                 time_match.end(),
-                f'{time_match.group("indent")}time = TIME * 0.0;{time_match.group("eol")}',
+                (
+                    f'{time_match.group("indent")}float time = TIME * 0.0;'
+                    f'{time_match.group("eol")}'
+                ),
             ),
             (
                 game_time_match.start(),
@@ -149,6 +153,7 @@ class WeatherTimeEdit:
                 (
                     f'{game_time_match.group("indent")}Set('
                     '"f_game_time", (time - floor(time)) * 8.0);'
+                    f'{game_time_match.group("trailing")}'
                     f'{game_time_match.group("eol")}'
                 ),
             ),
