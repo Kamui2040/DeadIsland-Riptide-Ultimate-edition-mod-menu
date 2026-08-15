@@ -69,7 +69,7 @@ Deeper Pockets is represented semantically in all five character skill files by 
 
 Improved Loot's six default/enabled weight sets are known from the AHK, but the native loot block identities must still be verified before implementation.
 
-Preset-backed options still need content-delta audit against the native archive:
+Preset-backed options still need native delta evidence:
 
 - AI difficulty;
 - zombie size;
@@ -88,9 +88,12 @@ The Python core under `src/dirue/` contains no newly added proprietary game cont
 - semantic XML, `VarFloat`, call-value, Deeper Pockets, and reverb transforms;
 - declarative direct definitions for 11 source-derived options;
 - deterministic JSON CLI validation;
-- a read-only `audit-native` command for native parity research.
+- `audit-native`, a read-only native parity audit;
+- `audit-presets`, a read-only comparison of the released preset ZIPs against native `Data0.pak`.
 
-The audit command reports selected property values, sunflare state, all five Deeper Pockets states, noclip call counts, reverb counts, short intro statement identifiers, loot block/weight summaries, and firearm block research hints. Historical AHK line numbers are used only to help discover native firearm block identities; they are never patch targets.
+`audit-native` reports selected prior values, sunflare, all five Deeper Pockets states, noclip counts, reverb counts, short intro identifiers, loot summaries, and firearm block research hints. Historical AHK line numbers are used only to help discover native firearm block identities; they are never patch targets.
+
+`audit-presets` validates the preset ZIPs, compares their members in memory against native targets, and reports only metadata, hashes, status, and short semantic key/value changes where they can be identified. It does not extract or install preset content and never uses the inherited repository `Data0.pak`.
 
 ## Validation evidence
 
@@ -99,22 +102,25 @@ Validation evidence is kept specific to the code state it tested:
 - the original scaffold's 12-test suite passed before later feature additions;
 - reverb, direct-definition and noclip changes each passed focused synthetic tests when introduced;
 - the Deeper Pockets work passed a 22-test focused suite plus Python compilation and corrected whitespace/privacy checks;
-- the read-only native audit passed 9 focused synthetic tests, including a synthetic `Data0.pak` test proving the audit leaves archive bytes unchanged;
-- Python compilation passed for the audit code/tests;
-- the audit submission passed privacy scanning and `git diff --check` in its local validation harness;
+- `audit-native` passed 9 focused synthetic tests, including a synthetic `Data0.pak` test proving the audit leaves archive bytes unchanged;
+- `audit-presets` passed 5 focused synthetic tests, including checks that native and preset archive bytes stay unchanged;
+- Python compilation passed for both audit work units;
+- both audit submissions passed privacy scanning and whitespace checks;
 - packaging previously produced a wheel successfully without network dependencies.
 
 No GitHub Actions were used.
 
 The current code has **not yet been run against or used to modify the installed Steam game**. Native execution remains a separate gate.
 
+GitHub Issues are currently disabled for this repository. An attempt to create a focused firearm-mapping Issue returned HTTP 410, so unresolved work remains tracked here rather than changing repository settings.
+
 ## Current gates
 
-1. Run the repository's read-only native audit against the installed Linux game.
-2. Use that evidence to replace the remaining firearm line references with stable block/tier identities.
+1. Run `audit-native` and `audit-presets` read-only against the physical native installation/local repository.
+2. Use that evidence to replace remaining firearm line references with stable block/tier identities.
 3. Map Improved Loot and intro statements semantically from the same native evidence.
 4. Confirm direct-option prior values and exact reverb call counts.
-5. Audit preset ZIP deltas against the native archive without committing extracted game content.
+5. Convert preset deltas to minimal semantic transforms where possible and keep provenance-sensitive content out of Git.
 6. Implement and test the remaining Milestone-1 definitions.
 7. Run a candidate rebuild/validation against a disposable archive copy before any live write.
 8. Review and then test pristine backup/restore and atomic replacement on the QA installation.
