@@ -12,6 +12,7 @@ from .audit import audit_native_game
 from .catalog import READY_PATCHES
 from .engine import build_candidate
 from .errors import DirueError
+from .fov_audit import audit_fov_recoil
 from .game import validate_game_root
 from .preset_audit import audit_presets
 from .research import audit_native_research
@@ -59,6 +60,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     research_parser.add_argument("root", type=Path)
 
+    recoil_parser = subparsers.add_parser(
+        "audit-fov-recoil",
+        help="collect only native firearm recoil priors needed for FOV parity",
+    )
+    recoil_parser.add_argument("root", type=Path)
+
     source_map_parser = subparsers.add_parser(
         "audit-source-map",
         help="correlate released firearm line hints to native semantic context read-only",
@@ -98,6 +105,8 @@ def main(argv: list[str] | None = None) -> int:
             payload = {"presets": audit_presets(args.root, args.preset_dir)}
         elif args.command == "audit-research":
             payload = {"research": audit_native_research(args.root)}
+        elif args.command == "audit-fov-recoil":
+            payload = {"fov_recoil": audit_fov_recoil(args.root)}
         elif args.command == "audit-source-map":
             payload = {"source_map": audit_source_map(args.root, args.source)}
         else:

@@ -15,6 +15,11 @@ class CliParserTests(unittest.TestCase):
         self.assertEqual(args.command, "audit-research")
         self.assertEqual(args.root, Path("/game"))
 
+    def test_audit_fov_recoil_parser(self):
+        args = build_parser().parse_args(["audit-fov-recoil", "/game"])
+        self.assertEqual(args.command, "audit-fov-recoil")
+        self.assertEqual(args.root, Path("/game"))
+
     def test_build_candidate_parser(self):
         args = build_parser().parse_args(
             [
