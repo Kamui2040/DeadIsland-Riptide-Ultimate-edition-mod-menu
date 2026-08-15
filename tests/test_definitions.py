@@ -3,14 +3,20 @@ import unittest
 from dirue.definitions import (
     BETTER_MOVEMENT,
     CAR_PHYSICS,
+    DEEPER_POCKETS,
     DEFAULT_LEVELS,
     DIRECT_PATCHES,
     GLOW_SCD,
     GLOW_SCR,
+    JOHN_SKILLS,
+    LOGAN_SKILLS,
     NOCLIP_VEHICLES,
     OLD_BOAT_PHYSICS,
+    PURNA_SKILLS,
     REDUCE_SPRINT_STAMINA,
     REDUCE_SUNFLARE,
+    SAMB_SKILLS,
+    XIAN_SKILLS,
     apply_definition,
 )
 from dirue.errors import PatchError
@@ -59,6 +65,38 @@ class DefinitionTests(unittest.TestCase):
         self.assertEqual(result[OLD_BOAT_PHYSICS].count("Ignore(1)"), 2)
         self.assertEqual(result["data/odephysics/vehicle/truckdi.phx"].count("Ignore(0)"), 2)
 
+    def test_deeper_pockets_updates_all_five_characters(self):
+        members = {}
+        for member in (
+            LOGAN_SKILLS,
+            PURNA_SKILLS,
+            SAMB_SKILLS,
+            XIAN_SKILLS,
+            JOHN_SKILLS,
+        ):
+            members[member] = (
+                '<skill id="DeeperPockets" cat="Tree3" desc_params="2;4;6">\n'
+                '  <effect id="InventorySize" change="2"/>\n'
+                '</skill>\n'
+            )
+
+        result = apply_definition(members, DEEPER_POCKETS)
+        for member in members:
+            self.assertIn('desc_params="6;12;18"', result[member])
+            self.assertIn('change="6"', result[member])
+            self.assertIn('desc_params="2;4;6"', members[member])
+
+    def test_deeper_pockets_missing_character_fails_closed(self):
+        source = {
+            LOGAN_SKILLS: (
+                '<skill id="DeeperPockets" desc_params="2;4;6">'
+                '<effect id="InventorySize" change="2"/>'
+                '</skill>'
+            )
+        }
+        with self.assertRaises(PatchError):
+            apply_definition(source, DEEPER_POCKETS)
+
     def test_missing_member_fails_closed(self):
         with self.assertRaises(PatchError):
             apply_definition({}, REDUCE_SPRINT_STAMINA)
@@ -71,7 +109,7 @@ class DefinitionTests(unittest.TestCase):
             apply_definition(source, REDUCE_SPRINT_STAMINA)
 
     def test_direct_patch_catalog_is_unique(self):
-        self.assertEqual(len(DIRECT_PATCHES), 10)
+        self.assertEqual(len(DIRECT_PATCHES), 11)
         self.assertEqual(len(DIRECT_PATCHES), len(set(DIRECT_PATCHES)))
 
 

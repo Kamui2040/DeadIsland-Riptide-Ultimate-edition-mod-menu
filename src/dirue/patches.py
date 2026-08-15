@@ -85,6 +85,59 @@ def replace_call_value(
     )
 
 
+def replace_deeper_pockets_skill(
+    text: str,
+    *,
+    expected_desc_params: str,
+    new_desc_params: str,
+    expected_inventory_change: str,
+    new_inventory_change: str,
+) -> str:
+    """Update the DeeperPockets skill and its InventorySize effect as one scoped edit."""
+    block_pattern = re.compile(
+        r'(?P<open><skill\b(?=[^>]*\bid="DeeperPockets")[^>]*>)'
+        r'(?P<body>.*?</skill>)',
+        re.DOTALL,
+    )
+    matches = list(block_pattern.finditer(text))
+    if len(matches) != 1:
+        raise PatchError(
+            f"DeeperPockets skill: expected 1 match, found {len(matches)}"
+        )
+
+    match = matches[0]
+    open_tag = match.group("open")
+    desc_pattern = re.compile(
+        rf'(?P<prefix>\bdesc_params=")'
+        rf'{re.escape(expected_desc_params)}'
+        rf'(?P<suffix>")'
+    )
+    new_open, desc_count = desc_pattern.subn(
+        rf"\g<prefix>{new_desc_params}\g<suffix>", open_tag
+    )
+    if desc_count != 1:
+        raise PatchError(
+            f"DeeperPockets desc_params: expected 1 match, found {desc_count}"
+        )
+
+    body = match.group("body")
+    effect_pattern = re.compile(
+        rf'(?P<prefix><effect\b(?=[^>]*\bid="InventorySize")[^>]*\bchange=")'
+        rf'{re.escape(expected_inventory_change)}'
+        rf'(?P<suffix>"[^>]*/>)'
+    )
+    new_body, effect_count = effect_pattern.subn(
+        rf"\g<prefix>{new_inventory_change}\g<suffix>", body
+    )
+    if effect_count != 1:
+        raise PatchError(
+            f"DeeperPockets InventorySize: expected 1 match, found {effect_count}"
+        )
+
+    new_block = new_open + new_body
+    return text[: match.start()] + new_block + text[match.end() :]
+
+
 def _line_parts(line: str) -> tuple[str, str]:
     if line.endswith("\r\n"):
         return line[:-2], "\r\n"

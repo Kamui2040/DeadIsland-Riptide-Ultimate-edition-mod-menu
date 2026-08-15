@@ -6,7 +6,12 @@ from dataclasses import dataclass
 from typing import Mapping
 
 from .errors import PatchError
-from .patches import replace_call_value, replace_varfloat_value, replace_xml_prop_value
+from .patches import (
+    replace_call_value,
+    replace_deeper_pockets_skill,
+    replace_varfloat_value,
+    replace_xml_prop_value,
+)
 
 
 @dataclass(frozen=True)
@@ -53,7 +58,25 @@ class CallValueEdit:
         )
 
 
-TextEdit = XmlPropertyEdit | VarFloatEdit | CallValueEdit
+@dataclass(frozen=True)
+class DeeperPocketsEdit:
+    member: str
+    expected_desc_params: str = "2;4;6"
+    desired_desc_params: str = "6;12;18"
+    expected_inventory_change: str = "2"
+    desired_inventory_change: str = "6"
+
+    def apply(self, text: str) -> str:
+        return replace_deeper_pockets_skill(
+            text,
+            expected_desc_params=self.expected_desc_params,
+            new_desc_params=self.desired_desc_params,
+            expected_inventory_change=self.expected_inventory_change,
+            new_inventory_change=self.desired_inventory_change,
+        )
+
+
+TextEdit = XmlPropertyEdit | VarFloatEdit | CallValueEdit | DeeperPocketsEdit
 
 
 @dataclass(frozen=True)
@@ -79,6 +102,11 @@ GLOW_SCD = "data/scripts/varlist_glow.scd"
 GLOW_SCR = "data/scripts/varlist_glow.scr"
 CAR_PHYSICS = "data/odephysics/vehicle/cardi.phx"
 OLD_BOAT_PHYSICS = "data/odephysics/vehicle/old_boat_a.phx"
+LOGAN_SKILLS = "data/skills/logan_skills.xml"
+PURNA_SKILLS = "data/skills/purna_skills.xml"
+SAMB_SKILLS = "data/skills/samb_skills.xml"
+XIAN_SKILLS = "data/skills/xian_skills.xml"
+JOHN_SKILLS = "data/skills/john_skills.xml"
 
 # These values are reconstructed from the released AHK behavior. Native archive
 # prior-state verification is still required before live-game use.
@@ -143,6 +171,19 @@ NOCLIP_VEHICLES = PatchDefinition(
         CallValueEdit(OLD_BOAT_PHYSICS, "Ignore", "0", "1", expected_matches=2),
     ),
 )
+DEEPER_POCKETS = PatchDefinition(
+    "deeper_pockets",
+    tuple(
+        DeeperPocketsEdit(member)
+        for member in (
+            LOGAN_SKILLS,
+            PURNA_SKILLS,
+            SAMB_SKILLS,
+            XIAN_SKILLS,
+            JOHN_SKILLS,
+        )
+    ),
+)
 
 DIRECT_PATCHES = {
     definition.name: definition
@@ -157,5 +198,6 @@ DIRECT_PATCHES = {
         INCREASE_DURABILITY,
         BULLET_PENETRATION,
         NOCLIP_VEHICLES,
+        DEEPER_POCKETS,
     )
 }

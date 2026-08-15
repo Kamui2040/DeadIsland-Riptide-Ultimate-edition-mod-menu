@@ -3,6 +3,7 @@ import unittest
 from dirue.errors import PatchError
 from dirue.patches import (
     replace_call_value,
+    replace_deeper_pockets_skill,
     replace_varfloat_value,
     replace_xml_prop_value,
     set_reverb_enabled,
@@ -45,6 +46,57 @@ class PatchTests(unittest.TestCase):
     def test_replace_call_value_requires_expected_count(self):
         with self.assertRaises(PatchError):
             replace_call_value("Ignore(0)\n", "Ignore", "0", "1", expected_matches=2)
+
+    def test_deeper_pockets_is_scoped_to_named_skill(self):
+        text = (
+            '<skill id="Other" desc_params="2;4;6">\n'
+            '  <effect id="InventorySize" change="99"/>\n'
+            '</skill>\n'
+            '<skill id="DeeperPockets" cat="Tree3" desc_params="2;4;6">\n'
+            '  <effect id="InventorySize" change="2"/>\n'
+            '</skill>\n'
+        )
+        result = replace_deeper_pockets_skill(
+            text,
+            expected_desc_params="2;4;6",
+            new_desc_params="6;12;18",
+            expected_inventory_change="2",
+            new_inventory_change="6",
+        )
+        self.assertIn('<skill id="Other" desc_params="2;4;6">', result)
+        self.assertIn('<effect id="InventorySize" change="99"/>', result)
+        self.assertIn('id="DeeperPockets" cat="Tree3" desc_params="6;12;18"', result)
+        self.assertIn('<effect id="InventorySize" change="6"/>', result)
+
+    def test_deeper_pockets_rejects_wrong_prior_state(self):
+        text = (
+            '<skill id="DeeperPockets" desc_params="2;4;6">\n'
+            '  <effect id="InventorySize" change="3"/>\n'
+            '</skill>\n'
+        )
+        with self.assertRaises(PatchError):
+            replace_deeper_pockets_skill(
+                text,
+                expected_desc_params="2;4;6",
+                new_desc_params="6;12;18",
+                expected_inventory_change="2",
+                new_inventory_change="6",
+            )
+
+    def test_deeper_pockets_rejects_duplicate_skill(self):
+        block = (
+            '<skill id="DeeperPockets" desc_params="2;4;6">\n'
+            '  <effect id="InventorySize" change="2"/>\n'
+            '</skill>\n'
+        )
+        with self.assertRaises(PatchError):
+            replace_deeper_pockets_skill(
+                block + block,
+                expected_desc_params="2;4;6",
+                new_desc_params="6;12;18",
+                expected_inventory_change="2",
+                new_inventory_change="6",
+            )
 
     def test_reverb_disable_comments_only_reverb_directives(self):
         text = (
