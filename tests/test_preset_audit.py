@@ -20,21 +20,37 @@ class PresetAuditTests(unittest.TestCase):
         self.assertEqual(_target_member("aispawnbox_pre.def", names), "data/presets/aispawnbox_pre.def")
         self.assertIsNone(_target_member("missing.scr", names))
 
-    def test_semantic_delta_reports_only_unique_changed_facts(self):
+    def test_semantic_delta_reports_changed_facts(self):
         before = b'VarFloat("x", 1.0)\n<prop n="Y" v="2"/>\n'
         after = b'VarFloat("x", 0.1)\n<prop n="Y" v="3"/>\n'
         delta = _semantic_delta(before, after)
         self.assertIn({"key": "VarFloat:x", "native": "1.0", "preset": "0.1"}, delta)
         self.assertIn({"key": "prop:Y", "native": "2", "preset": "3"}, delta)
 
+    def test_semantic_delta_numbers_repeated_identities(self):
+        before = b'ParamFloat("health_mul",1.0)\nParamFloat("health_mul",2.0)\n'
+        after = b'ParamFloat("health_mul",1.5)\nParamFloat("health_mul",2.5)\n'
+        delta = _semantic_delta(before, after)
+        self.assertIn(
+            {"key": "ParamFloat:health_mul#1", "native": "1.0", "preset": "1.5"},
+            delta,
+        )
+        self.assertIn(
+            {"key": "ParamFloat:health_mul#2", "native": "2.0", "preset": "2.5"},
+            delta,
+        )
+
     def test_semantic_complete_accepts_value_only_change(self):
         before = b'ParamBool("one_shot",0);\r\n'
         after = b'ParamBool("one_shot",1);\n'
         self.assertTrue(_semantic_complete(before, after))
 
+    def test_semantic_complete_accepts_simple_generic_call_argument_change(self):
+        self.assertTrue(_semantic_complete(b'Chance(1);\n', b'Chance(2);\n'))
+
     def test_semantic_complete_rejects_unclassified_change(self):
-        before = b'UnknownCall(1);\n'
-        after = b'UnknownCall(2);\n'
+        before = b'DIRECTIVE one\n'
+        after = b'DIRECTIVE two\n'
         self.assertFalse(_semantic_complete(before, after))
 
     def test_preset_comparison_is_read_only(self):
