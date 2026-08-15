@@ -88,6 +88,8 @@ Complex remaining mapping work is concentrated in:
 
 The upstream reverb replacement pair has now been audited far enough to replace the full-file copy approach with a semantic transform. The modded form comments the `ReverbPreset` and `ReverbWetDryMix` declarations and uses. The nearby `Echo(...)` uses inspected in the default form are already commented, so the Linux transform leaves them unchanged. Exact counts still need validation against the installed native archive before this option is wired into a concrete patch definition.
 
+Vehicle noclip is now represented as a semantic direct definition: exactly two `Ignore(0)` calls in `cardi.phx` and two in `old_boat_a.phx` become `Ignore(1)`. The upstream truck edits are commented out and are not included. Native prior-state verification is still required before live-game use.
+
 Important upstream quirks recorded for parity decisions:
 
 - movement enable compares checkbox value to `1s` instead of `1`;
@@ -106,9 +108,9 @@ The Python core scaffold is implemented under `src/dirue/` with no proprietary g
 - ZIP-compatible Data0 validation with CRC, required-entry, traversal, backslash-path, and duplicate-member checks;
 - safe temporary extraction;
 - archive rebuilding from a working tree while preserving source member order/metadata where practical;
-- strict semantic regex patch primitives for XML properties and `VarFloat` values;
+- strict semantic regex patch primitives for XML properties, `VarFloat` values, and simple call arguments;
 - semantic reverb enable/disable handling with exact expected call counts, mixed-state rejection, and newline preservation;
-- declarative direct patch definitions for nine source-derived options, applied to an in-memory member map without mutating the input;
+- declarative direct patch definitions for ten source-derived options, including vehicle noclip;
 - one-time pristine backup creation that will not overwrite an existing backup;
 - validated atomic candidate installation;
 - validated atomic restore;
@@ -117,13 +119,14 @@ The Python core scaffold is implemented under `src/dirue/` with no proprietary g
 Validation evidence currently recorded:
 
 - the original core scaffold's 12-test standard-library `unittest` suite passed before the reverb change;
-- the current `tests/test_patches.py` module passes all 8 tests, including four reverb-specific cases;
-- six focused direct-definition tests pass, including missing-member and wrong-prior-state rejection;
-- Python compilation passes for the changed patch/definition modules and focused tests;
+- the reverb-era `tests/test_patches.py` module passed all 8 tests before the noclip extension;
+- six focused direct-definition tests passed before the noclip extension;
+- three focused call-value/noclip tests pass after the extension, including exact-count rejection and proof that the truck file stays unchanged;
+- Python compilation passes for the focused changed logic and tests;
 - `pyproject.toml` previously parsed with SPDX license `GPL-3.0-only`;
 - a wheel previously built successfully with setuptools without network dependencies.
 
-The reverb tests verify comment-only transformation, round-trip restoration with CRLF preservation, exact-count failure, and rejection of mixed source state. The direct definitions are source-derived and still require native prior-state verification before live-game use.
+The direct definitions are source-derived and still require native prior-state verification before live-game use.
 
 This core has **not yet been run against or used to modify the installed Steam game**. Native-install QA remains a separate gate.
 
