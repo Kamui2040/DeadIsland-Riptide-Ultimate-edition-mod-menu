@@ -27,8 +27,9 @@ _NATIVE_LOGIC = (
 _NATIVE_WEATHER = (
     'sub weather()\r\n'
     '{\r\n'
-    '\t//time = TIME * 0.1;\r\n'
-    '\t//Set("f_game_time", (time - floor(time)) * 24.0);\r\n'
+    '// float time = TIME * 0.1;\r\n'
+    '// Set("f_game_time", (time - floor(time)) * 24.0); '
+    '// time format hh.mmss h <00.0-23.0>\r\n'
     '}\r\n'
 )
 
@@ -88,12 +89,13 @@ class WeatherTests(unittest.TestCase):
 
                 weather = result[WEATHER_SCRIPT]
                 if night:
-                    self.assertIn("\ttime = TIME * 0.0;", weather)
+                    self.assertIn("float time = TIME * 0.0;", weather)
                     self.assertIn(
-                        '\tSet("f_game_time", (time - floor(time)) * 8.0);',
+                        'Set("f_game_time", (time - floor(time)) * 8.0);',
                         weather,
                     )
-                    self.assertNotIn("//time = TIME * 0.1;", weather)
+                    self.assertIn("// time format hh.mmss", weather)
+                    self.assertNotIn("// float time = TIME * 0.1;", weather)
                 else:
                     self.assertEqual(weather, _NATIVE_WEATHER)
 
