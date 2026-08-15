@@ -36,6 +36,8 @@ _CALL = re.compile(
     r'\(\s*(?P<args>[^)]*?)\s*\)'
 )
 
+_SAME_CALL_CANDIDATE_LIMIT = 8
+
 
 def _section(text: str, label: str) -> str | None:
     match = re.search(rf'(?m)^{re.escape(label)}:\s*$', text)
@@ -80,6 +82,12 @@ def _item_at(paths: list[tuple[str, ...]], line_number: int) -> str | None:
         (part for part in reversed(paths[line_number - 1]) if part.startswith("Item:")),
         None,
     )
+
+
+def _block_path_at(paths: list[tuple[str, ...]], line_number: int) -> list[str]:
+    if line_number < 1 or line_number > len(paths):
+        return []
+    return list(paths[line_number - 1])
 
 
 def _line_identity(lines: list[str], line_number: int) -> dict[str, object]:
@@ -140,6 +148,38 @@ def _nearest(
     }
 
 
+def _same_call_candidates(
+    items: dict[str, list[dict[str, object]]],
+    call_name: str,
+    historical_line: int,
+) -> list[dict[str, object]]:
+    """Return the nearest native calls with the requested semantic call name."""
+    candidates: list[dict[str, object]] = []
+    for item, item_calls in items.items():
+        for entry in item_calls:
+            if entry["call"] != call_name:
+                continue
+            native_line = int(entry["line_number"])
+            candidates.append(
+                {
+                    "item": item,
+                    "line_number": native_line,
+                    "distance": native_line - historical_line,
+                    "ordinal_for_call": entry["ordinal_for_call"],
+                    "arguments": entry["arguments"],
+                    "block_path": entry["block_path"],
+                }
+            )
+    candidates.sort(
+        key=lambda entry: (
+            abs(int(entry["distance"])),
+            int(entry["line_number"]),
+            str(entry["item"]),
+        )
+    )
+    return candidates[:_SAME_CALL_CANDIDATE_LIMIT]
+
+
 def map_targets_to_native(
     targets: list[dict[str, object]],
     native_members: dict[str, str],
@@ -158,6 +198,7 @@ def map_targets_to_native(
         result = dict(target)
         result["native_member"] = _TARGET_MEMBERS[source_target]
         result["native_item"] = item
+        result["native_block_path"] = _block_path_at(paths, line_number)
         result["native_line"] = _line_identity(lines, line_number)
         item_calls = items.get(item, []) if item is not None else []
         result["previous_relevant_call"] = _nearest(
@@ -165,6 +206,12 @@ def map_targets_to_native(
         )
         result["next_relevant_call"] = _nearest(
             item_calls, line_number, before=False
+        )
+        desired_call = target.get("desired_call")
+        result["same_call_candidates"] = (
+            _same_call_candidates(items, str(desired_call), line_number)
+            if desired_call is not None
+            else []
         )
         mapped.append(result)
     return mapped

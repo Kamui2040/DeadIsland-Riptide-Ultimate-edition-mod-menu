@@ -64,9 +64,57 @@ class SourceMapTests(unittest.TestCase):
             {"INV_GEN": native, "INV_spec": native},
         )[0]
         self.assertEqual(result["native_item"], "Item:Firearm_Test")
+        self.assertEqual(
+            result["native_block_path"],
+            ["sub main()", "Item:Firearm_Test"],
+        )
         self.assertEqual(result["native_line"], {"kind": "comment"})
         self.assertEqual(result["previous_relevant_call"]["call"], "ShotTime")
         self.assertEqual(result["next_relevant_call"]["call"], "HandOffset")
+        self.assertEqual(result["same_call_candidates"], [])
+
+    def test_maps_same_call_candidates_across_neighboring_items(self):
+        native = (
+            "sub main()\n"
+            "{\n"
+            'Item("Firearm_A")\n'
+            "{\n"
+            "    ReloadTime(3.0);\n"
+            "}\n"
+            'Item("Firearm_B")\n'
+            "{\n"
+            "    ReloadTime(4.0);\n"
+            "    ReloadTime(3.5);\n"
+            "}\n"
+            "}\n"
+        )
+        target = {
+            "section": "better_wep_upgrades_yes",
+            "source_target": "INV_GEN",
+            "historical_line": 9,
+            "desired_call": "ReloadTime",
+            "desired_arguments": "2.65",
+        }
+        result = map_targets_to_native(
+            [target],
+            {"INV_GEN": native, "INV_spec": native},
+        )[0]
+        self.assertEqual(result["native_item"], "Item:Firearm_B")
+        candidates = result["same_call_candidates"]
+        self.assertEqual(
+            [(entry["item"], entry["line_number"]) for entry in candidates],
+            [
+                ("Item:Firearm_B", 9),
+                ("Item:Firearm_B", 10),
+                ("Item:Firearm_A", 5),
+            ],
+        )
+        self.assertEqual(candidates[0]["ordinal_for_call"], 1)
+        self.assertEqual(candidates[1]["ordinal_for_call"], 2)
+        self.assertEqual(
+            candidates[0]["block_path"],
+            ["sub main()", "Item:Firearm_B"],
+        )
 
     def test_cli_parser_defaults_source_to_tracked_ahk(self):
         args = build_parser().parse_args(["audit-source-map", "/game"])
