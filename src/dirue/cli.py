@@ -23,6 +23,7 @@ from .game import validate_game_root
 from .preset_audit import audit_presets
 from .research import audit_native_research
 from .source_map import audit_source_map
+from .unresolved_audit import audit_unresolved_presets
 
 
 def _archive_payload(info) -> dict[str, object]:
@@ -65,6 +66,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     preset_parser.add_argument("root", type=Path)
     preset_parser.add_argument(
+        "--preset-dir", type=Path, default=Path("Required_files_and_scripts")
+    )
+
+    unresolved_parser = subparsers.add_parser(
+        "audit-unresolved-presets",
+        help="collect sanitized evidence for unresolved hard/spawn/weather parity",
+    )
+    unresolved_parser.add_argument("root", type=Path)
+    unresolved_parser.add_argument(
         "--preset-dir", type=Path, default=Path("Required_files_and_scripts")
     )
 
@@ -154,6 +164,13 @@ def main(argv: list[str] | None = None) -> int:
             payload = {"audit": audit_native_game(args.root)}
         elif args.command == "audit-presets":
             payload = {"presets": audit_presets(args.root, args.preset_dir)}
+        elif args.command == "audit-unresolved-presets":
+            payload = {
+                "unresolved_presets": audit_unresolved_presets(
+                    args.root,
+                    args.preset_dir,
+                )
+            }
         elif args.command == "audit-research":
             payload = {"research": audit_native_research(args.root)}
         elif args.command == "audit-fov-recoil":
