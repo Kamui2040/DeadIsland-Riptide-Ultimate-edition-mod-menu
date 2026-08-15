@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Mapping
 
 from .errors import PatchError
-from .patches import replace_varfloat_value, replace_xml_prop_value
+from .patches import replace_call_value, replace_varfloat_value, replace_xml_prop_value
 
 
 @dataclass(frozen=True)
@@ -35,7 +35,25 @@ class VarFloatEdit:
         )
 
 
-TextEdit = XmlPropertyEdit | VarFloatEdit
+@dataclass(frozen=True)
+class CallValueEdit:
+    member: str
+    call_name: str
+    expected_value: str
+    desired_value: str
+    expected_matches: int = 1
+
+    def apply(self, text: str) -> str:
+        return replace_call_value(
+            text,
+            self.call_name,
+            self.expected_value,
+            self.desired_value,
+            expected_matches=self.expected_matches,
+        )
+
+
+TextEdit = XmlPropertyEdit | VarFloatEdit | CallValueEdit
 
 
 @dataclass(frozen=True)
@@ -59,6 +77,8 @@ def apply_definition(
 DEFAULT_LEVELS = "data/skills/default_levels.xml"
 GLOW_SCD = "data/scripts/varlist_glow.scd"
 GLOW_SCR = "data/scripts/varlist_glow.scr"
+CAR_PHYSICS = "data/odephysics/vehicle/cardi.phx"
+OLD_BOAT_PHYSICS = "data/odephysics/vehicle/old_boat_a.phx"
 
 # These values are reconstructed from the released AHK behavior. Native archive
 # prior-state verification is still required before live-game use.
@@ -116,6 +136,13 @@ BULLET_PENETRATION = PatchDefinition(
     "bullet_penetration",
     (XmlPropertyEdit(DEFAULT_LEVELS, "BulletPenetrationChance", "0.", "0.98"),),
 )
+NOCLIP_VEHICLES = PatchDefinition(
+    "noclip_vehicles",
+    (
+        CallValueEdit(CAR_PHYSICS, "Ignore", "0", "1", expected_matches=2),
+        CallValueEdit(OLD_BOAT_PHYSICS, "Ignore", "0", "1", expected_matches=2),
+    ),
+)
 
 DIRECT_PATCHES = {
     definition.name: definition
@@ -129,5 +156,6 @@ DIRECT_PATCHES = {
         INSTANT_BREAK_DOORS,
         INCREASE_DURABILITY,
         BULLET_PENETRATION,
+        NOCLIP_VEHICLES,
     )
 }

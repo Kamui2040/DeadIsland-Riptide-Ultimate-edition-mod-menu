@@ -60,6 +60,31 @@ def replace_varfloat_value(text: str, variable_name: str, expected_value: str, n
     )
 
 
+def replace_call_value(
+    text: str,
+    call_name: str,
+    expected_value: str,
+    new_value: str,
+    *,
+    expected_matches: int = 1,
+) -> str:
+    """Replace a simple `Call(value)` argument with exact match-count validation."""
+    pattern = (
+        rf'(?P<prefix>\b{re.escape(call_name)}\(\s*)'
+        rf'{re.escape(expected_value)}'
+        rf'(?P<suffix>\s*\))'
+    )
+    return apply_regex_patch(
+        text,
+        RegexPatch(
+            name=f"call {call_name}",
+            pattern=pattern,
+            replacement=rf"\g<prefix>{new_value}\g<suffix>",
+            expected_matches=expected_matches,
+        ),
+    )
+
+
 def _line_parts(line: str) -> tuple[str, str]:
     if line.endswith("\r\n"):
         return line[:-2], "\r\n"

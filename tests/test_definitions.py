@@ -2,10 +2,13 @@ import unittest
 
 from dirue.definitions import (
     BETTER_MOVEMENT,
+    CAR_PHYSICS,
     DEFAULT_LEVELS,
     DIRECT_PATCHES,
     GLOW_SCD,
     GLOW_SCR,
+    NOCLIP_VEHICLES,
+    OLD_BOAT_PHYSICS,
     REDUCE_SPRINT_STAMINA,
     REDUCE_SUNFLARE,
     apply_definition,
@@ -45,6 +48,17 @@ class DefinitionTests(unittest.TestCase):
         for value in ("3.70", "2.70", "12.00"):
             self.assertIn(value, result)
 
+    def test_noclip_updates_car_and_boat_only(self):
+        source = {
+            CAR_PHYSICS: "Ignore(0)\nIgnore(0)\n",
+            OLD_BOAT_PHYSICS: "Ignore(0)\nIgnore(0)\n",
+            "data/odephysics/vehicle/truckdi.phx": "Ignore(0)\nIgnore(0)\n",
+        }
+        result = apply_definition(source, NOCLIP_VEHICLES)
+        self.assertEqual(result[CAR_PHYSICS].count("Ignore(1)"), 2)
+        self.assertEqual(result[OLD_BOAT_PHYSICS].count("Ignore(1)"), 2)
+        self.assertEqual(result["data/odephysics/vehicle/truckdi.phx"].count("Ignore(0)"), 2)
+
     def test_missing_member_fails_closed(self):
         with self.assertRaises(PatchError):
             apply_definition({}, REDUCE_SPRINT_STAMINA)
@@ -57,7 +71,7 @@ class DefinitionTests(unittest.TestCase):
             apply_definition(source, REDUCE_SPRINT_STAMINA)
 
     def test_direct_patch_catalog_is_unique(self):
-        self.assertEqual(len(DIRECT_PATCHES), 9)
+        self.assertEqual(len(DIRECT_PATCHES), 10)
         self.assertEqual(len(DIRECT_PATCHES), len(set(DIRECT_PATCHES)))
 
 

@@ -1,7 +1,12 @@
 import unittest
 
 from dirue.errors import PatchError
-from dirue.patches import replace_varfloat_value, replace_xml_prop_value, set_reverb_enabled
+from dirue.patches import (
+    replace_call_value,
+    replace_varfloat_value,
+    replace_xml_prop_value,
+    set_reverb_enabled,
+)
 
 
 class PatchTests(unittest.TestCase):
@@ -29,6 +34,17 @@ class PatchTests(unittest.TestCase):
             replace_varfloat_value(text, "f_pp_glow_factor", "1.0", "0.1"),
             'VarFloat("f_pp_glow_factor", 0.1) // comment',
         )
+
+    def test_replace_call_value_preserves_comments(self):
+        text = "    Ignore(0) // first\n    Ignore(0) // second\n"
+        self.assertEqual(
+            replace_call_value(text, "Ignore", "0", "1", expected_matches=2),
+            "    Ignore(1) // first\n    Ignore(1) // second\n",
+        )
+
+    def test_replace_call_value_requires_expected_count(self):
+        with self.assertRaises(PatchError):
+            replace_call_value("Ignore(0)\n", "Ignore", "0", "1", expected_matches=2)
 
     def test_reverb_disable_comments_only_reverb_directives(self):
         text = (
