@@ -269,7 +269,8 @@ def replace_color_weight_set(
 
     def replace_weight(match: re.Match[str]) -> str:
         return (
-            f'{match.group("prefix")}{new_weights[match.group("color")]}''
+            f'{match.group("prefix")}'
+            f'{new_weights[match.group("color")]}'
             f'{match.group("suffix")}'
         )
 
