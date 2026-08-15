@@ -73,7 +73,7 @@ class CandidateBuilderTests(unittest.TestCase):
                 text = archive.read(INTRO_MOVIES).decode("utf-8")
                 self.assertIn('//File("Intro_720p", 0, true);', text)
 
-    def test_rejects_unready_noclip_option(self):
+    def test_rejects_unknown_option(self):
         with tempfile.TemporaryDirectory() as td:
             td = Path(td)
             source = td / "Data0.pak"
@@ -81,7 +81,22 @@ class CandidateBuilderTests(unittest.TestCase):
             with ZipFile(source, "w") as archive:
                 archive.writestr("data/a.scr", "x")
             with self.assertRaises(PatchError):
-                build_candidate(source, candidate, ["noclip_vehicles"])
+                build_candidate(source, candidate, ["not_ready"])
+            self.assertFalse(candidate.exists())
+
+    def test_rejects_mutually_exclusive_difficulty_options(self):
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            source = td / "Data0.pak"
+            candidate = td / "candidate.pak"
+            with ZipFile(source, "w") as archive:
+                archive.writestr("data/a.scr", "x")
+            with self.assertRaisesRegex(PatchError, "mutually exclusive"):
+                build_candidate(
+                    source,
+                    candidate,
+                    ["one_hit_ai", "headshot_only_ai"],
+                )
             self.assertFalse(candidate.exists())
 
     def test_rejects_noop_source_that_is_not_pristine(self):

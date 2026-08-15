@@ -76,6 +76,30 @@ NOCLIP_VEHICLES = AdvancedPatchDefinition(
 )
 
 
+# The released one-hit preset differs from the native AI tree only by these
+# two named values plus non-behavioral trailing annotations. The native v4
+# read-only preset audit verified the complete pair.
+ONE_HIT_AI = AdvancedPatchDefinition(
+    "one_hit_ai",
+    (
+        NamedCallEdit(
+            "data/ai/infected/infected_data.scr",
+            "ParamBool",
+            "one_shot",
+            "0",
+            "1",
+        ),
+        NamedCallEdit(
+            "data/ai/zombie/vessel_data.scr",
+            "ParamBool",
+            "one_shot",
+            "0",
+            "1",
+        ),
+    ),
+)
+
+
 _HEADSHOT_FIELDS = (
     "left_arm_health_influence",
     "left_leg_health_influence",
@@ -168,5 +192,5 @@ HEADSHOT_ONLY_AI = AdvancedPatchDefinition(
 
 ADVANCED_PATCHES = {
     definition.name: definition
-    for definition in (NOCLIP_VEHICLES, HEADSHOT_ONLY_AI)
+    for definition in (NOCLIP_VEHICLES, ONE_HIT_AI, HEADSHOT_ONLY_AI)
 }

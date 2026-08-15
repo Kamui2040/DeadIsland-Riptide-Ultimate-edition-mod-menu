@@ -5,6 +5,7 @@ from dirue.advanced import (
     HEADSHOT_ONLY_AI,
     NOCLIP_VEHICLES,
     OLD_BOAT_PHYSICS,
+    ONE_HIT_AI,
 )
 from dirue.catalog import READY_PATCHES
 from dirue.definitions import DIRECT_PATCHES, apply_definition
@@ -12,10 +13,11 @@ from dirue.errors import PatchError
 
 
 class AdvancedDefinitionTests(unittest.TestCase):
-    def test_ready_catalog_adds_two_native_verified_options(self):
+    def test_ready_catalog_adds_three_native_verified_options(self):
         self.assertEqual(len(DIRECT_PATCHES), 13)
-        self.assertEqual(len(READY_PATCHES), 15)
+        self.assertEqual(len(READY_PATCHES), 16)
         self.assertIn("noclip_vehicles", READY_PATCHES)
+        self.assertIn("one_hit_ai", READY_PATCHES)
         self.assertIn("headshot_only_ai", READY_PATCHES)
 
     def test_noclip_updates_only_released_contact_blocks(self):
@@ -46,6 +48,29 @@ class AdvancedDefinitionTests(unittest.TestCase):
             apply_definition(
                 {CAR_PHYSICS: text, OLD_BOAT_PHYSICS: text},
                 NOCLIP_VEHICLES,
+            )
+
+    def test_one_hit_definition_covers_both_audited_members(self):
+        members = {
+            edit.member: f'{edit.call_name}("{edit.argument}", {edit.expected_value})'
+            for edit in ONE_HIT_AI.edits
+        }
+        self.assertEqual(len(ONE_HIT_AI.edits), 2)
+        self.assertEqual(len(members), 2)
+
+        result = apply_definition(members, ONE_HIT_AI)
+        for edit in ONE_HIT_AI.edits:
+            self.assertIn(
+                f'{edit.call_name}("{edit.argument}", {edit.desired_value})',
+                result[edit.member],
+            )
+
+    def test_one_hit_wrong_prior_value_fails_closed(self):
+        first = ONE_HIT_AI.edits[0]
+        with self.assertRaises(PatchError):
+            apply_definition(
+                {first.member: f'{first.call_name}("{first.argument}", 9)'},
+                ONE_HIT_AI,
             )
 
     def test_headshot_definition_covers_all_audited_value_changes(self):

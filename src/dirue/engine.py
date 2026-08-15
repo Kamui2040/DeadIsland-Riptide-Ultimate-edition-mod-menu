@@ -11,7 +11,7 @@ import tempfile
 import zipfile
 
 from .archive import validate_archive
-from .catalog import READY_PATCHES
+from .catalog import EXCLUSIVE_PATCH_GROUPS, READY_PATCHES
 from .definitions import apply_definition
 from .errors import PatchError, ValidationError
 
@@ -67,6 +67,14 @@ def build_candidate(
     unknown = [name for name in selected if name not in READY_PATCHES]
     if unknown:
         raise PatchError("option is not ready for candidate builds: " + ", ".join(unknown))
+
+    selected_set = set(selected)
+    for group in EXCLUSIVE_PATCH_GROUPS:
+        conflicts = sorted(selected_set & group)
+        if len(conflicts) > 1:
+            raise PatchError(
+                "mutually exclusive patch options selected: " + ", ".join(conflicts)
+            )
 
     required_members = tuple(
         sorted(
