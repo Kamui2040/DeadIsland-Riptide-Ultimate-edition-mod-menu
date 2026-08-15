@@ -6,6 +6,7 @@ from zipfile import ZipFile
 
 from dirue.preset_audit import (
     _semantic_complete,
+    _semantic_complete_ignoring_whitespace,
     _semantic_delta,
     _target_member,
     audit_preset_file,
@@ -52,6 +53,13 @@ class PresetAuditTests(unittest.TestCase):
         before = b'DIRECTIVE one\n'
         after = b'DIRECTIVE two\n'
         self.assertFalse(_semantic_complete(before, after))
+        self.assertFalse(_semantic_complete_ignoring_whitespace(before, after))
+
+    def test_whitespace_tolerant_completeness_keeps_code_identity(self):
+        before = b'  ParamBool("one_shot",0);\n\n'
+        after = b'\tParamBool("one_shot",1);   \n'
+        self.assertFalse(_semantic_complete(before, after))
+        self.assertTrue(_semantic_complete_ignoring_whitespace(before, after))
 
     def test_preset_comparison_is_read_only(self):
         with tempfile.TemporaryDirectory() as td:
@@ -72,6 +80,7 @@ class PresetAuditTests(unittest.TestCase):
             member = result["members"][0]
             self.assertEqual(member["status"], "different")
             self.assertTrue(member["semantic_complete"])
+            self.assertTrue(member["semantic_complete_ignoring_whitespace"])
             self.assertEqual(native.read_bytes(), native_before)
             self.assertEqual(preset.read_bytes(), preset_before)
 

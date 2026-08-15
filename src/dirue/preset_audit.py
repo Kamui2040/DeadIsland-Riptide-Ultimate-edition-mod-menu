@@ -180,6 +180,16 @@ def _semantic_structure(text: str) -> str:
     return assignment_pattern.sub(r"\g<prefix><VALUE>\g<suffix>", normalized)
 
 
+def _semantic_structure_ignoring_whitespace(text: str) -> str:
+    """Normalize indentation, blank lines, and trailing space before masking values."""
+    layout_normalized = "\n".join(
+        line.strip()
+        for line in text.replace("\r\n", "\n").replace("\r", "\n").splitlines()
+        if line.strip()
+    )
+    return _semantic_structure(layout_normalized)
+
+
 def _semantic_complete(native_data: bytes, preset_data: bytes) -> bool:
     """Return true only when recognized values explain the complete text difference."""
     native_text = _decode(native_data)
@@ -187,6 +197,21 @@ def _semantic_complete(native_data: bytes, preset_data: bytes) -> bool:
     if native_text is None or preset_text is None:
         return False
     return _semantic_structure(native_text) == _semantic_structure(preset_text)
+
+
+def _semantic_complete_ignoring_whitespace(
+    native_data: bytes,
+    preset_data: bytes,
+) -> bool:
+    """Return true when remaining differences are only layout whitespace."""
+    native_text = _decode(native_data)
+    preset_text = _decode(preset_data)
+    if native_text is None or preset_text is None:
+        return False
+    return (
+        _semantic_structure_ignoring_whitespace(native_text)
+        == _semantic_structure_ignoring_whitespace(preset_text)
+    )
 
 
 def _semantic_delta(native_data: bytes, preset_data: bytes) -> list[dict[str, str]]:
@@ -222,6 +247,7 @@ def audit_preset_file(preset_path: Path, native_data0: Path) -> dict[str, object
                         "status": "missing_native_target",
                         "preset_sha256": _digest(preset_data),
                         "semantic_complete": False,
+                        "semantic_complete_ignoring_whitespace": False,
                     }
                 )
                 continue
@@ -236,6 +262,14 @@ def audit_preset_file(preset_path: Path, native_data0: Path) -> dict[str, object
                     "native_sha256": _digest(native_data),
                     "semantic_changes": [] if same else _semantic_delta(native_data, preset_data),
                     "semantic_complete": True if same else _semantic_complete(native_data, preset_data),
+                    "semantic_complete_ignoring_whitespace": (
+                        True
+                        if same
+                        else _semantic_complete_ignoring_whitespace(
+                            native_data,
+                            preset_data,
+                        )
+                    ),
                 }
             )
     return {
