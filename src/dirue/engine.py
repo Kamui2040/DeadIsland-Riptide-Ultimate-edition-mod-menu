@@ -11,7 +11,8 @@ import tempfile
 import zipfile
 
 from .archive import validate_archive
-from .definitions import DIRECT_PATCHES, apply_definition
+from .catalog import READY_PATCHES
+from .definitions import apply_definition
 from .errors import PatchError, ValidationError
 
 
@@ -63,7 +64,7 @@ def build_candidate(
     if len(selected) != len(set(selected)):
         raise PatchError("duplicate patch option selected")
 
-    unknown = [name for name in selected if name not in DIRECT_PATCHES]
+    unknown = [name for name in selected if name not in READY_PATCHES]
     if unknown:
         raise PatchError("option is not ready for candidate builds: " + ", ".join(unknown))
 
@@ -72,7 +73,7 @@ def build_candidate(
             {
                 edit.member
                 for name in selected
-                for edit in DIRECT_PATCHES[name].edits
+                for edit in READY_PATCHES[name].edits
             }
         )
     )
@@ -95,7 +96,7 @@ def build_candidate(
     updated = dict(member_text)
     for name in selected:
         before = dict(updated)
-        updated = apply_definition(updated, DIRECT_PATCHES[name])
+        updated = apply_definition(updated, READY_PATCHES[name])
         if updated == before:
             raise PatchError(
                 f"{name}: made no changes; source may not be a pristine baseline"

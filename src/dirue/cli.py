@@ -9,7 +9,7 @@ import sys
 
 from .archive import validate_archive
 from .audit import audit_native_game
-from .definitions import DIRECT_PATCHES
+from .catalog import READY_PATCHES
 from .engine import build_candidate
 from .errors import DirueError
 from .game import validate_game_root
@@ -66,7 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
     candidate_parser.add_argument(
         "options",
         nargs="+",
-        choices=sorted(DIRECT_PATCHES),
+        choices=sorted(READY_PATCHES),
         help="ready semantic options to apply from the source baseline",
     )
     return parser

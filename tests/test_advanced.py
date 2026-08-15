@@ -1,0 +1,78 @@
+import unittest
+
+from dirue.advanced import (
+    CAR_PHYSICS,
+    HEADSHOT_ONLY_AI,
+    NOCLIP_VEHICLES,
+    OLD_BOAT_PHYSICS,
+)
+from dirue.catalog import READY_PATCHES
+from dirue.definitions import DIRECT_PATCHES, apply_definition
+from dirue.errors import PatchError
+
+
+class AdvancedDefinitionTests(unittest.TestCase):
+    def test_ready_catalog_adds_two_native_verified_options(self):
+        self.assertEqual(len(DIRECT_PATCHES), 13)
+        self.assertEqual(len(READY_PATCHES), 15)
+        self.assertIn("noclip_vehicles", READY_PATCHES)
+        self.assertIn("headshot_only_ai", READY_PATCHES)
+
+    def test_noclip_updates_only_released_contact_blocks(self):
+        car = (
+            'ContactParams("Terrain")\n{\n    Ignore(0)\n}\n'
+            'ContactParams("SimpleObjects")\n{\n    Ignore(0)\n}\n'
+            'ContactParams("NonODEObjects")\n{\n    Ignore(0)\n}\n'
+            'ContactParams("ODEObjects")\n{\n    Ignore(0)\n}\n'
+            'ContactParams("Water")\n{\n    Ignore(1)\n}\n'
+        )
+        boat = car.replace('ContactParams("Water")\n{\n    Ignore(1)', 'ContactParams("Water")\n{\n    Ignore(0)')
+        result = apply_definition(
+            {CAR_PHYSICS: car, OLD_BOAT_PHYSICS: boat},
+            NOCLIP_VEHICLES,
+        )
+        self.assertIn('ContactParams("Terrain")\n{\n    Ignore(0)', result[CAR_PHYSICS])
+        self.assertIn('ContactParams("ODEObjects")\n{\n    Ignore(0)', result[CAR_PHYSICS])
+        self.assertIn('ContactParams("Water")\n{\n    Ignore(1)', result[CAR_PHYSICS])
+        self.assertEqual(result[CAR_PHYSICS].count("Ignore(1)"), 3)
+        self.assertEqual(result[OLD_BOAT_PHYSICS].count("Ignore(1)"), 2)
+
+    def test_noclip_wrong_prior_state_fails_closed(self):
+        text = (
+            'ContactParams("SimpleObjects")\n{\n    Ignore(1)\n}\n'
+            'ContactParams("NonODEObjects")\n{\n    Ignore(0)\n}\n'
+        )
+        with self.assertRaises(PatchError):
+            apply_definition(
+                {CAR_PHYSICS: text, OLD_BOAT_PHYSICS: text},
+                NOCLIP_VEHICLES,
+            )
+
+    def test_headshot_definition_covers_all_audited_value_changes(self):
+        self.assertEqual(len(HEADSHOT_ONLY_AI.edits), 115)
+        lines: dict[str, list[str]] = {}
+        for edit in HEADSHOT_ONLY_AI.edits:
+            lines.setdefault(edit.member, []).append(
+                f'{edit.call_name}("{edit.argument}",{edit.expected_value})'
+            )
+        members = {member: "\n".join(member_lines) for member, member_lines in lines.items()}
+        self.assertEqual(len(members), 20)
+
+        result = apply_definition(members, HEADSHOT_ONLY_AI)
+        for edit in HEADSHOT_ONLY_AI.edits:
+            self.assertIn(
+                f'{edit.call_name}("{edit.argument}",{edit.desired_value})',
+                result[edit.member],
+            )
+
+    def test_headshot_wrong_prior_value_fails_closed(self):
+        first = HEADSHOT_ONLY_AI.edits[0]
+        with self.assertRaises(PatchError):
+            apply_definition(
+                {first.member: f'{first.call_name}("{first.argument}",9.9)'},
+                HEADSHOT_ONLY_AI,
+            )
+
+
+if __name__ == "__main__":
+    unittest.main()
