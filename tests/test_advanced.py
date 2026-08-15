@@ -15,9 +15,10 @@ from dirue.errors import PatchError
 class AdvancedDefinitionTests(unittest.TestCase):
     def test_ready_catalog_adds_native_verified_options(self):
         self.assertEqual(len(DIRECT_PATCHES), 13)
-        self.assertEqual(len(READY_PATCHES), 26)
+        self.assertEqual(len(READY_PATCHES), 27)
         self.assertIn("noclip_vehicles", READY_PATCHES)
         self.assertIn("one_hit_ai", READY_PATCHES)
+        self.assertIn("hard_ai", READY_PATCHES)
         self.assertIn("headshot_only_ai", READY_PATCHES)
         self.assertIn("better_firearm_upgrading", READY_PATCHES)
         self.assertIn("better_firearm_pov_62", READY_PATCHES)
@@ -29,6 +30,10 @@ class AdvancedDefinitionTests(unittest.TestCase):
         self.assertIn("zombie_size_midget", READY_PATCHES)
         self.assertIn("zombie_size_large", READY_PATCHES)
         self.assertIn("zombie_size_supersize", READY_PATCHES)
+        self.assertIn(
+            frozenset({"one_hit_ai", "hard_ai", "headshot_only_ai"}),
+            EXCLUSIVE_PATCH_GROUPS,
+        )
         self.assertIn(
             frozenset(
                 {
