@@ -100,9 +100,12 @@ def _semantic_pairs(text: str) -> list[tuple[str, str]]:
     ):
         pairs.append((f'prop:{match.group("name")}', match.group("value")))
 
+    # Prefix matching is deliberate. Some inherited .pre/.def forms append
+    # separators or annotations after a call. The call itself remains the
+    # semantic unit, while the remaining structure is checked independently.
     call_pattern = re.compile(
         r'^(?!\s*//)\s*(?P<call>[A-Za-z_][A-Za-z0-9_]*)\s*\('
-        r'(?P<arguments>[^\r\n()]*)\)\s*;?(?:\s*//.*)?$',
+        r'(?P<arguments>[^\r\n()]*)\)',
         re.MULTILINE,
     )
     generic_ordinals: Counter[str] = Counter()
@@ -155,7 +158,7 @@ def _semantic_structure(text: str) -> str:
         r'^(?!\s*//)'
         r'(?P<prefix>\s*[A-Za-z_][A-Za-z0-9_]*\s*\(\s*"[^"]+"\s*,\s*)'
         r'[^\r\n()]*'
-        r'(?P<suffix>\)\s*;?(?:\s*//.*)?)$',
+        r'(?P<suffix>\)\s*[,;]?(?:\s*//.*)?)$',
         re.MULTILINE,
     )
     normalized = quoted_call_pattern.sub(r"\g<prefix><VALUE>\g<suffix>", normalized)
@@ -164,7 +167,7 @@ def _semantic_structure(text: str) -> str:
         r'^(?!\s*//)'
         r'(?P<prefix>\s*[A-Za-z_][A-Za-z0-9_]*\s*\()'
         r'[^\r\n()]*'
-        r'(?P<suffix>\)\s*;?(?:\s*//.*)?)$',
+        r'(?P<suffix>\)\s*[,;]?(?:\s*//.*)?)$',
         re.MULTILINE,
     )
     normalized = generic_call_pattern.sub(r"\g<prefix><VALUE>\g<suffix>", normalized)
@@ -224,6 +227,24 @@ def _semantic_structure_ignoring_layout_comments(text: str) -> str:
     return _semantic_structure(uncommented_layout)
 
 
+def _raw_layout_structure(text: str) -> str:
+    """Normalize layout only; keep every code/comment token and value."""
+    return "\n".join(
+        line.strip()
+        for line in text.replace("\r\n", "\n").replace("\r", "\n").splitlines()
+        if line.strip()
+    )
+
+
+def _raw_layout_comment_structure(text: str) -> str:
+    """Normalize layout and trailing active comments without masking code values."""
+    return "\n".join(
+        stripped
+        for line in text.replace("\r\n", "\n").replace("\r", "\n").splitlines()
+        if (stripped := _strip_trailing_active_comment(line).strip())
+    )
+
+
 def _semantic_complete(native_data: bytes, preset_data: bytes) -> bool:
     """Return true only when recognized values explain the complete text difference."""
     native_text = _decode(native_data)
@@ -237,7 +258,7 @@ def _semantic_complete_ignoring_whitespace(
     native_data: bytes,
     preset_data: bytes,
 ) -> bool:
-    """Return true when remaining differences are only layout whitespace."""
+    """Return true when recognized values explain the difference apart from layout."""
     native_text = _decode(native_data)
     preset_text = _decode(preset_data)
     if native_text is None or preset_text is None:
@@ -252,7 +273,7 @@ def _semantic_complete_ignoring_layout_comments(
     native_data: bytes,
     preset_data: bytes,
 ) -> bool:
-    """Return true when remaining differences are layout or trailing active comments."""
+    """Return true when recognized values explain all but layout/trailing comments."""
     native_text = _decode(native_data)
     preset_text = _decode(preset_data)
     if native_text is None or preset_text is None:
@@ -260,6 +281,27 @@ def _semantic_complete_ignoring_layout_comments(
     return (
         _semantic_structure_ignoring_layout_comments(native_text)
         == _semantic_structure_ignoring_layout_comments(preset_text)
+    )
+
+
+def _layout_only(native_data: bytes, preset_data: bytes) -> bool:
+    """Return true only when raw text differs by layout whitespace."""
+    native_text = _decode(native_data)
+    preset_text = _decode(preset_data)
+    if native_text is None or preset_text is None:
+        return False
+    return _raw_layout_structure(native_text) == _raw_layout_structure(preset_text)
+
+
+def _layout_or_trailing_comment_only(native_data: bytes, preset_data: bytes) -> bool:
+    """Return true only for raw layout and trailing-active-comment differences."""
+    native_text = _decode(native_data)
+    preset_text = _decode(preset_data)
+    if native_text is None or preset_text is None:
+        return False
+    return (
+        _raw_layout_comment_structure(native_text)
+        == _raw_layout_comment_structure(preset_text)
     )
 
 
@@ -298,11 +340,15 @@ def audit_preset_file(preset_path: Path, native_data0: Path) -> dict[str, object
                         "semantic_complete": False,
                         "semantic_complete_ignoring_whitespace": False,
                         "semantic_complete_ignoring_layout_comments": False,
+                        "layout_only": False,
+                        "layout_or_trailing_comment_only": False,
                     }
                 )
                 continue
             native_data = native.read(target)
             same = preset_data == native_data
+            changes = [] if same else _semantic_delta(native_data, preset_data)
+            has_semantic_changes = bool(changes)
             members.append(
                 {
                     "preset_member": item.filename,
@@ -310,12 +356,18 @@ def audit_preset_file(preset_path: Path, native_data0: Path) -> dict[str, object
                     "status": "same" if same else "different",
                     "preset_sha256": _digest(preset_data),
                     "native_sha256": _digest(native_data),
-                    "semantic_changes": [] if same else _semantic_delta(native_data, preset_data),
-                    "semantic_complete": True if same else _semantic_complete(native_data, preset_data),
+                    "semantic_changes": changes,
+                    "semantic_complete": (
+                        True
+                        if same
+                        else has_semantic_changes
+                        and _semantic_complete(native_data, preset_data)
+                    ),
                     "semantic_complete_ignoring_whitespace": (
                         True
                         if same
-                        else _semantic_complete_ignoring_whitespace(
+                        else has_semantic_changes
+                        and _semantic_complete_ignoring_whitespace(
                             native_data,
                             preset_data,
                         )
@@ -323,7 +375,19 @@ def audit_preset_file(preset_path: Path, native_data0: Path) -> dict[str, object
                     "semantic_complete_ignoring_layout_comments": (
                         True
                         if same
-                        else _semantic_complete_ignoring_layout_comments(
+                        else has_semantic_changes
+                        and _semantic_complete_ignoring_layout_comments(
+                            native_data,
+                            preset_data,
+                        )
+                    ),
+                    "layout_only": (
+                        True if same else _layout_only(native_data, preset_data)
+                    ),
+                    "layout_or_trailing_comment_only": (
+                        True
+                        if same
+                        else _layout_or_trailing_comment_only(
                             native_data,
                             preset_data,
                         )

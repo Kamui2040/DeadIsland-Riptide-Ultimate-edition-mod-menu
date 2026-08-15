@@ -5,6 +5,8 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from dirue.preset_audit import (
+    _layout_only,
+    _layout_or_trailing_comment_only,
     _semantic_complete,
     _semantic_complete_ignoring_layout_comments,
     _semantic_complete_ignoring_whitespace,
@@ -42,6 +44,21 @@ class PresetAuditTests(unittest.TestCase):
             delta,
         )
 
+    def test_semantic_delta_accepts_call_with_trailing_separator(self):
+        before = b'AddField("m_ForcedBodyScaleMax", "1.00"),\n'
+        after = b'AddField("m_ForcedBodyScaleMax", "0.3"),\n'
+        self.assertEqual(
+            _semantic_delta(before, after),
+            [
+                {
+                    "key": "AddField:m_ForcedBodyScaleMax",
+                    "native": '"1.00"',
+                    "preset": '"0.3"',
+                }
+            ],
+        )
+        self.assertTrue(_semantic_complete(before, after))
+
     def test_semantic_complete_accepts_value_only_change(self):
         before = b'ParamBool("one_shot",0);\r\n'
         after = b'ParamBool("one_shot",1);\n'
@@ -61,6 +78,7 @@ class PresetAuditTests(unittest.TestCase):
         after = b'\tParamBool("one_shot",1);   \n'
         self.assertFalse(_semantic_complete(before, after))
         self.assertTrue(_semantic_complete_ignoring_whitespace(before, after))
+        self.assertFalse(_layout_only(before, after))
 
     def test_layout_comment_tolerant_completeness_preserves_comment_state(self):
         before = b'ParamBool("one_shot",0); // native note\n'
@@ -68,12 +86,52 @@ class PresetAuditTests(unittest.TestCase):
         self.assertFalse(_semantic_complete(before, after))
         self.assertFalse(_semantic_complete_ignoring_whitespace(before, after))
         self.assertTrue(_semantic_complete_ignoring_layout_comments(before, after))
+        self.assertFalse(_layout_or_trailing_comment_only(before, after))
         self.assertFalse(
             _semantic_complete_ignoring_layout_comments(
                 b'// ParamBool("one_shot",0);\n',
                 b'ParamBool("one_shot",1);\n',
             )
         )
+
+    def test_raw_layout_comment_signal_does_not_mask_values(self):
+        self.assertTrue(
+            _layout_or_trailing_comment_only(
+                b'  ParamBool("one_shot",0); // old note\n\n',
+                b'ParamBool("one_shot",0); // new note\n',
+            )
+        )
+        self.assertFalse(
+            _layout_or_trailing_comment_only(
+                b'ParamBool("one_shot",0); // old note\n',
+                b'ParamBool("one_shot",1); // new note\n',
+            )
+        )
+        self.assertFalse(
+            _layout_or_trailing_comment_only(
+                b'// ParamBool("one_shot",0);\n',
+                b'ParamBool("one_shot",0);\n',
+            )
+        )
+
+    def test_preset_comparison_requires_semantic_delta_for_completeness(self):
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            native = td / "Data0.pak"
+            preset = td / "preset.zip"
+            with ZipFile(native, "w") as zf:
+                zf.writestr("data/a.scr", 'DIRECTIVE one // native')
+            with ZipFile(preset, "w") as zf:
+                zf.writestr("a.scr", 'DIRECTIVE one // preset')
+            preset_before = preset.read_bytes()
+            with patch("dirue.preset_audit.validate_archive") as validate:
+                validate.return_value.size = len(preset_before)
+                validate.return_value.sha256 = "preset-hash"
+                validate.return_value.entry_count = 1
+                member = audit_preset_file(preset, native)["members"][0]
+            self.assertEqual(member["semantic_changes"], [])
+            self.assertFalse(member["semantic_complete_ignoring_layout_comments"])
+            self.assertTrue(member["layout_or_trailing_comment_only"])
 
     def test_preset_comparison_is_read_only(self):
         with tempfile.TemporaryDirectory() as td:
@@ -96,6 +154,8 @@ class PresetAuditTests(unittest.TestCase):
             self.assertTrue(member["semantic_complete"])
             self.assertTrue(member["semantic_complete_ignoring_whitespace"])
             self.assertTrue(member["semantic_complete_ignoring_layout_comments"])
+            self.assertFalse(member["layout_only"])
+            self.assertFalse(member["layout_or_trailing_comment_only"])
             self.assertEqual(native.read_bytes(), native_before)
             self.assertEqual(preset.read_bytes(), preset_before)
 
