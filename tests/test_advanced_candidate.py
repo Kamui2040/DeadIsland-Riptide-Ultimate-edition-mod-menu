@@ -17,9 +17,19 @@ class AdvancedCandidateTests(unittest.TestCase):
                 "/candidate.pak",
                 "noclip_vehicles",
                 "headshot_only_ai",
+                "camera_fov_72",
+                "zombie_size_large",
             ]
         )
-        self.assertEqual(args.options, ["noclip_vehicles", "headshot_only_ai"])
+        self.assertEqual(
+            args.options,
+            [
+                "noclip_vehicles",
+                "headshot_only_ai",
+                "camera_fov_72",
+                "zombie_size_large",
+            ],
+        )
 
     def test_noclip_builds_through_ready_catalog(self):
         text = (

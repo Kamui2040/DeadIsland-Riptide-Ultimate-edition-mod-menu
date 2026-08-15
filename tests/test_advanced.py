@@ -15,7 +15,7 @@ from dirue.errors import PatchError
 class AdvancedDefinitionTests(unittest.TestCase):
     def test_ready_catalog_adds_native_verified_options(self):
         self.assertEqual(len(DIRECT_PATCHES), 13)
-        self.assertEqual(len(READY_PATCHES), 20)
+        self.assertEqual(len(READY_PATCHES), 26)
         self.assertIn("noclip_vehicles", READY_PATCHES)
         self.assertIn("one_hit_ai", READY_PATCHES)
         self.assertIn("headshot_only_ai", READY_PATCHES)
@@ -23,12 +23,33 @@ class AdvancedDefinitionTests(unittest.TestCase):
         self.assertIn("better_firearm_pov_62", READY_PATCHES)
         self.assertIn("better_firearm_pov_72", READY_PATCHES)
         self.assertIn("better_firearm_pov_82", READY_PATCHES)
+        self.assertIn("camera_fov_72", READY_PATCHES)
+        self.assertIn("camera_fov_82", READY_PATCHES)
+        self.assertIn("zombie_size_extra_small", READY_PATCHES)
+        self.assertIn("zombie_size_midget", READY_PATCHES)
+        self.assertIn("zombie_size_large", READY_PATCHES)
+        self.assertIn("zombie_size_supersize", READY_PATCHES)
         self.assertIn(
             frozenset(
                 {
                     "better_firearm_pov_62",
                     "better_firearm_pov_72",
                     "better_firearm_pov_82",
+                }
+            ),
+            EXCLUSIVE_PATCH_GROUPS,
+        )
+        self.assertIn(
+            frozenset({"camera_fov_72", "camera_fov_82"}),
+            EXCLUSIVE_PATCH_GROUPS,
+        )
+        self.assertIn(
+            frozenset(
+                {
+                    "zombie_size_extra_small",
+                    "zombie_size_midget",
+                    "zombie_size_large",
+                    "zombie_size_supersize",
                 }
             ),
             EXCLUSIVE_PATCH_GROUPS,

@@ -39,6 +39,24 @@ def _encode_member(text: str, had_bom: bool) -> bytes:
     return codecs.BOM_UTF8 + data if had_bom else data
 
 
+def _ordered_patch_names(selected: tuple[str, ...]) -> tuple[str, ...]:
+    """Apply upgrading before camera FOV while preserving all other relative order."""
+    ordered = list(selected)
+    upgrading = "better_firearm_upgrading"
+    camera = {"camera_fov_72", "camera_fov_82"}
+    if upgrading not in ordered or not camera.intersection(ordered):
+        return tuple(ordered)
+
+    upgrading_index = ordered.index(upgrading)
+    first_camera_index = min(
+        index for index, name in enumerate(ordered) if name in camera
+    )
+    if upgrading_index > first_camera_index:
+        ordered.pop(upgrading_index)
+        ordered.insert(first_camera_index, upgrading)
+    return tuple(ordered)
+
+
 def build_candidate(
     source_archive: Path,
     destination: Path,
@@ -102,7 +120,7 @@ def build_candidate(
             member_bom[member] = had_bom
 
     updated = dict(member_text)
-    for name in selected:
+    for name in _ordered_patch_names(selected):
         before = dict(updated)
         updated = apply_definition(updated, READY_PATCHES[name])
         if updated == before:

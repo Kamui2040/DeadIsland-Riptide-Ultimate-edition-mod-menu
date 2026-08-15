@@ -5,7 +5,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 from dirue.definitions import DEFAULT_LEVELS, INTRO_MOVIES
-from dirue.engine import build_candidate
+from dirue.engine import _ordered_patch_names, build_candidate
 from dirue.errors import PatchError, ValidationError
 
 
@@ -98,6 +98,41 @@ class CandidateBuilderTests(unittest.TestCase):
                     ["one_hit_ai", "headshot_only_ai"],
                 )
             self.assertFalse(candidate.exists())
+
+    def test_rejects_mutually_exclusive_camera_fov_or_zombie_size_options(self):
+        for selected in (
+            ["camera_fov_72", "camera_fov_82"],
+            ["zombie_size_extra_small", "zombie_size_large"],
+        ):
+            with self.subTest(selected=selected), tempfile.TemporaryDirectory() as td:
+                td = Path(td)
+                source = td / "Data0.pak"
+                candidate = td / "candidate.pak"
+                with ZipFile(source, "w") as archive:
+                    archive.writestr("data/a.scr", "x")
+                with self.assertRaisesRegex(PatchError, "mutually exclusive"):
+                    build_candidate(source, candidate, selected)
+                self.assertFalse(candidate.exists())
+
+    def test_orders_upgrading_before_camera_fov_without_reordering_others(self):
+        self.assertEqual(
+            _ordered_patch_names(
+                (
+                    "camera_fov_82",
+                    "better_movement",
+                    "better_firearm_upgrading",
+                    "reduce_jump_stamina",
+                )
+            ),
+            (
+                "better_firearm_upgrading",
+                "camera_fov_82",
+                "better_movement",
+                "reduce_jump_stamina",
+            ),
+        )
+        unchanged = ("better_movement", "camera_fov_72")
+        self.assertEqual(_ordered_patch_names(unchanged), unchanged)
 
     def test_rejects_noop_source_that_is_not_pristine(self):
         with tempfile.TemporaryDirectory() as td:
