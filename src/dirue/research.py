@@ -64,7 +64,7 @@ def _brace_paths(lines: list[str]) -> list[tuple[str, ...]]:
 
 
 def call_sites(text: str, call_name: str) -> list[dict[str, object]]:
-    """Return active call arguments and block identities without copying full lines."""
+    """Return active call arguments, line numbers, and block identities."""
     lines = text.splitlines()
     paths = _brace_paths(lines)
     pattern = re.compile(
@@ -80,6 +80,7 @@ def call_sites(text: str, call_name: str) -> list[dict[str, object]]:
         ordinals[path] = ordinals.get(path, 0) + 1
         result.append(
             {
+                "line_number": index + 1,
                 "block_path": list(path),
                 "ordinal_in_block": ordinals[path],
                 "arguments": match.group("args").strip()[:160],
@@ -97,6 +98,7 @@ def firearm_items(text: str) -> dict[str, list[dict[str, object]]]:
         r'\(\s*(?P<args>[^)]*?)\s*\)'
     )
     result: dict[str, list[dict[str, object]]] = {}
+    per_call_ordinals: dict[tuple[str, str], int] = {}
     for index, line in enumerate(lines):
         match = pattern.search(line)
         if not match or match.group("call") not in FIREARM_CALLS:
@@ -107,10 +109,15 @@ def firearm_items(text: str) -> dict[str, list[dict[str, object]]]:
         )
         if item is None:
             continue
+        call_name = match.group("call")
+        ordinal_key = (item, call_name)
+        per_call_ordinals[ordinal_key] = per_call_ordinals.get(ordinal_key, 0) + 1
         result.setdefault(item, []).append(
             {
+                "line_number": index + 1,
                 "block_path": list(paths[index]),
-                "call": match.group("call"),
+                "call": call_name,
+                "ordinal_for_call": per_call_ordinals[ordinal_key],
                 "arguments": match.group("args").strip()[:160],
             }
         )
