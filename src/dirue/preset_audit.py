@@ -108,6 +108,45 @@ def _semantic_tokens(text: str) -> dict[str, str]:
     return {key: value for key, value in pairs if counts[key] == 1}
 
 
+def _semantic_structure(text: str) -> str:
+    """Mask recognized values so unrelated text changes remain detectable."""
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    xml_pattern = re.compile(
+        r'(?P<prefix><prop\b(?=[^>]*\bn="[^"]+")[^>]*\bv=")'
+        r'[^"]+'
+        r'(?P<suffix>"[^>]*/>)'
+    )
+    normalized = xml_pattern.sub(r"\g<prefix><VALUE>\g<suffix>", normalized)
+
+    call_pattern = re.compile(
+        r'^(?!\s*//)'
+        r'(?P<prefix>\s*[A-Za-z_][A-Za-z0-9_]*\s*\(\s*"[^"]+"\s*,\s*)'
+        r'[^)]+?'
+        r'(?P<suffix>\s*\))',
+        re.MULTILINE,
+    )
+    normalized = call_pattern.sub(r"\g<prefix><VALUE>\g<suffix>", normalized)
+
+    assignment_pattern = re.compile(
+        r'^(?!\s*//)'
+        r'(?P<prefix>\s*(?:float|int|bool|string)?\s*'
+        r'[A-Za-z_][A-Za-z0-9_]*\s*=\s*)'
+        r'[^;\n]+'
+        r'(?P<suffix>\s*;?)',
+        re.MULTILINE,
+    )
+    return assignment_pattern.sub(r"\g<prefix><VALUE>\g<suffix>", normalized)
+
+
+def _semantic_complete(native_data: bytes, preset_data: bytes) -> bool:
+    """Return true only when recognized values explain the complete text difference."""
+    native_text = _decode(native_data)
+    preset_text = _decode(preset_data)
+    if native_text is None or preset_text is None:
+        return False
+    return _semantic_structure(native_text) == _semantic_structure(preset_text)
+
+
 def _semantic_delta(native_data: bytes, preset_data: bytes) -> list[dict[str, str]]:
     native_text = _decode(native_data)
     preset_text = _decode(preset_data)
@@ -140,6 +179,7 @@ def audit_preset_file(preset_path: Path, native_data0: Path) -> dict[str, object
                         "native_member": None,
                         "status": "missing_native_target",
                         "preset_sha256": _digest(preset_data),
+                        "semantic_complete": False,
                     }
                 )
                 continue
@@ -153,6 +193,7 @@ def audit_preset_file(preset_path: Path, native_data0: Path) -> dict[str, object
                     "preset_sha256": _digest(preset_data),
                     "native_sha256": _digest(native_data),
                     "semantic_changes": [] if same else _semantic_delta(native_data, preset_data),
+                    "semantic_complete": True if same else _semantic_complete(native_data, preset_data),
                 }
             )
     return {
