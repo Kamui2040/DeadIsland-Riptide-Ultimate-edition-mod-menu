@@ -121,19 +121,24 @@ def _unquote(value: str) -> str | None:
     return body
 
 
+def _prepare_line(line: str) -> tuple[bool, str]:
+    raw = line.strip()
+    if not raw:
+        return False, ""
+    is_commented = raw.startswith("//")
+    if is_commented:
+        raw = raw[2:].strip()
+    return is_commented, _strip_trailing_comment(raw).strip()
+
+
 def _call_argument_states(text: str, call_name: str, identity: str) -> dict[str, list[list[str]]]:
     active: list[list[str]] = []
     commented: list[list[str]] = []
     normalized = text.replace("\r\n", "\n").replace("\r", "\n")
     for line in normalized.split("\n"):
-        raw = line.strip()
+        is_commented, raw = _prepare_line(line)
         if not raw:
             continue
-        is_commented = raw.startswith("//")
-        if is_commented:
-            raw = raw[2:].strip()
-        else:
-            raw = _strip_trailing_comment(raw).strip()
         arguments = _outer_call_arguments(raw, call_name)
         if not arguments or _unquote(arguments[0]) != identity:
             continue
@@ -150,14 +155,9 @@ def _assignment_states(text: str, name: str) -> dict[str, list[str]]:
     normalized = text.replace("\r\n", "\n").replace("\r", "\n")
     pattern = re.compile(rf"^(?:float\s+)?{re.escape(name)}\s*=\s*(?P<value>.+?)\s*;?$")
     for line in normalized.split("\n"):
-        raw = line.strip()
+        is_commented, raw = _prepare_line(line)
         if not raw:
             continue
-        is_commented = raw.startswith("//")
-        if is_commented:
-            raw = raw[2:].strip()
-        else:
-            raw = _strip_trailing_comment(raw).strip()
         match = pattern.match(raw)
         if match is None:
             continue
