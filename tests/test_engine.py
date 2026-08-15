@@ -55,6 +55,24 @@ class CandidateBuilderTests(unittest.TestCase):
             with ZipFile(candidate, "r") as archive:
                 self.assertTrue(archive.read(DEFAULT_LEVELS).startswith(codecs.BOM_UTF8))
 
+    def test_builds_intro_candidate_with_additional_call_arguments(self):
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            source = td / "Data0.pak"
+            candidate = td / "candidate.pak"
+            with ZipFile(source, "w") as archive:
+                archive.writestr(
+                    INTRO_MOVIES,
+                    'File("Intro_720p", 0, true);\r\n//File("Other");\r\n',
+                )
+            source_before = source.read_bytes()
+            result = build_candidate(source, candidate, ["skip_intro_videos"])
+            self.assertEqual(source.read_bytes(), source_before)
+            self.assertEqual(result.changed_members, (INTRO_MOVIES,))
+            with ZipFile(candidate, "r") as archive:
+                text = archive.read(INTRO_MOVIES).decode("utf-8")
+                self.assertIn('//File("Intro_720p", 0, true);', text)
+
     def test_rejects_unready_noclip_option(self):
         with tempfile.TemporaryDirectory() as td:
             td = Path(td)
@@ -72,7 +90,7 @@ class CandidateBuilderTests(unittest.TestCase):
             source = td / "Data0.pak"
             candidate = td / "candidate.pak"
             with ZipFile(source, "w") as archive:
-                archive.writestr(INTRO_MOVIES, '//File("Intro_720p");\n')
+                archive.writestr(INTRO_MOVIES, '//File("Intro_720p", 0, true);\n')
             with self.assertRaises(PatchError):
                 build_candidate(source, candidate, ["skip_intro_videos"])
             self.assertFalse(candidate.exists())
