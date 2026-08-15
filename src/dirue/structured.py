@@ -127,6 +127,50 @@ def _named_block_span(text: str, block_call: str, block_name: str) -> tuple[int,
     return match.start(), close_index + 1
 
 
+def _replace_call_sequence_in_span(
+    text: str,
+    *,
+    start: int,
+    end: int,
+    identity: str,
+    call_name: str,
+    expected_arguments: tuple[str, ...],
+    desired_arguments: tuple[str, ...],
+) -> str:
+    block = text[start:end]
+    pattern = re.compile(
+        rf'^(?![ \t]*//)(?P<prefix>[ \t]*{re.escape(call_name)}\(\s*)'
+        rf'(?P<arguments>[^\r\n)]*?)'
+        rf'(?P<suffix>\s*\)\s*;?[ \t]*(?://[^\r\n]*)?)(?P<cr>\r?)$',
+        re.MULTILINE,
+    )
+    matches = list(pattern.finditer(block))
+    found = tuple(match.group("arguments").strip() for match in matches)
+    if found != expected_arguments:
+        raise PatchError(
+            f"{identity} {call_name}: "
+            f"expected sequence {expected_arguments!r}, found {found!r}"
+        )
+
+    position = 0
+
+    def replacement(match: re.Match[str]) -> str:
+        nonlocal position
+        value = desired_arguments[position]
+        position += 1
+        return (
+            f'{match.group("prefix")}{value}{match.group("suffix")}'
+            f'{match.group("cr")}'
+        )
+
+    new_block, count = pattern.subn(replacement, block)
+    if count != len(expected_arguments):
+        raise PatchError(
+            f"{identity} {call_name}: expected {len(expected_arguments)} calls, found {count}"
+        )
+    return text[:start] + new_block + text[end:]
+
+
 def replace_call_sequence_in_named_block(
     text: str,
     *,
@@ -145,35 +189,15 @@ def replace_call_sequence_in_named_block(
         )
 
     start, end = _named_block_span(text, block_call, block_name)
-    block = text[start:end]
-    pattern = re.compile(
-        rf'^(?![ \t]*//)(?P<prefix>[ \t]*{re.escape(call_name)}\(\s*)'
-        rf'(?P<arguments>[^\r\n)]*?)'
-        rf'(?P<suffix>\s*\)\s*;?[ \t]*(?://.*)?)$',
-        re.MULTILINE,
+    return _replace_call_sequence_in_span(
+        text,
+        start=start,
+        end=end,
+        identity=f"{block_call} {block_name}",
+        call_name=call_name,
+        expected_arguments=expected_arguments,
+        desired_arguments=desired_arguments,
     )
-    matches = list(pattern.finditer(block))
-    found = tuple(match.group("arguments").strip() for match in matches)
-    if found != expected_arguments:
-        raise PatchError(
-            f"{block_call} {block_name} {call_name}: "
-            f"expected sequence {expected_arguments!r}, found {found!r}"
-        )
-
-    position = 0
-
-    def replacement(match: re.Match[str]) -> str:
-        nonlocal position
-        value = desired_arguments[position]
-        position += 1
-        return f'{match.group("prefix")}{value}{match.group("suffix")}'
-
-    new_block, count = pattern.subn(replacement, block)
-    if count != len(expected_arguments):
-        raise PatchError(
-            f"{block_call} {block_name} {call_name}: expected {len(expected_arguments)} calls, found {count}"
-        )
-    return text[:start] + new_block + text[end:]
 
 
 def _first_quoted_argument_block_span(
@@ -181,23 +205,42 @@ def _first_quoted_argument_block_span(
     block_call: str,
     block_name: str,
 ) -> tuple[int, int]:
-    """Find a unique brace block by the first quoted argument of its header call."""
+    """Find a contiguous group of blocks sharing the same first quoted argument."""
     header_pattern = re.compile(
         rf'^[ \t]*{re.escape(block_call)}\(\s*"{re.escape(block_name)}"\s*'
         rf'(?:,[^\r\n)]*)?\)[ \t]*(?:\r?\n[ \t]*)?\{{',
         re.MULTILINE,
     )
     matches = list(header_pattern.finditer(text))
-    if len(matches) != 1:
+    if not matches:
         raise PatchError(
-            f'{block_call} {block_name}: expected 1 first-argument block, found {len(matches)}'
+            f'{block_call} {block_name}: expected at least 1 first-argument block, found 0'
         )
-    match = matches[0]
-    open_index = text.find("{", match.start(), match.end())
-    if open_index < 0:
-        raise PatchError(f"{block_call} {block_name}: opening brace not found")
-    close_index = _matching_brace(text, open_index)
-    return match.start(), close_index + 1
+
+    spans: list[tuple[int, int]] = []
+    for match in matches:
+        open_index = text.find("{", match.start(), match.end())
+        if open_index < 0:
+            raise PatchError(f"{block_call} {block_name}: opening brace not found")
+        close_index = _matching_brace(text, open_index)
+        spans.append((match.start(), close_index + 1))
+
+    any_same_call_header = re.compile(
+        rf'^[ \t]*{re.escape(block_call)}\s*\(',
+        re.MULTILINE,
+    )
+    for (_, previous_end), (next_start, _) in zip(spans, spans[1:]):
+        if next_start < previous_end:
+            raise PatchError(
+                f"{block_call} {block_name}: overlapping first-argument blocks"
+            )
+        gap = text[previous_end:next_start]
+        if any_same_call_header.search(gap):
+            raise PatchError(
+                f"{block_call} {block_name}: matching blocks are not contiguous"
+            )
+
+    return spans[0][0], spans[-1][1]
 
 
 def replace_call_sequence_in_first_quoted_block(
@@ -209,7 +252,7 @@ def replace_call_sequence_in_first_quoted_block(
     expected_arguments: tuple[str, ...],
     desired_arguments: tuple[str, ...],
 ) -> str:
-    """Replace one complete call sequence in a block whose header has extra arguments."""
+    """Replace a validated call sequence across one contiguous first-argument group."""
     if not expected_arguments:
         raise PatchError(f"{block_call} {block_name} {call_name}: empty expected sequence")
     if len(expected_arguments) != len(desired_arguments):
@@ -218,35 +261,15 @@ def replace_call_sequence_in_first_quoted_block(
         )
 
     start, end = _first_quoted_argument_block_span(text, block_call, block_name)
-    block = text[start:end]
-    pattern = re.compile(
-        rf'^(?![ \t]*//)(?P<prefix>[ \t]*{re.escape(call_name)}\(\s*)'
-        rf'(?P<arguments>[^\r\n)]*?)'
-        rf'(?P<suffix>\s*\)\s*;?[ \t]*(?://.*)?)$',
-        re.MULTILINE,
+    return _replace_call_sequence_in_span(
+        text,
+        start=start,
+        end=end,
+        identity=f"{block_call} {block_name}",
+        call_name=call_name,
+        expected_arguments=expected_arguments,
+        desired_arguments=desired_arguments,
     )
-    matches = list(pattern.finditer(block))
-    found = tuple(match.group("arguments").strip() for match in matches)
-    if found != expected_arguments:
-        raise PatchError(
-            f"{block_call} {block_name} {call_name}: "
-            f"expected sequence {expected_arguments!r}, found {found!r}"
-        )
-
-    position = 0
-
-    def replacement(match: re.Match[str]) -> str:
-        nonlocal position
-        value = desired_arguments[position]
-        position += 1
-        return f'{match.group("prefix")}{value}{match.group("suffix")}'
-
-    new_block, count = pattern.subn(replacement, block)
-    if count != len(expected_arguments):
-        raise PatchError(
-            f"{block_call} {block_name} {call_name}: expected {len(expected_arguments)} calls, found {count}"
-        )
-    return text[:start] + new_block + text[end:]
 
 
 def insert_calls_after_marker_ordinals_in_first_quoted_block(
@@ -258,7 +281,7 @@ def insert_calls_after_marker_ordinals_in_first_quoted_block(
     expected_marker_arguments: tuple[str, ...],
     insertions: tuple[tuple[int, tuple[str, ...]], ...],
 ) -> str:
-    """Insert authored calls into validated marker segments of one named item block."""
+    """Insert authored calls into validated marker segments of one block group."""
     if not expected_marker_arguments:
         raise PatchError(
             f"{block_call} {block_name} {marker_call}: empty expected marker sequence"
