@@ -12,6 +12,7 @@ from .audit import audit_native_game
 from .errors import DirueError
 from .game import validate_game_root
 from .preset_audit import audit_presets
+from .research import audit_native_research
 
 
 def _archive_payload(info) -> dict[str, object]:
@@ -49,6 +50,11 @@ def build_parser() -> argparse.ArgumentParser:
     preset_parser.add_argument(
         "--preset-dir", type=Path, default=Path("Required_files_and_scripts")
     )
+
+    research_parser = subparsers.add_parser(
+        "audit-research", help="inspect unresolved native block identities read-only"
+    )
+    research_parser.add_argument("root", type=Path)
     return parser
 
 
@@ -66,8 +72,10 @@ def main(argv: list[str] | None = None) -> int:
             }
         elif args.command == "audit-native":
             payload = {"audit": audit_native_game(args.root)}
-        else:
+        elif args.command == "audit-presets":
             payload = {"presets": audit_presets(args.root, args.preset_dir)}
+        else:
+            payload = {"research": audit_native_research(args.root)}
     except DirueError as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2
