@@ -104,10 +104,10 @@ Status: **Native-validated**.
 |---|---|---|
 | Normal | `ai_norm.zip` | baseline/no transform |
 | One hit | `ai_Onehit.zip` | **Native-validated**: two audited `ParamBool("one_shot", 0->1)` edits |
-| Hard | `ai_hard.zip` | **Preset unresolved**: all 57 differing members expose named value changes, but one custom vessel file has an additional non-value structural difference |
+| Hard | `ai_hard.zip` | **Candidate-ready**: 209 named `ParamFloat` edits across all 57 differing members; sanitized audit proves no extra structural delta |
 | Headshot only | `ai_Headshot.zip` | **Native-validated** across 20 audited files |
 
-One-hit and headshot-only are mutually exclusive alternatives from the same released control.
+One Hit, Hard, and Headshot Only are mutually exclusive values from the same released difficulty control. Hard uses a digest-guarded semantic table built from accepted preset-v5 evidence; no preset file is copied into the candidate.
 
 ## Zombie size dropdown
 
@@ -130,9 +130,11 @@ Target replaced by the release: `data/presets/aispawnbox_pre.def`.
 
 Choices: normal, Butchers, Rams, Bloaters, Thugs, Suiciders, bandits with guns, bandits with melee.
 
-Default matches native. Hardened preset evidence shows non-default modes are `m_AIPresets` value replacements. The literal identifier lists remain provenance-sensitive, so they are not copied into source. A sanitized read-only audit is being used to determine whether every desired list already exists in pristine native data and can be selected by digest as a donor value.
+Default matches native. Every non-default preset changes active `m_AIPresets` values. Sanitized v1 evidence shows each mode converges on one desired whole-list value across almost all 165 calls. Exact donors in the same native member exist for Suicider and bandits-with-guns, but not for Butcher, Ram, Bloater, Thug, or bandits-with-melee.
 
-Status: **Research / preset unresolved** until donor evidence proves a complete public-safe transform.
+The literal identifier lists remain provenance-sensitive and are not copied into source. A separate detail audit now searches all pristine native Data0 members for exact quoted desired values and emits only digests, member paths, and occurrence counts.
+
+Status: **Research / preset unresolved** until a complete public-safe derivation is proven for every released non-default choice.
 
 ## Weather/time dropdown
 
@@ -148,11 +150,18 @@ Released choices:
 - Rain (Darker night)
 - Storm (Darker night)
 
-The release replaces combinations of `weather.scr`, ambient varlists, and `logic_script.scr`. Vanilla matches native. Ambient value changes are partly understood, but non-default modes still contain non-value structure in `logic_script.scr` and/or `weather.scr`.
+Vanilla matches native. Sanitized structural evidence now maps the non-value behavior without copying preset scripts:
 
-A sanitized read-only audit now compares call/assignment/comment-state identities while masking values and hashing unknown line shapes. No raw weather-script replacement content is committed.
+- rain/storm variants add a recognized `set("f_game_weather", ...)` call to `logic_script.scr`;
+- day variants keep `f_weather_interior` commented while night variants activate it;
+- night variants activate the native-commented `time = ...` and `Set("f_game_time", ...)` sites in `weather.scr`;
+- day rain/storm leave `weather.scr` unchanged.
 
-Status: **Research / preset unresolved**.
+Hardened preset-v5 also identifies the ambient value changes: ordinary night uses `f_engine_envprobe_factor -> 0.01`; darker night uses `0.0099` plus `f_lighting_indirect_factor 0.45 -> 0.05`; day rain/storm do not alter those ambient values.
+
+A dedicated read-only detail audit now emits only the whitelisted arguments for `f_game_weather`, `f_weather_interior`, `time`, `f_game_time`, `f_engine_envprobe_factor`, and `f_lighting_indirect_factor`, together with active/commented state. No unknown script line or raw preset replacement is exposed.
+
+Status: **Research** pending those exact constants; semantic implementation follows only when the detail report is complete.
 
 ## Inactive/commented upstream controls
 
@@ -183,8 +192,8 @@ Native transaction QA passed: one validated candidate was atomically installed, 
 
 ## Current validation boundary
 
-All 26 semantic non-default catalog options are native disposable-candidate validated. Material FOV/Upgrading/POV interactions, a maximal compatible candidate, choice-conflict rejection, and native backup/install/restore transaction QA all pass.
+Twenty-six semantic non-default catalog options are native disposable-candidate validated. Hard AI is the twenty-seventh and is candidate-ready. A physical checkout of the preceding state passed 137/137 tests; the Hard/detail-audit commits require the next full physical suite.
 
-Remaining released parity work is hard AI, forced spawn, and weather/time. A sanitized unresolved-preset audit is the next physical read-only gate. Any newly completed options must then pass disposable native candidates before gameplay QA.
+The next physical gate is a disposable Hard candidate plus difficulty conflict rejection and the read-only unresolved-detail audit. Weather/time can then be implemented if all exact constants are proven. Forced spawn remains gated by public-safe donor evidence.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized.
