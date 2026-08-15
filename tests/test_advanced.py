@@ -13,9 +13,9 @@ from dirue.errors import PatchError
 
 
 class AdvancedDefinitionTests(unittest.TestCase):
-    def test_ready_catalog_adds_native_verified_options(self):
+    def test_ready_catalog_includes_semantic_options(self):
         self.assertEqual(len(DIRECT_PATCHES), 13)
-        self.assertEqual(len(READY_PATCHES), 27)
+        self.assertEqual(len(READY_PATCHES), 37)
         self.assertIn("noclip_vehicles", READY_PATCHES)
         self.assertIn("one_hit_ai", READY_PATCHES)
         self.assertIn("hard_ai", READY_PATCHES)
@@ -30,6 +30,16 @@ class AdvancedDefinitionTests(unittest.TestCase):
         self.assertIn("zombie_size_midget", READY_PATCHES)
         self.assertIn("zombie_size_large", READY_PATCHES)
         self.assertIn("zombie_size_supersize", READY_PATCHES)
+        self.assertIn("weather_just_night", READY_PATCHES)
+        self.assertIn("weather_rain_day", READY_PATCHES)
+        self.assertIn("weather_rain_night", READY_PATCHES)
+        self.assertIn("weather_storm_day", READY_PATCHES)
+        self.assertIn("weather_storm_night", READY_PATCHES)
+        self.assertIn("weather_just_night_darker", READY_PATCHES)
+        self.assertIn("weather_rain_night_darker", READY_PATCHES)
+        self.assertIn("weather_storm_night_darker", READY_PATCHES)
+        self.assertIn("force_suiciders", READY_PATCHES)
+        self.assertIn("force_bandits_guns", READY_PATCHES)
         self.assertIn(
             frozenset({"one_hit_ai", "hard_ai", "headshot_only_ai"}),
             EXCLUSIVE_PATCH_GROUPS,
@@ -57,6 +67,25 @@ class AdvancedDefinitionTests(unittest.TestCase):
                     "zombie_size_supersize",
                 }
             ),
+            EXCLUSIVE_PATCH_GROUPS,
+        )
+        self.assertIn(
+            frozenset(
+                {
+                    "weather_just_night",
+                    "weather_rain_day",
+                    "weather_rain_night",
+                    "weather_storm_day",
+                    "weather_storm_night",
+                    "weather_just_night_darker",
+                    "weather_rain_night_darker",
+                    "weather_storm_night_darker",
+                }
+            ),
+            EXCLUSIVE_PATCH_GROUPS,
+        )
+        self.assertIn(
+            frozenset({"force_suiciders", "force_bandits_guns"}),
             EXCLUSIVE_PATCH_GROUPS,
         )
 
