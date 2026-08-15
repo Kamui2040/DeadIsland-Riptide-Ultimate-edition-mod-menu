@@ -25,11 +25,21 @@ Milestone 1 is feature parity with the existing DIRUE release. Do not add or red
 - Do not assume the GPL license of this repository grants redistribution rights for Techland game content.
 - Keep provenance and redistribution decisions documented in `docs/PROVENANCE.md`.
 
-## Repository safety
+## Repository safety and privacy
 
-Tracked content must remain suitable for a future public repository. Never commit credentials, tokens, private URLs, personal information, machine-specific personal paths, device identifiers, sensitive logs, authentic game backups, proprietary game binaries, or extracted game assets unless redistribution rights are explicitly established.
+Treat every tracked file, commit, Issue, pull request, review comment, and other repository submission as future-public.
+
+Before submitting anything to the repository, check it for credentials, tokens, private identifiers, private URLs, personal or machine-specific paths, storage topology, raw private QA, signing or recovery material, authentic game backups, proprietary game binaries, extracted game assets, and maintainer-only workflow. Remove or sanitize private material before submission; keep it private when sanitizing would remove its value.
 
 The inherited upstream `Data0.pak` is historical upstream material. Linux-port code must not use it as an installation payload or treat it as the source archive for patching.
+
+## Autonomy and communication
+
+- Work autonomously on routine safe repository inspection, implementation, tests, documentation, Issues, branches, commits, pull requests, validation, maintenance, and cleanup.
+- Do not hand routine repository work to the user when connected tools can do it safely.
+- Ask for manual execution only when work genuinely requires the user's physical Bazzite/game machine and that machine is unavailable to tools, such as native-game execution, local filesystem state, or visual/gameplay QA.
+- Keep manual handoffs minimal and deterministic.
+- Use simple, natural, direct language in repository submissions and project chat. Avoid needless jargon, robotic phrasing, and long explanations.
 
 ## Data0 transaction rules
 
@@ -75,8 +85,8 @@ Keep responsibilities separated:
 - Perform Linux-port work on `linux-port` or focused branches derived from it.
 - Do not force-push or rewrite shared/default history.
 - Preserve unrelated work.
-- Do not add GitHub Actions or other cloud CI for the PC workflow; validation is local and deterministic.
-- Public releases, Nexus publication, upstream submissions, and other external publication require an explicit project decision.
+- Do not add, trigger, query, monitor, or depend on GitHub Actions for the PC workflow unless explicitly approved.
+- Public releases, Nexus publication, upstream submissions, main integration, and other external publication require explicit approval.
 
 ## QA
 
@@ -84,6 +94,16 @@ Keep responsibilities separated:
 - Never copy test-game content into the repository.
 - Before any QA write to the installed game, verify the target archive and backup state and use the transaction path implemented by the project.
 - Record sanitized validation evidence where useful; do not record personal paths or identifiers in tracked files.
+
+## Maintenance and cleanup
+
+Cleanup is continuous maintenance, not an end-of-task step.
+
+- At the start, during, and end of each meaningful work unit, classify residue and remove only items proven obsolete when safe.
+- Regularly maintain repository worktrees, the local mirror, project docs, private evidence, temporary extracts, fixtures, build outputs, and QA artifacts.
+- Remove stale temporary data, duplicate notes, redundant evidence, and superseded scripts when their replacement is verified.
+- Preserve accepted evidence, unresolved diagnostics, provenance and licensing material, pristine backups, hashes and manifests, authentic user data, unrelated work, and Git history.
+- Never delete uncertain material or keep extracted game contents longer than needed.
 
 ## Project state
 
