@@ -76,8 +76,22 @@ def _decode(data: bytes) -> str | None:
         return None
 
 
-def _semantic_tokens(text: str) -> dict[str, str]:
-    """Extract unique short key/value facts from common DIRDE text forms."""
+def _split_call_arguments(arguments: str) -> tuple[str | None, str]:
+    """Return a stable first-argument identity when the common syntax is simple."""
+    quoted = re.fullmatch(
+        r'\s*"(?P<name>[^"]+)"\s*(?:,\s*(?P<rest>.*))?', arguments
+    )
+    if quoted:
+        return quoted.group("name"), (quoted.group("rest") or "").strip()
+    bare = re.fullmatch(
+        r'\s*(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*,\s*(?P<rest>.*)', arguments
+    )
+    if bare:
+        return bare.group("name"), bare.group("rest").strip()
+    return None, arguments.strip()
+
+
+def _semantic_pairs(text: str) -> list[tuple[str, str]]:
     pairs: list[tuple[str, str]] = []
 
     for match in re.finditer(
@@ -88,13 +102,20 @@ def _semantic_tokens(text: str) -> dict[str, str]:
 
     call_pattern = re.compile(
         r'^(?!\s*//)\s*(?P<call>[A-Za-z_][A-Za-z0-9_]*)\s*\('
-        r'\s*"(?P<name>[^"]+)"\s*,\s*(?P<value>[^)]+?)\s*\)',
+        r'(?P<arguments>[^\r\n()]*)\)\s*;?(?:\s*//.*)?$',
         re.MULTILINE,
     )
+    generic_ordinals: Counter[str] = Counter()
     for match in call_pattern.finditer(text):
-        pairs.append(
-            (f'{match.group("call")}:{match.group("name")}', match.group("value").strip())
-        )
+        call_name = match.group("call")
+        arguments = match.group("arguments").strip()
+        identity, value = _split_call_arguments(arguments)
+        if identity is not None:
+            key = f"{call_name}:{identity}"
+        else:
+            generic_ordinals[call_name] += 1
+            key = f"{call_name}#{generic_ordinals[call_name]}"
+        pairs.append((key, value))
 
     assignment_pattern = re.compile(
         r'^(?!\s*//)\s*(?:float|int|bool|string)?\s*'
@@ -104,8 +125,20 @@ def _semantic_tokens(text: str) -> dict[str, str]:
     for match in assignment_pattern.finditer(text):
         pairs.append((f'assign:{match.group("name")}', match.group("value").strip()))
 
-    counts = Counter(key for key, _ in pairs)
-    return {key: value for key, value in pairs if counts[key] == 1}
+    return pairs
+
+
+def _semantic_tokens(text: str) -> dict[str, str]:
+    """Extract short semantic values, numbering repeated identities deterministically."""
+    pairs = _semantic_pairs(text)
+    totals = Counter(key for key, _ in pairs)
+    seen: Counter[str] = Counter()
+    result: dict[str, str] = {}
+    for key, value in pairs:
+        seen[key] += 1
+        final_key = f"{key}#{seen[key]}" if totals[key] > 1 else key
+        result[final_key] = value
+    return result
 
 
 def _semantic_structure(text: str) -> str:
@@ -118,14 +151,23 @@ def _semantic_structure(text: str) -> str:
     )
     normalized = xml_pattern.sub(r"\g<prefix><VALUE>\g<suffix>", normalized)
 
-    call_pattern = re.compile(
+    quoted_call_pattern = re.compile(
         r'^(?!\s*//)'
         r'(?P<prefix>\s*[A-Za-z_][A-Za-z0-9_]*\s*\(\s*"[^"]+"\s*,\s*)'
-        r'[^)]+?'
-        r'(?P<suffix>\s*\))',
+        r'[^\r\n()]*'
+        r'(?P<suffix>\)\s*;?(?:\s*//.*)?)$',
         re.MULTILINE,
     )
-    normalized = call_pattern.sub(r"\g<prefix><VALUE>\g<suffix>", normalized)
+    normalized = quoted_call_pattern.sub(r"\g<prefix><VALUE>\g<suffix>", normalized)
+
+    generic_call_pattern = re.compile(
+        r'^(?!\s*//)'
+        r'(?P<prefix>\s*[A-Za-z_][A-Za-z0-9_]*\s*\()'
+        r'[^\r\n()]*'
+        r'(?P<suffix>\)\s*;?(?:\s*//.*)?)$',
+        re.MULTILINE,
+    )
+    normalized = generic_call_pattern.sub(r"\g<prefix><VALUE>\g<suffix>", normalized)
 
     assignment_pattern = re.compile(
         r'^(?!\s*//)'
