@@ -26,6 +26,12 @@ class CliParserTests(unittest.TestCase):
         self.assertEqual(args.root, Path("/game"))
         self.assertEqual(args.preset_dir, Path("Required_files_and_scripts"))
 
+    def test_audit_unresolved_details_parser(self):
+        args = build_parser().parse_args(["audit-unresolved-details", "/game"])
+        self.assertEqual(args.command, "audit-unresolved-details")
+        self.assertEqual(args.root, Path("/game"))
+        self.assertEqual(args.preset_dir, Path("Required_files_and_scripts"))
+
     def test_build_candidate_parser(self):
         args = build_parser().parse_args(
             [

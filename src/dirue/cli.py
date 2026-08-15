@@ -24,6 +24,7 @@ from .preset_audit import audit_presets
 from .research import audit_native_research
 from .source_map import audit_source_map
 from .unresolved_audit import audit_unresolved_presets
+from .unresolved_detail import audit_unresolved_details
 
 
 def _archive_payload(info) -> dict[str, object]:
@@ -75,6 +76,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     unresolved_parser.add_argument("root", type=Path)
     unresolved_parser.add_argument(
+        "--preset-dir", type=Path, default=Path("Required_files_and_scripts")
+    )
+
+    detail_parser = subparsers.add_parser(
+        "audit-unresolved-details",
+        help="collect whitelisted weather constants and exact native spawn donors",
+    )
+    detail_parser.add_argument("root", type=Path)
+    detail_parser.add_argument(
         "--preset-dir", type=Path, default=Path("Required_files_and_scripts")
     )
 
@@ -167,6 +177,13 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "audit-unresolved-presets":
             payload = {
                 "unresolved_presets": audit_unresolved_presets(
+                    args.root,
+                    args.preset_dir,
+                )
+            }
+        elif args.command == "audit-unresolved-details":
+            payload = {
+                "unresolved_details": audit_unresolved_details(
                     args.root,
                     args.preset_dir,
                 )
