@@ -8,8 +8,10 @@ from .advanced import ADVANCED_PATCHES
 from .definitions import DIRECT_PATCHES
 from .firearm_pov import POV_PATCHES
 from .firearms import FIREARM_PATCHES
+from .forced_spawn import FORCED_SPAWN_PATCHES
 from .fov import FOV_PATCHES
 from .hard_ai import HARD_AI_PATCHES
+from .weather import WEATHER_PATCHES
 from .zombie_size import ZOMBIE_SIZE_PATCHES
 
 
@@ -21,6 +23,8 @@ _all_names = [
     *POV_PATCHES,
     *FOV_PATCHES,
     *ZOMBIE_SIZE_PATCHES,
+    *WEATHER_PATCHES,
+    *FORCED_SPAWN_PATCHES,
 ]
 if len(_all_names) != len(set(_all_names)):
     counts = Counter(_all_names)
@@ -35,6 +39,8 @@ READY_PATCHES = {
     **POV_PATCHES,
     **FOV_PATCHES,
     **ZOMBIE_SIZE_PATCHES,
+    **WEATHER_PATCHES,
+    **FORCED_SPAWN_PATCHES,
 }
 
 # These represent one-choice upstream controls. Candidate builds must never
@@ -57,4 +63,6 @@ EXCLUSIVE_PATCH_GROUPS = (
             "zombie_size_supersize",
         }
     ),
+    frozenset(WEATHER_PATCHES),
+    frozenset(FORCED_SPAWN_PATCHES),
 )
