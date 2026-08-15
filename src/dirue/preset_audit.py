@@ -190,6 +190,40 @@ def _semantic_structure_ignoring_whitespace(text: str) -> str:
     return _semantic_structure(layout_normalized)
 
 
+def _strip_trailing_active_comment(line: str) -> str:
+    """Remove an inline // comment without changing full-line commented code."""
+    if line.lstrip().startswith("//"):
+        return line
+    in_string = False
+    escaped = False
+    index = 0
+    while index + 1 < len(line):
+        char = line[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+        elif char == '"':
+            in_string = True
+        elif char == "/" and line[index + 1] == "/":
+            return line[:index].rstrip()
+        index += 1
+    return line
+
+
+def _semantic_structure_ignoring_layout_comments(text: str) -> str:
+    """Ignore layout and trailing active comments while preserving comment state."""
+    uncommented_layout = "\n".join(
+        _strip_trailing_active_comment(line).strip()
+        for line in text.replace("\r\n", "\n").replace("\r", "\n").splitlines()
+        if _strip_trailing_active_comment(line).strip()
+    )
+    return _semantic_structure(uncommented_layout)
+
+
 def _semantic_complete(native_data: bytes, preset_data: bytes) -> bool:
     """Return true only when recognized values explain the complete text difference."""
     native_text = _decode(native_data)
@@ -211,6 +245,21 @@ def _semantic_complete_ignoring_whitespace(
     return (
         _semantic_structure_ignoring_whitespace(native_text)
         == _semantic_structure_ignoring_whitespace(preset_text)
+    )
+
+
+def _semantic_complete_ignoring_layout_comments(
+    native_data: bytes,
+    preset_data: bytes,
+) -> bool:
+    """Return true when remaining differences are layout or trailing active comments."""
+    native_text = _decode(native_data)
+    preset_text = _decode(preset_data)
+    if native_text is None or preset_text is None:
+        return False
+    return (
+        _semantic_structure_ignoring_layout_comments(native_text)
+        == _semantic_structure_ignoring_layout_comments(preset_text)
     )
 
 
@@ -248,6 +297,7 @@ def audit_preset_file(preset_path: Path, native_data0: Path) -> dict[str, object
                         "preset_sha256": _digest(preset_data),
                         "semantic_complete": False,
                         "semantic_complete_ignoring_whitespace": False,
+                        "semantic_complete_ignoring_layout_comments": False,
                     }
                 )
                 continue
@@ -266,6 +316,14 @@ def audit_preset_file(preset_path: Path, native_data0: Path) -> dict[str, object
                         True
                         if same
                         else _semantic_complete_ignoring_whitespace(
+                            native_data,
+                            preset_data,
+                        )
+                    ),
+                    "semantic_complete_ignoring_layout_comments": (
+                        True
+                        if same
+                        else _semantic_complete_ignoring_layout_comments(
                             native_data,
                             preset_data,
                         )

@@ -6,6 +6,7 @@ from zipfile import ZipFile
 
 from dirue.preset_audit import (
     _semantic_complete,
+    _semantic_complete_ignoring_layout_comments,
     _semantic_complete_ignoring_whitespace,
     _semantic_delta,
     _target_member,
@@ -61,6 +62,19 @@ class PresetAuditTests(unittest.TestCase):
         self.assertFalse(_semantic_complete(before, after))
         self.assertTrue(_semantic_complete_ignoring_whitespace(before, after))
 
+    def test_layout_comment_tolerant_completeness_preserves_comment_state(self):
+        before = b'ParamBool("one_shot",0); // native note\n'
+        after = b'ParamBool("one_shot",1); // preset note\n'
+        self.assertFalse(_semantic_complete(before, after))
+        self.assertFalse(_semantic_complete_ignoring_whitespace(before, after))
+        self.assertTrue(_semantic_complete_ignoring_layout_comments(before, after))
+        self.assertFalse(
+            _semantic_complete_ignoring_layout_comments(
+                b'// ParamBool("one_shot",0);\n',
+                b'ParamBool("one_shot",1);\n',
+            )
+        )
+
     def test_preset_comparison_is_read_only(self):
         with tempfile.TemporaryDirectory() as td:
             td = Path(td)
@@ -81,6 +95,7 @@ class PresetAuditTests(unittest.TestCase):
             self.assertEqual(member["status"], "different")
             self.assertTrue(member["semantic_complete"])
             self.assertTrue(member["semantic_complete_ignoring_whitespace"])
+            self.assertTrue(member["semantic_complete_ignoring_layout_comments"])
             self.assertEqual(native.read_bytes(), native_before)
             self.assertEqual(preset.read_bytes(), preset_before)
 
