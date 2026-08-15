@@ -2,6 +2,7 @@ import unittest
 
 from dirue.errors import PatchError
 from dirue.firearm_structured import replace_unique_call_in_first_quoted_block
+from dirue.firearms import BETTER_FIREARM_UPGRADING
 from dirue.structured import (
     insert_calls_after_marker_ordinals_in_first_quoted_block,
     replace_call_sequence_in_first_quoted_block,
@@ -20,6 +21,30 @@ def _repeated_item_group() -> str:
             parts.append('    HolderOffset([0.0,0.1,0.0]); // native\r\n')
         if ordinal in (1, 3, 4, 6, 8):
             recoil = "0.025" if ordinal == 1 else "0.01"
+            parts.append(f"    ShootVertRecoil({recoil});\r\n")
+        parts.append('}\r\n')
+    return "".join(parts)
+
+
+def _native_colt_group() -> str:
+    parts: list[str] = []
+    recoil_by_block = {
+        1: "0.025",
+        2: "0.01",
+        4: "0.01",
+        6: "0.01",
+        8: "0.01",
+    }
+    for ordinal, level in enumerate((0, 0, 1, 1, 2, 2, 3, 3), 1):
+        parts.append(
+            'Item("Firearm_ColtGen", CategoryType_Firearm)\r\n'
+            '{\r\n'
+            f'    UpgradeLevel({level})\r\n'
+        )
+        if ordinal == 1:
+            parts.append('    ShotTime(0.6);\r\n')
+        recoil = recoil_by_block.get(ordinal)
+        if recoil is not None:
             parts.append(f"    ShootVertRecoil({recoil});\r\n")
         parts.append('}\r\n')
     return "".join(parts)
@@ -70,6 +95,29 @@ class RepeatedItemGroupTests(unittest.TestCase):
             result,
         )
         self.assertNotIn("HolderOffset(", result)
+
+    def test_actual_colt_upgrading_definition_handles_native_group_layout(self):
+        updated = _native_colt_group()
+        colt_edits = [
+            edit
+            for edit in BETTER_FIREARM_UPGRADING.edits
+            if edit.item == "Firearm_ColtGen"
+        ]
+        self.assertEqual(len(colt_edits), 3)
+        for edit in colt_edits:
+            updated = edit.apply(updated)
+
+        self.assertEqual(updated.count('Item("Firearm_ColtGen"'), 8)
+        self.assertIn("ShotTime(1.0);\r\n", updated)
+        self.assertIn("ShotTime(0.94);\r\n", updated)
+        self.assertIn("ShotTime(0.88);\r\n", updated)
+        self.assertIn("ShotTime(0.82);\r\n", updated)
+        self.assertIn("ReloadTime(3.8);\r\n", updated)
+        self.assertIn("ReloadTime(3.5);\r\n", updated)
+        self.assertIn("ReloadTime(3.2);\r\n", updated)
+        self.assertIn("ShootVertRecoil(0.0095);\r\n", updated)
+        self.assertIn("ShootVertRecoil(0.0090);\r\n", updated)
+        self.assertIn("ShootVertRecoil(0.0085);\r\n", updated)
 
     def test_interleaved_same_name_blocks_fail_closed(self):
         source = (
