@@ -5,6 +5,7 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from dirue.preset_audit import (
+    _semantic_complete,
     _semantic_delta,
     _target_member,
     audit_preset_file,
@@ -26,6 +27,16 @@ class PresetAuditTests(unittest.TestCase):
         self.assertIn({"key": "VarFloat:x", "native": "1.0", "preset": "0.1"}, delta)
         self.assertIn({"key": "prop:Y", "native": "2", "preset": "3"}, delta)
 
+    def test_semantic_complete_accepts_value_only_change(self):
+        before = b'ParamBool("one_shot",0);\r\n'
+        after = b'ParamBool("one_shot",1);\n'
+        self.assertTrue(_semantic_complete(before, after))
+
+    def test_semantic_complete_rejects_unclassified_change(self):
+        before = b'UnknownCall(1);\n'
+        after = b'UnknownCall(2);\n'
+        self.assertFalse(_semantic_complete(before, after))
+
     def test_preset_comparison_is_read_only(self):
         with tempfile.TemporaryDirectory() as td:
             td = Path(td)
@@ -42,7 +53,9 @@ class PresetAuditTests(unittest.TestCase):
                 validate.return_value.sha256 = "preset-hash"
                 validate.return_value.entry_count = 1
                 result = audit_preset_file(preset, native)
-            self.assertEqual(result["members"][0]["status"], "different")
+            member = result["members"][0]
+            self.assertEqual(member["status"], "different")
+            self.assertTrue(member["semantic_complete"])
             self.assertEqual(native.read_bytes(), native_before)
             self.assertEqual(preset.read_bytes(), preset_before)
 
