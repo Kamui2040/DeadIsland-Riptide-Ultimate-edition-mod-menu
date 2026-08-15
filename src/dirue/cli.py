@@ -9,6 +9,8 @@ import sys
 
 from .archive import validate_archive
 from .audit import audit_native_game
+from .definitions import DIRECT_PATCHES
+from .engine import build_candidate
 from .errors import DirueError
 from .game import validate_game_root
 from .preset_audit import audit_presets
@@ -55,6 +57,18 @@ def build_parser() -> argparse.ArgumentParser:
         "audit-research", help="inspect unresolved native block identities read-only"
     )
     research_parser.add_argument("root", type=Path)
+
+    candidate_parser = subparsers.add_parser(
+        "build-candidate", help="build a disposable validated candidate archive"
+    )
+    candidate_parser.add_argument("source", type=Path)
+    candidate_parser.add_argument("destination", type=Path)
+    candidate_parser.add_argument(
+        "options",
+        nargs="+",
+        choices=sorted(DIRECT_PATCHES),
+        help="ready semantic options to apply from the source baseline",
+    )
     return parser
 
 
@@ -74,8 +88,19 @@ def main(argv: list[str] | None = None) -> int:
             payload = {"audit": audit_native_game(args.root)}
         elif args.command == "audit-presets":
             payload = {"presets": audit_presets(args.root, args.preset_dir)}
-        else:
+        elif args.command == "audit-research":
             payload = {"research": audit_native_research(args.root)}
+        else:
+            result = build_candidate(args.source, args.destination, args.options)
+            payload = {
+                "candidate": {
+                    "source_sha256": result.source_sha256,
+                    "candidate_sha256": result.candidate_sha256,
+                    "entry_count": result.entry_count,
+                    "selected_options": list(result.selected_options),
+                    "changed_members": list(result.changed_members),
+                }
+            }
     except DirueError as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2
