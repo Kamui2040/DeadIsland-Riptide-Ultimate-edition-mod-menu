@@ -13,12 +13,13 @@ from dirue.errors import PatchError
 
 
 class AdvancedDefinitionTests(unittest.TestCase):
-    def test_ready_catalog_adds_three_native_verified_options(self):
+    def test_ready_catalog_adds_native_verified_options(self):
         self.assertEqual(len(DIRECT_PATCHES), 13)
-        self.assertEqual(len(READY_PATCHES), 16)
+        self.assertEqual(len(READY_PATCHES), 17)
         self.assertIn("noclip_vehicles", READY_PATCHES)
         self.assertIn("one_hit_ai", READY_PATCHES)
         self.assertIn("headshot_only_ai", READY_PATCHES)
+        self.assertIn("better_firearm_upgrading", READY_PATCHES)
 
     def test_noclip_updates_only_released_contact_blocks(self):
         car = (

@@ -2,15 +2,28 @@
 
 from __future__ import annotations
 
+from collections import Counter
+
 from .advanced import ADVANCED_PATCHES
 from .definitions import DIRECT_PATCHES
+from .firearms import FIREARM_PATCHES
 
 
-_overlap = set(DIRECT_PATCHES) & set(ADVANCED_PATCHES)
-if _overlap:
-    raise RuntimeError("duplicate ready patch names: " + ", ".join(sorted(_overlap)))
+_all_names = [
+    *DIRECT_PATCHES,
+    *ADVANCED_PATCHES,
+    *FIREARM_PATCHES,
+]
+if len(_all_names) != len(set(_all_names)):
+    counts = Counter(_all_names)
+    duplicates = sorted(name for name, count in counts.items() if count > 1)
+    raise RuntimeError("duplicate ready patch names: " + ", ".join(duplicates))
 
-READY_PATCHES = {**DIRECT_PATCHES, **ADVANCED_PATCHES}
+READY_PATCHES = {
+    **DIRECT_PATCHES,
+    **ADVANCED_PATCHES,
+    **FIREARM_PATCHES,
+}
 
 # These represent one-choice upstream controls. Candidate builds must never
 # combine multiple values from the same choice group.

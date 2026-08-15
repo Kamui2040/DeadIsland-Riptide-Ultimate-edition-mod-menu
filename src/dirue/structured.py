@@ -174,3 +174,174 @@ def replace_call_sequence_in_named_block(
             f"{block_call} {block_name} {call_name}: expected {len(expected_arguments)} calls, found {count}"
         )
     return text[:start] + new_block + text[end:]
+
+
+def _first_quoted_argument_block_span(
+    text: str,
+    block_call: str,
+    block_name: str,
+) -> tuple[int, int]:
+    """Find a unique brace block by the first quoted argument of its header call."""
+    header_pattern = re.compile(
+        rf'^[ \t]*{re.escape(block_call)}\(\s*"{re.escape(block_name)}"\s*'
+        rf'(?:,[^\r\n)]*)?\)[ \t]*(?:\r?\n[ \t]*)?\{{',
+        re.MULTILINE,
+    )
+    matches = list(header_pattern.finditer(text))
+    if len(matches) != 1:
+        raise PatchError(
+            f'{block_call} {block_name}: expected 1 first-argument block, found {len(matches)}'
+        )
+    match = matches[0]
+    open_index = text.find("{", match.start(), match.end())
+    if open_index < 0:
+        raise PatchError(f"{block_call} {block_name}: opening brace not found")
+    close_index = _matching_brace(text, open_index)
+    return match.start(), close_index + 1
+
+
+def replace_call_sequence_in_first_quoted_block(
+    text: str,
+    *,
+    block_call: str,
+    block_name: str,
+    call_name: str,
+    expected_arguments: tuple[str, ...],
+    desired_arguments: tuple[str, ...],
+) -> str:
+    """Replace one complete call sequence in a block whose header has extra arguments."""
+    if not expected_arguments:
+        raise PatchError(f"{block_call} {block_name} {call_name}: empty expected sequence")
+    if len(expected_arguments) != len(desired_arguments):
+        raise PatchError(
+            f"{block_call} {block_name} {call_name}: expected and desired lengths differ"
+        )
+
+    start, end = _first_quoted_argument_block_span(text, block_call, block_name)
+    block = text[start:end]
+    pattern = re.compile(
+        rf'^(?![ \t]*//)(?P<prefix>[ \t]*{re.escape(call_name)}\(\s*)'
+        rf'(?P<arguments>[^\r\n)]*?)'
+        rf'(?P<suffix>\s*\)\s*;?[ \t]*(?://.*)?)$',
+        re.MULTILINE,
+    )
+    matches = list(pattern.finditer(block))
+    found = tuple(match.group("arguments").strip() for match in matches)
+    if found != expected_arguments:
+        raise PatchError(
+            f"{block_call} {block_name} {call_name}: "
+            f"expected sequence {expected_arguments!r}, found {found!r}"
+        )
+
+    position = 0
+
+    def replacement(match: re.Match[str]) -> str:
+        nonlocal position
+        value = desired_arguments[position]
+        position += 1
+        return f'{match.group("prefix")}{value}{match.group("suffix")}'
+
+    new_block, count = pattern.subn(replacement, block)
+    if count != len(expected_arguments):
+        raise PatchError(
+            f"{block_call} {block_name} {call_name}: expected {len(expected_arguments)} calls, found {count}"
+        )
+    return text[:start] + new_block + text[end:]
+
+
+def insert_calls_after_marker_ordinals_in_first_quoted_block(
+    text: str,
+    *,
+    block_call: str,
+    block_name: str,
+    marker_call: str,
+    expected_marker_arguments: tuple[str, ...],
+    insertions: tuple[tuple[int, tuple[str, ...]], ...],
+) -> str:
+    """Insert authored calls into validated marker segments of one named item block."""
+    if not expected_marker_arguments:
+        raise PatchError(
+            f"{block_call} {block_name} {marker_call}: empty expected marker sequence"
+        )
+    insertion_map = dict(insertions)
+    if len(insertion_map) != len(insertions):
+        raise PatchError(f"{block_call} {block_name}: duplicate insertion ordinal")
+    if not insertion_map:
+        raise PatchError(f"{block_call} {block_name}: no insertions requested")
+    if any(
+        ordinal < 1 or ordinal > len(expected_marker_arguments)
+        for ordinal in insertion_map
+    ):
+        raise PatchError(f"{block_call} {block_name}: insertion ordinal out of range")
+    if any(not calls for calls in insertion_map.values()):
+        raise PatchError(f"{block_call} {block_name}: empty insertion call set")
+
+    start, end = _first_quoted_argument_block_span(text, block_call, block_name)
+    block = text[start:end]
+    lines = block.splitlines(keepends=True)
+    marker_pattern = re.compile(
+        rf'^(?![ \t]*//)(?P<indent>[ \t]*){re.escape(marker_call)}\(\s*'
+        rf'(?P<arguments>[^\r\n)]*?)\s*\)\s*;?[ \t]*(?://.*)?$'
+    )
+    marker_sites: list[tuple[int, re.Match[str]]] = []
+    for index, line in enumerate(lines):
+        body, _ = _line_parts(line)
+        match = marker_pattern.match(body)
+        if match:
+            marker_sites.append((index, match))
+
+    found_markers = tuple(
+        match.group("arguments").strip() for _, match in marker_sites
+    )
+    if found_markers != expected_marker_arguments:
+        raise PatchError(
+            f"{block_call} {block_name} {marker_call}: "
+            f"expected sequence {expected_marker_arguments!r}, found {found_markers!r}"
+        )
+
+    call_name_pattern = re.compile(r'^\s*(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*\(')
+    for ordinal, calls in insertion_map.items():
+        marker_index = marker_sites[ordinal - 1][0]
+        next_index = (
+            marker_sites[ordinal][0]
+            if ordinal < len(marker_sites)
+            else len(lines)
+        )
+        requested_names: set[str] = set()
+        for call in calls:
+            call_match = call_name_pattern.match(call)
+            if call_match is None:
+                raise PatchError(
+                    f"{block_call} {block_name}: invalid insertion call {call!r}"
+                )
+            requested_names.add(call_match.group("name"))
+        for line in lines[marker_index + 1 : next_index]:
+            stripped = line.lstrip()
+            if stripped.startswith("//"):
+                continue
+            active = call_name_pattern.match(stripped)
+            if active and active.group("name") in requested_names:
+                raise PatchError(
+                    f"{block_call} {block_name}: "
+                    f"{active.group('name')} already present in marker segment {ordinal}"
+                )
+
+    output: list[str] = []
+    marker_ordinal = 0
+    default_newline = "\r\n" if "\r\n" in block else "\n"
+    for line in lines:
+        output.append(line)
+        body, newline = _line_parts(line)
+        marker_match = marker_pattern.match(body)
+        if marker_match is None:
+            continue
+        marker_ordinal += 1
+        calls = insertion_map.get(marker_ordinal)
+        if calls is None:
+            continue
+        line_end = newline or default_newline
+        indent = marker_match.group("indent")
+        output.extend(f"{indent}{call}{line_end}" for call in calls)
+
+    new_block = "".join(output)
+    return text[:start] + new_block + text[end:]
