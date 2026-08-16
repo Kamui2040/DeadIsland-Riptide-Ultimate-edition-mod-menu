@@ -65,6 +65,7 @@ Never perform an in-place partial rewrite of the live archive. Never install ove
 - Require unambiguous matches. Zero or multiple matches are failures unless the patch definition explicitly permits them.
 - Validate expected source state before mutation and expected result after mutation.
 - Preserve file encoding, newline conventions, and archive paths unless a tested transformation requires otherwise.
+- Preserve observed native whitespace/layout variants in semantic-anchor regression fixtures; do not normalize them away when spacing is part of the accepted source shape.
 - Keep gameplay values faithful to upstream during Milestone 1.
 - Record every user-facing option with target file(s), upstream/default state, modified state, and any replacement/preset dependency.
 
