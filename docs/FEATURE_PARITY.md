@@ -123,16 +123,15 @@ Target: `data/presets/aispawnbox_pre.def`.
 
 Released choices: normal, Butchers, Rams, Bloaters, Thugs, Suiciders, bandits with guns, bandits with melee.
 
-Default matches native. Every non-default preset changes active `m_AIPresets` values in a 165-call vector. Sanitized global donor evidence proves exact pristine desired-value donors exist only for Suicider and bandits-with-guns.
+Default matches native. Every non-default preset changes active `m_AIPresets` values in a 165-call vector. Runtime transformations validate the complete pristine-vector digest before deriving or replacing any value.
 
-The Linux transforms use the complete pristine-vector digest plus semantic call ordinals:
+- **Suiciders**: validate all 165 calls and vector digest, take the value at donor ordinal 6, validate its SHA-256, preserve ordinal 6, replace the other 164 values. **Native-validated.**
+- **Bandits with guns**: take the value at donor ordinal 119, validate its SHA-256, preserve ordinals 60 and 119, replace the other 163 values. **Native-validated.**
+- **Bandits with melee**: no exact desired-value donor exists. Sanitized reconstruction evidence proves the target can instead be rebuilt entirely from pristine native values: validate native ordinal 40 by SHA-256 and its 47-part token/separator shape, copy six whole alphanumeric tokens from audited positions within native ordinal 37 after validating that value by SHA-256, preserve all punctuation/separators from the base, validate the reconstructed target SHA-256, preserve ordinal 60, and replace the other 164 quoted values. No target identifier or token text is stored in source. **Candidate-ready.**
 
-- **Suiciders**: validate all 165 calls and vector digest, take the value at donor ordinal 6, validate its SHA-256, preserve ordinal 6, replace the other 164 values.
-- **Bandits with guns**: take the value at donor ordinal 119, validate its SHA-256, preserve ordinals 60 and 119, replace the other 163 values.
+Only quoted `m_AIPresets` value spans are replaced; layout/comments remain intact. The three implemented modes share one exclusivity group.
 
-Only quoted `m_AIPresets` value spans are replaced; layout and comments remain intact. Both implemented modes are mutually exclusive and **Native-validated**. Their native disposable candidates retained all 3060 archive entries, and the forced-spawn conflict check rejected selecting both.
-
-Butcher, Ram, Bloater, Thug, and bandits-with-melee have no exact desired-value donor anywhere in the audited native Data0. Their literal identifier lists remain provenance-sensitive and are not copied into source, so those five choices remain **Preset unresolved**.
+Butcher, Ram, Bloater, and Thug have no exact desired-value donor and no accepted whole-token reconstruction from the audited pristine 165-value vector. Their target identifiers remain provenance-sensitive and are not copied into source, so those four choices remain **Preset unresolved**.
 
 ## Weather/time dropdown
 
@@ -204,8 +203,8 @@ Native transaction QA passed: one validated candidate was atomically installed, 
 
 ## Current validation boundary
 
-The catalog contains **37 semantic non-default options, all Native-validated** against the accepted native baseline. Current choice conflicts reject incompatible selections, and material multi-family interactions include a maximal compatible candidate spanning weather, forced spawn, AI difficulty, firearms, camera FOV, zombie size, and direct controls.
+The catalog contains **38 semantic non-default options**: 37 are **Native-validated** against the accepted native baseline, and forced bandits with melee is **Candidate-ready**. Previously tested choice conflicts reject incompatible selections; the expanded three-way forced-spawn group still needs a native conflict check including the new mode.
 
-The unconditional `game.ini` / `menumain_pc.xui` replacement question is closed: accepted native comparison proves it is cosmetic/branding-only and unnecessary for Linux gameplay parity. Remaining released gameplay parity work is therefore limited to five forced-spawn modes whose desired identifier lists have no exact pristine donor. Gameplay/visual QA and the Linux-native GUI/packaging remain later gates.
+The unconditional `game.ini` / `menumain_pc.xui` replacement question is closed: accepted native comparison proves it is cosmetic/branding-only and unnecessary for Linux gameplay parity. Remaining unresolved released gameplay parity is limited to Butcher, Ram, Bloater, and Thug forced-spawn choices, whose target identifiers have neither an exact pristine donor nor an accepted whole-token derivation. Gameplay/visual QA and the Linux-native GUI/packaging remain later gates.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized.
