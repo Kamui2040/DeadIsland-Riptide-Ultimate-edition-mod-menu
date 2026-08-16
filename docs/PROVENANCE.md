@@ -42,9 +42,18 @@ The upstream repository contains ZIP presets, replacement files, UI assets, soun
 
 Unknown provenance is not treated as permission.
 
+Accepted sanitized native comparison resolves the two unconditional Windows replacement files:
+
+- `Required_files_and_scripts/game.ini` differs from the accepted native `data/game.ini` only at the active `GameName#1` call; native and replacement each contain the same 25 parsed call identities and no call is added or removed;
+- `Required_files_and_scripts/menumain_pc.xui_version` adds one replacement-only `MyText:T_Mylogo` component; after removing that component, the replacement XUI is structurally equivalent to the accepted native menu.
+
+These replacements therefore implement upstream branding/cosmetic behavior rather than gameplay behavior. They are **not required for Milestone-1 Linux parity** and must not be copied into the user's Data0 or packaged as Linux runtime content. Their inherited repository copies remain provenance-sensitive historical upstream material; this decision does not assert redistribution rights over them.
+
 ## Preferred Linux distribution model
 
 Where practical, represent gameplay changes as semantic transformations and compact project-authored patch definitions rather than replacement copies of game files. If a feature cannot be reproduced without bundled replacement content, its provenance and redistribution status must be resolved before packaging.
+
+The Linux runtime specifically avoids the upstream unconditional `game.ini` / `menumain_pc.xui` copies because accepted native evidence proves they are unnecessary for gameplay parity.
 
 ## Attribution requirements
 
