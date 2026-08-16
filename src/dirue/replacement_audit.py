@@ -20,7 +20,7 @@ MENU_REPLACEMENT = "menumain_pc.xui_version"
 _CALL_RE = re.compile(
     r"^[ \t]*(?P<comment>//[ \t]*)?"
     r"(?P<name>[A-Za-z_][A-Za-z0-9_]*)"
-    r"\((?P<args>.*)\)[ \t]*;?[ \t]*$",
+    r"\((?P<args>.*)\)[ \t]*;?[ \t]*\r?$",
     re.MULTILINE,
 )
 
