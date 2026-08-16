@@ -39,6 +39,7 @@ The inherited upstream `Data0.pak` is historical upstream material. Linux-port c
 - Do not hand routine repository work to the user when connected tools can do it safely.
 - Ask for manual execution only when work genuinely requires the user's physical Bazzite/game machine and that machine is unavailable to tools, such as native-game execution, local filesystem state, or visual/gameplay QA.
 - Keep manual handoffs minimal and deterministic.
+- For interactive handoffs run as `bash -s <<'EOF'`, read human responses explicitly from `/dev/tty`, never inherited stdin, and verify any required external process actually starts and exits before accepting observations.
 - Use simple, natural, direct language in repository submissions and project chat. Avoid needless jargon, robotic phrasing, and long explanations.
 
 ## Data0 transaction rules
