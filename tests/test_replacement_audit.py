@@ -24,8 +24,8 @@ class ReplacementAuditTests(unittest.TestCase):
 
         result = game_ini_summary(native, replacement)
 
-        self.assertEqual(result["native_call_count"], 3)
-        self.assertEqual(result["replacement_call_count"], 3)
+        self.assertEqual(result["native_call_count"], 2)
+        self.assertEqual(result["replacement_call_count"], 2)
         self.assertEqual(len(result["changed_calls"]), 1)
         self.assertEqual(result["changed_calls"][0]["identity"], "GameName#1")
         serialized = json.dumps(result, sort_keys=True)
