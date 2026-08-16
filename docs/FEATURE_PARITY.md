@@ -18,7 +18,7 @@ Status terms:
 | Enable music? | Starts/stops bundled Windows helper audio | Not required for gameplay parity; Windows helper is not carried over |
 | Confirm modifications | Deletes live Data0 before rebuilding/copying | Build from a verified base, preserve a pristine backup, validate a candidate, bind installation to the source hash, and replace atomically |
 
-Upstream also unconditionally replaces `data/game.ini` and `data/menu/scr/menumain_pc.xui` from bundled files. Those remain provenance-sensitive and are not assumed necessary merely because the Windows script copied them.
+Upstream also unconditionally replaces `data/game.ini` and `data/menu/scr/menumain_pc.xui`. A sanitized native comparison shows these are branding/cosmetic, not gameplay requirements: `game.ini` differs only at `GameName#1`, and the menu replacement differs only by one replacement-only `MyText:T_Mylogo` component once the native tree is normalized. Linux therefore does not copy or redistribute either replacement.
 
 ## Direct gameplay controls
 
@@ -165,6 +165,15 @@ The native time sites are comments containing `float time = TIME * 0.1` and `Set
 
 All eight non-default choices are mutually exclusive and **Native-validated**. Every individual native disposable candidate retained 3060 entries with the expected member scope. A maximal compatible candidate combining darker storm night with armed-bandit forcing and the previously validated option families also passed.
 
+## Upstream unconditional replacement files
+
+The released Windows workflow always overwrote `data/game.ini` and `data/menu/scr/menumain_pc.xui` from bundled files. Accepted sanitized native comparison establishes that these replacements are cosmetic/branding only:
+
+- native and replacement `game.ini` each contain the same 25 parsed call identities; there are no native-only or replacement-only calls, and only `GameName#1` has different arguments while remaining active in both;
+- the menu replacement contains one extra component, `MyText:T_Mylogo`; there are no native-only components, and the replacement becomes structurally equivalent to native after removing that one component.
+
+These copies are not required for released gameplay parity. Linux does not reproduce the unconditional overwrite and will not redistribute either replacement as runtime/package content. Their inherited repository copies remain provenance-sensitive historical upstream material.
+
 ## Inactive/commented upstream controls
 
 Outside released Milestone-1 UI parity unless later evidence shows otherwise:
@@ -186,7 +195,8 @@ The Linux port does not reproduce these Windows implementation hazards:
 5. runtime hard-coded line-number targeting;
 6. full-file preset replacement without provenance review;
 7. placeholder disable paths tied to a prearranged bundled archive;
-8. Wine/Proton or Windows helper runtime dependencies.
+8. unconditional bundled `game.ini` / menu replacement for cosmetic branding;
+9. Wine/Proton or Windows helper runtime dependencies.
 
 Candidate installation validates candidate, live archive, and backup; requires source-hash agreement and matching entry counts; writes through a same-directory temporary file; rechecks the live hash immediately before atomic replacement; and verifies the installed hash afterward. Restore validates the backup hash and can recover even if the live archive is missing.
 
@@ -196,6 +206,6 @@ Native transaction QA passed: one validated candidate was atomically installed, 
 
 The catalog contains **37 semantic non-default options, all Native-validated** against the accepted native baseline. Current choice conflicts reject incompatible selections, and material multi-family interactions include a maximal compatible candidate spanning weather, forced spawn, AI difficulty, firearms, camera FOV, zombie size, and direct controls.
 
-Remaining Milestone-1 parity work is narrower than the current catalog: five forced-spawn modes remain provenance-gated because their desired identifier lists have no exact pristine donor, and the upstream unconditional `game.ini` / `menumain_pc.xui` replacement still needs a provenance/necessity decision. Gameplay/visual QA and the Linux-native GUI/packaging remain later gates.
+The unconditional `game.ini` / `menumain_pc.xui` replacement question is closed: accepted native comparison proves it is cosmetic/branding-only and unnecessary for Linux gameplay parity. Remaining released gameplay parity work is therefore limited to five forced-spawn modes whose desired identifier lists have no exact pristine donor. Gameplay/visual QA and the Linux-native GUI/packaging remain later gates.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized.
