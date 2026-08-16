@@ -1,9 +1,9 @@
 from pathlib import Path
-import tempfile
 import unittest
 from unittest.mock import patch
 
 from dirue.application import (
+    SUPPORTED_PRISTINE_SHA256,
     ApplicationStatus,
     apply_selection,
     default_backup_path,
@@ -17,8 +17,11 @@ from dirue.errors import PatchError, ValidationError
 from dirue.game import GameInstallation
 
 
+BASELINE = next(iter(SUPPORTED_PRISTINE_SHA256))
+
+
 class ApplicationServiceTests(unittest.TestCase):
-    def _game(self, root: Path, sha256: str = "a" * 64) -> GameInstallation:
+    def _game(self, root: Path, sha256: str = BASELINE) -> GameInstallation:
         data0 = root / "DIR" / "Data0.pak"
         return GameInstallation(
             root=root,
@@ -64,7 +67,7 @@ class ApplicationServiceTests(unittest.TestCase):
             ("reduce_sprint_stamina", "camera_fov_82", "force_bandits_melee"),
         )
 
-    def test_inspect_game_reports_existing_backup_state(self):
+    def test_inspect_game_reports_existing_supported_backup_state(self):
         root = Path("/game")
         game = self._game(root)
         backup_path = default_backup_path(game.data0)
@@ -78,14 +81,36 @@ class ApplicationServiceTests(unittest.TestCase):
         self.assertEqual(status.backup, backup)
         self.assertTrue(status.live_matches_backup)
 
-    def test_apply_requires_restore_before_reapplying_over_modified_live(self):
+    def test_inspect_game_rejects_unknown_first_pristine_source(self):
         root = Path("/game")
         game = self._game(root, "b" * 64)
+
+        with patch("dirue.application.validate_game_root", return_value=game), patch(
+            "pathlib.Path.exists", return_value=False
+        ):
+            with self.assertRaisesRegex(ValidationError, "validated pristine"):
+                inspect_game(root)
+
+    def test_inspect_game_rejects_unrecognized_existing_backup(self):
+        root = Path("/game")
+        game = self._game(root, "c" * 64)
+        backup_path = default_backup_path(game.data0)
+        backup = self._archive(backup_path, "b" * 64)
+
+        with patch("dirue.application.validate_game_root", return_value=game), patch(
+            "pathlib.Path.exists", return_value=True
+        ), patch("dirue.application.validate_archive", return_value=backup):
+            with self.assertRaisesRegex(ValidationError, "not a validated pristine"):
+                inspect_game(root)
+
+    def test_apply_requires_restore_before_reapplying_over_modified_live(self):
+        root = Path("/game")
+        game = self._game(root, "c" * 64)
         backup_path = default_backup_path(game.data0)
         status = ApplicationStatus(
             game=game,
             backup_path=backup_path,
-            backup=self._archive(backup_path, "a" * 64),
+            backup=self._archive(backup_path, BASELINE),
             live_matches_backup=False,
         )
 
@@ -99,7 +124,7 @@ class ApplicationServiceTests(unittest.TestCase):
 
     def test_apply_builds_then_installs_against_exact_source_hash(self):
         root = Path("/game")
-        game = self._game(root, "a" * 64)
+        game = self._game(root)
         backup_path = default_backup_path(game.data0)
         status = ApplicationStatus(
             game=game,
@@ -107,9 +132,9 @@ class ApplicationServiceTests(unittest.TestCase):
             backup=None,
             live_matches_backup=None,
         )
-        backup = self._archive(backup_path, "a" * 64)
+        backup = self._archive(backup_path, BASELINE)
         candidate = CandidateBuild(
-            source_sha256="a" * 64,
+            source_sha256=BASELINE,
             candidate_sha256="c" * 64,
             entry_count=3060,
             selected_options=("reduce_sprint_stamina",),
@@ -129,7 +154,7 @@ class ApplicationServiceTests(unittest.TestCase):
         ensure_backup.assert_called_once_with(
             game.data0,
             backup_path,
-            expected_live_sha256="a" * 64,
+            expected_live_sha256=BASELINE,
         )
         self.assertEqual(build.call_args.args[0], game.data0)
         self.assertEqual(build.call_args.args[2], ("reduce_sprint_stamina",))
@@ -137,11 +162,11 @@ class ApplicationServiceTests(unittest.TestCase):
             build.call_args.args[1],
             game.data0,
             backup_path,
-            expected_live_sha256="a" * 64,
+            expected_live_sha256=BASELINE,
             expected_candidate_sha256="c" * 64,
         )
         self.assertEqual(result.installed_sha256, "c" * 64)
-        self.assertEqual(result.backup_sha256, "a" * 64)
+        self.assertEqual(result.backup_sha256, BASELINE)
 
     def test_restore_requires_existing_pristine_backup(self):
         root = Path("/game")
@@ -161,14 +186,14 @@ class ApplicationServiceTests(unittest.TestCase):
         root = Path("/game")
         game = self._game(root, "c" * 64)
         backup_path = default_backup_path(game.data0)
-        backup = self._archive(backup_path, "a" * 64)
+        backup = self._archive(backup_path, BASELINE)
         status = ApplicationStatus(
             game=game,
             backup_path=backup_path,
             backup=backup,
             live_matches_backup=False,
         )
-        restored = self._archive(game.data0, "a" * 64)
+        restored = self._archive(game.data0, BASELINE)
 
         with patch("dirue.application.inspect_game", return_value=status), patch(
             "dirue.application.restore_backup", return_value=restored
@@ -178,10 +203,10 @@ class ApplicationServiceTests(unittest.TestCase):
         restore.assert_called_once_with(
             backup_path,
             game.data0,
-            expected_backup_sha256="a" * 64,
+            expected_backup_sha256=BASELINE,
         )
-        self.assertEqual(result.restored_sha256, "a" * 64)
-        self.assertEqual(result.backup_sha256, "a" * 64)
+        self.assertEqual(result.restored_sha256, BASELINE)
+        self.assertEqual(result.backup_sha256, BASELINE)
 
 
 if __name__ == "__main__":
