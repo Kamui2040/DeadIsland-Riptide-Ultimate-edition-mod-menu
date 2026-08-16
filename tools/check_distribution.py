@@ -20,6 +20,7 @@ WHEEL_REQUIRED_SUFFIXES = (
 )
 SDIST_REQUIRED_SUFFIXES = (
     "pyproject.toml",
+    "build_backend.py",
     "README.md",
     "LICENSE",
     "DIRUE.ahk",
