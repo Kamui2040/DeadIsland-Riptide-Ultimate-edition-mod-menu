@@ -20,6 +20,11 @@ from .game import GameInstallation, validate_game_root
 
 
 BACKUP_SUFFIX = ".dirue-pristine"
+SUPPORTED_PRISTINE_SHA256 = frozenset(
+    {
+        "0afeadca8fb84147cc2c815ec37d1f3c940d40fab6c0a343b7b84e7f41d3c991",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -79,11 +84,20 @@ def inspect_game(root: Path) -> ApplicationStatus:
     backup_path = default_backup_path(game.data0)
     backup: ArchiveInfo | None = None
     live_matches_backup: bool | None = None
+
     if backup_path.exists():
         backup = validate_archive(backup_path)
-        live_matches_backup = backup.sha256 == game.archive.sha256
+        if backup.sha256 not in SUPPORTED_PRISTINE_SHA256:
+            raise ValidationError("retained backup is not a validated pristine compatibility baseline")
         if backup.entry_count != game.archive.entry_count:
             raise ValidationError("pristine backup entry count differs from live archive")
+        live_matches_backup = backup.sha256 == game.archive.sha256
+    elif game.archive.sha256 not in SUPPORTED_PRISTINE_SHA256:
+        raise ValidationError(
+            "live Data0 is not a validated pristine compatibility baseline; "
+            "the GUI will not create a first backup from an unknown or modified archive"
+        )
+
     return ApplicationStatus(
         game=game,
         backup_path=backup_path,
