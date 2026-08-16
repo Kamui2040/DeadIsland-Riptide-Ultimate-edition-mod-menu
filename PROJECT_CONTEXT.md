@@ -71,6 +71,15 @@ Vanilla matches native. Accepted structural, ambient, and private value-probe ev
 
 All eight non-default weather/time choices now pass native disposable candidate construction with the expected member scopes. The native regression also proved that semantic anchor matching must tolerate the observed blank line between the two WEATHER declarations without weakening the named/order preconditions.
 
+## Upstream unconditional replacements
+
+The Windows script unconditionally copied bundled replacements over `data/game.ini` and `data/menu/scr/menumain_pc.xui`. A sanitized read-only comparison against the accepted native baseline closes their Linux provenance/necessity gate:
+
+- `game.ini` has the same 25 parsed calls in native and replacement form, with no native-only or replacement-only call identities; the only changed call is active `GameName#1`;
+- `menumain_pc.xui` has no native-only component, exactly one replacement-only component (`MyText:T_Mylogo`), and becomes structurally equivalent to native after removing that component; no existing component property differs independently of the inserted child.
+
+The replacement files therefore serve upstream branding/cosmetic behavior rather than released gameplay behavior. The Linux runtime and packaging will **not** copy or redistribute either replacement. The inherited files remain provenance-sensitive historical upstream material and are not treated as Linux payloads.
+
 ## Transaction safety and native transaction QA
 
 The transaction path provides strict ZIP validation, pristine backup preservation, source-hash binding, candidate/live/backup entry-count checks, exact candidate-hash binding, same-directory temporary writes, a second live-hash check immediately before `os.replace`, installed-hash verification, and expected-backup verification before restore.
@@ -91,18 +100,18 @@ Accepted evidence is scoped to the code state that produced it:
 - corrected recoil evidence supplies repeated-block camera-recoil mapping;
 - sanitized unresolved/detail evidence supplies the public-safe spawn donor boundary and weather structure;
 - private native weather/spawn evidence supplies the pristine spawn-vector digest and final whitelisted weather/time statement arguments;
+- sanitized replacement comparison proves the inherited `game.ini` / `menumain_pc.xui` copies are branding/cosmetic only and unnecessary for Linux gameplay parity;
 - native transaction evidence passes with exact-original recovery;
 - no GitHub Actions were used.
 
 ## Remaining gates
 
 1. Keep the five no-donor forced-spawn choices unresolved unless a public-safe derivation is found without embedding proprietary identifier lists.
-2. Resolve the upstream unconditional `game.ini` / `menumain_pc.xui` replacement provenance and necessity question.
-3. Perform bounded native gameplay/visual QA through the validated transaction/recovery path.
-4. Add and validate the Linux-native GUI and packaging when released parity is complete enough to expose safely.
+2. Perform bounded native gameplay/visual QA through the validated transaction/recovery path.
+3. Add and validate the Linux-native GUI and packaging when released parity is complete enough to expose safely.
 
 ## Cleanup and publication
 
-Cleanup is continuous. Superseded failed weather-candidate evidence is obsolete after the accepted successful replacement; current accepted native-candidate, preset, recoil, source-map, native-baseline, transaction, unresolved/detail, and private value-probe evidence remain preserved while their open questions still depend on them. The pristine backup is retained recovery material.
+Cleanup is continuous. Superseded failed weather/provenance diagnostics are obsolete after accepted successful replacement evidence; current accepted native-candidate, preset, recoil, source-map, native-baseline, transaction, unresolved/detail, replacement-provenance, and private value-probe evidence remain preserved while open questions still depend on them. The pristine backup is retained recovery material.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized. `linux-port` remains the active development branch.
