@@ -52,6 +52,8 @@ Normal is baseline. One Hit, Hard, and Headshot Only are native-candidate valida
 
 Complete and native-candidate validated. Linux changes only `m_ForcedBodyScaleMin` / `m_ForcedBodyScaleMax` after validating occurrence counts and baseline value-sequence hashes. No preset file or native value vector is copied into Git.
 
+Gameplay validation is still incomplete for this family. In a valid representative native session, fast infected appeared supersized while ordinary slower walkers did not clearly appear enlarged; the report therefore records supersize as `not_observed`, not failed. A read-only installed-content precedence audit found no later PAK and no loose file containing any of the four `infectedai*` / `zombieai*` targets, so archive shadowing does not explain the observed split. Supersize must be retested in isolation against both an infected and an ordinary walker before the family is treated as gameplay-validated.
+
 ### Forced spawn
 
 Default matches native. Every non-default preset changes active `m_AIPresets` values in a 165-call vector.
@@ -76,7 +78,7 @@ All eight non-default weather/time choices now pass native disposable candidate 
 The Windows script unconditionally copied bundled replacements over `data/game.ini` and `data/menu/scr/menumain_pc.xui`. A sanitized read-only comparison against the accepted native baseline closes their Linux provenance/necessity gate:
 
 - `game.ini` has the same 25 parsed calls in native and replacement form, with no native-only or replacement-only call identities; the only changed call is active `GameName#1`;
-- `menumain_pc.xui` has no native-only component, exactly one replacement-only component (`MyText:T_Mylogo`), and becomes structurally equivalent to native after removing that component; no existing component property differs independently of the inserted child.
+- `menumain_pc.xui` has no native-only component, exactly one replacement-only `MyText:T_Mylogo`, and becomes structurally equivalent to native after removing that component; no existing component property differs independently of the inserted child.
 
 The replacement files therefore serve upstream branding/cosmetic behavior rather than released gameplay behavior. The Linux runtime and packaging will **not** copy or redistribute either replacement. The inherited files remain provenance-sensitive historical upstream material and are not treated as Linux payloads.
 
@@ -92,13 +94,15 @@ Real on-screen Bazzite visual QA passes for layout, scrolling, selector behavior
 
 The confirmation-driven Qt/application transaction also passes on Bazzite. Using `reduce_sprint_stamina`, the real `MainWindow` Apply handler created the application pristine backup from the audited baseline, installed the exact previously validated candidate hash, and then disabled Apply while the live archive differed from the retained backup. A second application-service apply was rejected until restore. The real `MainWindow` Restore handler then restored the exact original 3060-entry baseline, re-enabled the expected controls, and retained the pristine backup. Apply and restore confirmation paths both executed successfully, and no fallback recovery path was needed.
 
-A first representative gameplay/visual QA attempt is **invalid and supplies no gameplay evidence**. The candidate installation itself succeeded, but the interactive handoff ran under `bash -s <<'EOF'` and plain `read` commands consumed heredoc stdin instead of the terminal, so the script advanced without human input and then failed on an unset observation variable. Its recovery trap restored the exact pristine Data0 hash successfully. The representative gameplay test must be rerun with all human input bound explicitly to `/dev/tty` and with process-start/process-exit verification before observations are accepted.
+A first representative gameplay/visual QA attempt is **invalid and supplies no gameplay evidence**. The candidate installation itself succeeded, but the interactive handoff ran under `bash -s <<'EOF'` and plain `read` commands consumed heredoc stdin instead of the terminal, so the script advanced without human input and then failed on an unset observation variable. Its recovery trap restored the exact pristine Data0 hash successfully. Repository QA rules now require interactive heredoc handoffs to read explicitly from `/dev/tty` and verify native game process start/exit before accepting observations.
+
+The corrected representative gameplay/visual run is valid. It installed the exact four-option candidate for camera FOV82, Better Firearms POV82, supersize zombies, and darker storm night; verified the native game process started and exited; and restored the exact pristine archive afterward. Camera FOV82, Better Firearms POV82, darker storm night, and a stable playable session were all observed as passing. Supersize was recorded as `not_observed`: fast infected appeared enlarged, while ordinary walkers did not clearly appear enlarged. No gameplay failure is assigned until the isolated zombie-size follow-up resolves that split.
 
 ## Transaction safety and native transaction QA
 
 The transaction path provides strict ZIP validation, pristine backup preservation, source-hash binding, candidate/live/backup entry-count checks, exact candidate-hash binding, same-directory temporary writes, a second live-hash check immediately before `os.replace`, installed-hash verification, and expected-backup verification before restore.
 
-Native transaction QA passed independently at engine level: a validated candidate was atomically installed, its live hash matched exactly, and the retained pristine backup restored the exact original 3060-entry baseline. The Qt/application integration now passes the same install/lock/reject/restore lifecycle through the real GUI handlers. The live game is pristine after both accepted transaction tests, and the application pristine backup is retained as recovery material.
+Native transaction QA passed independently at engine level: a validated candidate was atomically installed, its live hash matched exactly, and the retained pristine backup restored the exact original 3060-entry baseline. The Qt/application integration now passes the same install/lock/reject/restore lifecycle through the real GUI handlers. The live game is pristine after both accepted transaction tests and the valid representative gameplay run, and the application pristine backup is retained as recovery material.
 
 The retained pristine backup is recovery material and must not be cleaned up or overwritten. The inherited repository `Data0.pak` remains forbidden as a Linux patch source or install payload.
 
@@ -122,16 +126,19 @@ Accepted evidence is scoped to the code state that produced it:
 - physical on-screen GUI visual QA passes after one focused disabled-text contrast correction, with unavailable spawn choices still non-selectable and no Data0 mutation;
 - physical Qt/application transaction QA passes through the real Apply and Restore handlers with confirmations, exact candidate installation, apply-lock/reapply rejection while modified, exact-original restore, and retained pristine backup; fallback recovery was not needed;
 - the first representative gameplay attempt is rejected as QA-harness failure, not accepted gameplay evidence; exact pristine recovery passed;
+- corrected representative gameplay QA validates camera FOV82, Better Firearms POV82, darker storm night, and session stability; zombie supersize remains gameplay-inconclusive because only fast infected were clearly observed enlarged;
+- the installed-content precedence audit found no other PAK or loose file carrying the audited FOV/POV/weather/zombie-size target members, ruling out archive shadowing as the explanation for the partial zombie-size observation;
 - no GitHub Actions were used.
 
 ## Remaining gates
 
 1. Treat Butcher, Ram, Bloater, and Thug as intentionally unavailable under the current provenance boundary; do not broaden derivation without materially new provenance/rights evidence.
-2. Perform bounded native gameplay/visual QA through the validated transaction/recovery path for representative option families, with terminal interaction bound to `/dev/tty` and actual game start/exit verified.
-3. Harden reproducible Linux packaging after representative gameplay/visual evidence passes; releases, public binaries, Nexus publication, main integration, and upstream submission remain approval-gated.
+2. Isolate supersize zombie gameplay QA and explicitly observe both a fast infected and an ordinary walker. If the archetype split repeats, compare a QA-only candidate built from the original upstream supersize preset against the semantic Linux candidate before changing runtime logic.
+3. Continue bounded native gameplay/visual QA for representative remaining option families through the validated transaction/recovery path.
+4. Harden reproducible Linux packaging after representative gameplay/visual evidence is sufficient; releases, public binaries, Nexus publication, main integration, and upstream submission remain approval-gated.
 
 ## Cleanup and publication
 
-Cleanup is continuous. Superseded failed weather/provenance/catalog-count diagnostics and the first low-contrast GUI capture are obsolete after accepted successful evidence and the corrected focused contrast capture. The invalid first gameplay run is not accepted evidence; only its successful exact-original recovery is retained as relevant safety evidence. The first spawn-recipe audit remains because it documents the accepted melee derivation. The broader same-member and bounded-AI exploratory audit modules/tests were removed after their accepted negative results closed that research path. Current accepted native-candidate, preset, recoil, source-map, native-baseline, engine transaction, unresolved/detail, replacement-provenance, spawn-recipe, final negative spawn evidence, GUI/package smoke, corrected GUI visual evidence, Qt/application transaction evidence, and private value-probe evidence remain preserved while relevant. The pristine backup is retained recovery material.
+Cleanup is continuous. Superseded failed weather/provenance/catalog-count diagnostics and the first low-contrast GUI capture are obsolete after accepted successful evidence and the corrected focused contrast capture. The invalid first gameplay run is not accepted evidence; only its successful exact-original recovery is retained as relevant safety evidence. The corrected representative gameplay report and the negative installed-content precedence report are current private QA evidence. The first spawn-recipe audit remains because it documents the accepted melee derivation. The broader same-member and bounded-AI exploratory audit modules/tests were removed after their accepted negative results closed that research path. Current accepted native-candidate, preset, recoil, source-map, native-baseline, engine transaction, unresolved/detail, replacement-provenance, spawn-recipe, final negative spawn evidence, GUI/package smoke, corrected GUI visual evidence, Qt/application transaction evidence, representative gameplay evidence, precedence evidence, and private value-probe evidence remain preserved while relevant. The pristine backup is retained recovery material.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized. `linux-port` remains the active development branch.
