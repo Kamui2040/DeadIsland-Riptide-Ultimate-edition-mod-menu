@@ -10,7 +10,7 @@
 
 Milestone 1 is a faithful native-Linux port of released DIRUE behavior. On 2026-08-16, the validated Linux-port implementation was explicitly approved for main integration and fast-forwarded into `main` without rewriting history. `linux-port` is retained as the development branch and should remain aligned unless new work intentionally diverges.
 
-New gameplay tweaks remain deferred until released parity is fully resolved. Four released forced-spawn choices remain intentionally unavailable because their required target identifiers cannot currently be reconstructed or redistributed under the accepted provenance boundary.
+New gameplay tweaks remain deferred until released parity is fully resolved. Four released forced-spawn choices remain intentionally unavailable because their required target identifiers cannot currently be reconstructed or redistributed under the accepted provenance boundary. This durable unresolved gate is tracked in Issue #2.
 
 ## Verified native Linux baseline
 
