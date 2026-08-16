@@ -49,6 +49,20 @@ Accepted sanitized native comparison resolves the two unconditional Windows repl
 
 These replacements therefore implement upstream branding/cosmetic behavior rather than gameplay behavior. They are **not required for Milestone-1 Linux parity** and must not be copied into the user's Data0 or packaged as Linux runtime content. Their inherited repository copies remain provenance-sensitive historical upstream material; this decision does not assert redistribution rights over them.
 
+## Forced-spawn provenance boundary
+
+Released forced-spawn presets contain game-derived identifiers that must not be copied into Linux source merely because they are present in inherited upstream ZIPs. Public-safe runtime transforms therefore derive values only from the user's own validated native Data0 and bind every derivation to audited hashes and semantic structure.
+
+Suicider and bandits-with-guns use exact native donors. Bandits-with-melee uses an accepted whole-token reconstruction from the pristine 165-value spawn vector; the target identifier and substituted token text are not stored in source.
+
+Butcher, Ram, Bloater, and Thug remain intentionally unresolved. Accepted sanitized audits establish that each changes 164 of the 165 active spawn calls while preserving ordinal 60, but no acceptable whole-token recipe exists from:
+
+1. the pristine 165-value `m_AIPresets` vector;
+2. any quoted string in native `data/presets/aispawnbox_pre.def`; or
+3. the bounded native AI/preset source set consisting of `aispawnbox_pre.def`, `zombieai.pre`, `zombieai_pre.def`, `infectedai.pre`, `infectedai_pre.def`, and `bestiary.scr`.
+
+The project will not widen this into arbitrary whole-archive string assembly or character-level encoding. Those four modes stay unavailable unless new rights/provenance evidence or a comparably narrow semantic derivation is established.
+
 ## Preferred Linux distribution model
 
 Where practical, represent gameplay changes as semantic transformations and compact project-authored patch definitions rather than replacement copies of game files. If a feature cannot be reproduced without bundled replacement content, its provenance and redistribution status must be resolved before packaging.
