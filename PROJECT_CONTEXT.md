@@ -88,13 +88,15 @@ The initial PySide6 GUI is present behind the optional `gui` dependency and `dir
 
 Physical Bazzite smoke QA passes for the application/package layer: the full unit suite and compile checks pass, an isolated optional-GUI installation succeeds, PySide6 imports, `MainWindow` constructs with the offscreen Qt backend, all 38 ready options are represented exactly once, all four unresolved spawn choices remain disabled, the real native installation is accepted by the application service, entry points install, and a wheel builds successfully. The smoke run was read-only for the game and left the accepted Data0 hash unchanged.
 
-Real on-screen Bazzite visual QA also passes for layout, scrolling, selector behavior, option grouping, status/log readability, and visibility of the four intentionally unavailable forced-spawn choices. The first capture exposed low contrast for disabled dropdown entries; the GUI launcher was corrected to use a readable disabled-text palette while keeping those entries non-selectable, and a focused second native-theme capture verified the result. Both visual runs blocked mutation controls/functions and left Data0 pristine. Confirmation-driven apply/restore integration remains pending and will be exercised in a bounded transaction with exact-original recovery.
+Real on-screen Bazzite visual QA passes for layout, scrolling, selector behavior, option grouping, status/log readability, and visibility of the four intentionally unavailable forced-spawn choices. The first capture exposed low contrast for disabled dropdown entries; the GUI launcher was corrected to use a readable disabled-text palette while keeping those entries non-selectable, and a focused second native-theme capture verified the result. Both visual runs blocked mutation controls/functions and left Data0 pristine.
+
+The confirmation-driven Qt/application transaction also passes on Bazzite. Using `reduce_sprint_stamina`, the real `MainWindow` Apply handler created the application pristine backup from the audited baseline, installed the exact previously validated candidate hash, and then disabled Apply while the live archive differed from the retained backup. A second application-service apply was rejected until restore. The real `MainWindow` Restore handler then restored the exact original 3060-entry baseline, re-enabled the expected controls, and retained the pristine backup. Apply and restore confirmation paths both executed successfully, and no fallback recovery path was needed.
 
 ## Transaction safety and native transaction QA
 
 The transaction path provides strict ZIP validation, pristine backup preservation, source-hash binding, candidate/live/backup entry-count checks, exact candidate-hash binding, same-directory temporary writes, a second live-hash check immediately before `os.replace`, installed-hash verification, and expected-backup verification before restore.
 
-Native transaction QA passed. A validated candidate was atomically installed, its live hash matched exactly, and the retained pristine backup restored the exact original 3060-entry baseline. The live game is pristine after that test.
+Native transaction QA passed independently at engine level: a validated candidate was atomically installed, its live hash matched exactly, and the retained pristine backup restored the exact original 3060-entry baseline. The Qt/application integration now passes the same install/lock/reject/restore lifecycle through the real GUI handlers. The live game is pristine after both accepted transaction tests, and the application pristine backup is retained as recovery material.
 
 The retained pristine backup is recovery material and must not be cleaned up or overwritten. The inherited repository `Data0.pak` remains forbidden as a Linux patch source or install payload.
 
@@ -113,20 +115,20 @@ Accepted evidence is scoped to the code state that produced it:
 - sanitized same-member and bounded-AI-source evidence closes further whole-token derivation for Butcher/Ram/Bloater/Thug without widening to arbitrary archive strings;
 - private native weather/spawn evidence supplies the pristine spawn-vector digest and final whitelisted weather/time statement arguments;
 - sanitized replacement comparison proves the inherited `game.ini` / `menumain_pc.xui` copies are branding/cosmetic only and unnecessary for Linux gameplay parity;
-- native transaction evidence passes with exact-original recovery;
+- native engine transaction evidence passes with exact-original recovery;
 - isolated physical Bazzite GUI/package smoke passes offscreen, including PySide6 installation/import, real-install application validation, exact UI catalog accounting, disabled unresolved choices, entry points, and wheel construction, with no Data0 mutation;
 - physical on-screen GUI visual QA passes after one focused disabled-text contrast correction, with unavailable spawn choices still non-selectable and no Data0 mutation;
+- physical Qt/application transaction QA passes through the real Apply and Restore handlers with confirmations, exact candidate installation, apply-lock/reapply rejection while modified, exact-original restore, and retained pristine backup; fallback recovery was not needed;
 - no GitHub Actions were used.
 
 ## Remaining gates
 
 1. Treat Butcher, Ram, Bloater, and Thug as intentionally unavailable under the current provenance boundary; do not broaden derivation without materially new provenance/rights evidence.
-2. Exercise one GUI-driven bounded apply/restore transaction with exact-original recovery; this validates Qt-to-service integration rather than the already-validated transaction engine itself.
-3. Perform bounded native gameplay/visual QA through the validated transaction/recovery path for representative option families.
-4. Harden reproducible Linux packaging after application transaction evidence passes; releases, public binaries, Nexus publication, main integration, and upstream submission remain approval-gated.
+2. Perform bounded native gameplay/visual QA through the validated transaction/recovery path for representative option families.
+3. Harden reproducible Linux packaging after representative gameplay/visual evidence passes; releases, public binaries, Nexus publication, main integration, and upstream submission remain approval-gated.
 
 ## Cleanup and publication
 
-Cleanup is continuous. Superseded failed weather/provenance/catalog-count diagnostics and the first low-contrast GUI capture are obsolete after accepted successful evidence and the corrected focused contrast capture. The first spawn-recipe audit remains because it documents the accepted melee derivation. The broader same-member and bounded-AI exploratory audit modules/tests were removed after their accepted negative results closed that research path. Current accepted native-candidate, preset, recoil, source-map, native-baseline, transaction, unresolved/detail, replacement-provenance, spawn-recipe, final negative spawn evidence, GUI/package smoke, corrected GUI visual evidence, and private value-probe evidence remain preserved while relevant. The pristine backup is retained recovery material.
+Cleanup is continuous. Superseded failed weather/provenance/catalog-count diagnostics and the first low-contrast GUI capture are obsolete after accepted successful evidence and the corrected focused contrast capture. The first spawn-recipe audit remains because it documents the accepted melee derivation. The broader same-member and bounded-AI exploratory audit modules/tests were removed after their accepted negative results closed that research path. Current accepted native-candidate, preset, recoil, source-map, native-baseline, engine transaction, unresolved/detail, replacement-provenance, spawn-recipe, final negative spawn evidence, GUI/package smoke, corrected GUI visual evidence, Qt/application transaction evidence, and private value-probe evidence remain preserved while relevant. The pristine backup is retained recovery material.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized. `linux-port` remains the active development branch.
