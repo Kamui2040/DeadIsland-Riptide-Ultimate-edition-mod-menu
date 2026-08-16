@@ -47,6 +47,7 @@ class PackagingMetadataTests(unittest.TestCase):
     def test_distribution_metadata_is_explicit_and_package_data_is_disabled(self):
         data = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
+        self.assertEqual(data["build-system"]["requires"], ["setuptools==83.0.0"])
         self.assertEqual(data["project"]["readme"], "README.md")
         self.assertFalse(data["tool"]["setuptools"]["include-package-data"])
         self.assertEqual(data["tool"]["setuptools"]["packages"]["find"]["where"], ["src"])
