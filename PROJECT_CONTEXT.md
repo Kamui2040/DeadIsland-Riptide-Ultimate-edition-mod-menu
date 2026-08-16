@@ -92,6 +92,8 @@ Real on-screen Bazzite visual QA passes for layout, scrolling, selector behavior
 
 The confirmation-driven Qt/application transaction also passes on Bazzite. Using `reduce_sprint_stamina`, the real `MainWindow` Apply handler created the application pristine backup from the audited baseline, installed the exact previously validated candidate hash, and then disabled Apply while the live archive differed from the retained backup. A second application-service apply was rejected until restore. The real `MainWindow` Restore handler then restored the exact original 3060-entry baseline, re-enabled the expected controls, and retained the pristine backup. Apply and restore confirmation paths both executed successfully, and no fallback recovery path was needed.
 
+A first representative gameplay/visual QA attempt is **invalid and supplies no gameplay evidence**. The candidate installation itself succeeded, but the interactive handoff ran under `bash -s <<'EOF'` and plain `read` commands consumed heredoc stdin instead of the terminal, so the script advanced without human input and then failed on an unset observation variable. Its recovery trap restored the exact pristine Data0 hash successfully. The representative gameplay test must be rerun with all human input bound explicitly to `/dev/tty` and with process-start/process-exit verification before observations are accepted.
+
 ## Transaction safety and native transaction QA
 
 The transaction path provides strict ZIP validation, pristine backup preservation, source-hash binding, candidate/live/backup entry-count checks, exact candidate-hash binding, same-directory temporary writes, a second live-hash check immediately before `os.replace`, installed-hash verification, and expected-backup verification before restore.
@@ -119,16 +121,17 @@ Accepted evidence is scoped to the code state that produced it:
 - isolated physical Bazzite GUI/package smoke passes offscreen, including PySide6 installation/import, real-install application validation, exact UI catalog accounting, disabled unresolved choices, entry points, and wheel construction, with no Data0 mutation;
 - physical on-screen GUI visual QA passes after one focused disabled-text contrast correction, with unavailable spawn choices still non-selectable and no Data0 mutation;
 - physical Qt/application transaction QA passes through the real Apply and Restore handlers with confirmations, exact candidate installation, apply-lock/reapply rejection while modified, exact-original restore, and retained pristine backup; fallback recovery was not needed;
+- the first representative gameplay attempt is rejected as QA-harness failure, not accepted gameplay evidence; exact pristine recovery passed;
 - no GitHub Actions were used.
 
 ## Remaining gates
 
 1. Treat Butcher, Ram, Bloater, and Thug as intentionally unavailable under the current provenance boundary; do not broaden derivation without materially new provenance/rights evidence.
-2. Perform bounded native gameplay/visual QA through the validated transaction/recovery path for representative option families.
+2. Perform bounded native gameplay/visual QA through the validated transaction/recovery path for representative option families, with terminal interaction bound to `/dev/tty` and actual game start/exit verified.
 3. Harden reproducible Linux packaging after representative gameplay/visual evidence passes; releases, public binaries, Nexus publication, main integration, and upstream submission remain approval-gated.
 
 ## Cleanup and publication
 
-Cleanup is continuous. Superseded failed weather/provenance/catalog-count diagnostics and the first low-contrast GUI capture are obsolete after accepted successful evidence and the corrected focused contrast capture. The first spawn-recipe audit remains because it documents the accepted melee derivation. The broader same-member and bounded-AI exploratory audit modules/tests were removed after their accepted negative results closed that research path. Current accepted native-candidate, preset, recoil, source-map, native-baseline, engine transaction, unresolved/detail, replacement-provenance, spawn-recipe, final negative spawn evidence, GUI/package smoke, corrected GUI visual evidence, Qt/application transaction evidence, and private value-probe evidence remain preserved while relevant. The pristine backup is retained recovery material.
+Cleanup is continuous. Superseded failed weather/provenance/catalog-count diagnostics and the first low-contrast GUI capture are obsolete after accepted successful evidence and the corrected focused contrast capture. The invalid first gameplay run is not accepted evidence; only its successful exact-original recovery is retained as relevant safety evidence. The first spawn-recipe audit remains because it documents the accepted melee derivation. The broader same-member and bounded-AI exploratory audit modules/tests were removed after their accepted negative results closed that research path. Current accepted native-candidate, preset, recoil, source-map, native-baseline, engine transaction, unresolved/detail, replacement-provenance, spawn-recipe, final negative spawn evidence, GUI/package smoke, corrected GUI visual evidence, Qt/application transaction evidence, and private value-probe evidence remain preserved while relevant. The pristine backup is retained recovery material.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized. `linux-port` remains the active development branch.
