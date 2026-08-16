@@ -100,6 +100,7 @@ Keep responsibilities separated:
 - Never copy test-game content into the repository.
 - Before any QA write to the installed game, verify the target archive and backup state and use the transaction path implemented by the project.
 - When validating numeric gameplay changes through an in-game UI, do not assume a raw data value is displayed directly; establish the pristine-to-UI relationship or use an A/B comparison before asserting an exact displayed value.
+- Reproducible distribution QA must build the wheel and sdist twice from the same head with a fixed `SOURCE_DATE_EPOCH`; source archives must normalize member order, ownership, timestamps, and gzip metadata before byte comparison.
 - Record sanitized validation evidence where useful; do not record personal paths or identifiers in tracked files.
 
 ## Maintenance and cleanup
