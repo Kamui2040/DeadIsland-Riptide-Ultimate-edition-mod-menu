@@ -100,7 +100,7 @@ Status: **Native-validated**.
 | Hard | `ai_hard.zip` | **Native-validated**: 209 named `ParamFloat` edits across all 57 differing members |
 | Headshot only | `ai_Headshot.zip` | **Native-validated** across 20 audited files |
 
-One Hit, Hard, and Headshot Only are mutually exclusive values from the same released control. Hard uses a digest-guarded semantic table from accepted preset-v5 evidence; the sanitized structural audit proved no hidden structural delta, and the native disposable candidate changed exactly 57 members while retaining 3060 entries.
+One Hit, Hard, and Headshot Only are mutually exclusive values from the same released control. Hard uses a digest-guarded semantic table from accepted preset evidence; sanitized structural evidence proved no hidden structural delta, and the native disposable candidate changed exactly 57 members while retaining 3060 entries.
 
 ## Zombie size dropdown
 
@@ -125,12 +125,12 @@ Released choices: normal, Butchers, Rams, Bloaters, Thugs, Suiciders, bandits wi
 
 Default matches native. Every non-default preset changes active `m_AIPresets` values in a 165-call vector. Sanitized global donor evidence proves exact pristine desired-value donors exist only for Suicider and bandits-with-guns.
 
-The private native probe records only the complete pristine vector SHA-256, not its identifier strings. The Linux transforms use that digest plus semantic call ordinals:
+The Linux transforms use the complete pristine-vector digest plus semantic call ordinals:
 
 - **Suiciders**: validate all 165 calls and vector digest, take the value at donor ordinal 6, validate its SHA-256, preserve ordinal 6, replace the other 164 values.
 - **Bandits with guns**: take the value at donor ordinal 119, validate its SHA-256, preserve ordinals 60 and 119, replace the other 163 values.
 
-Only quoted `m_AIPresets` value spans are replaced; layout and comments remain intact. The two implemented modes are mutually exclusive and are **Candidate-ready**.
+Only quoted `m_AIPresets` value spans are replaced; layout and comments remain intact. Both implemented modes are mutually exclusive and **Native-validated**. Their native disposable candidates retained all 3060 archive entries, and the forced-spawn conflict check rejected selecting both.
 
 Butcher, Ram, Bloater, Thug, and bandits-with-melee have no exact desired-value donor anywhere in the audited native Data0. Their literal identifier lists remain provenance-sensitive and are not copied into source, so those five choices remain **Preset unresolved**.
 
@@ -148,7 +148,7 @@ Released choices:
 - Rain (Darker night)
 - Storm (Darker night)
 
-Vanilla matches native. Accepted structural, ambient, and private value-probe evidence establishes the complete released non-default behavior:
+Vanilla matches native. Accepted structural, ambient, and private value evidence establishes the complete released non-default behavior:
 
 | Choice | Weather | Interior | Time | Ambient |
 |---|---|---|---|---|
@@ -161,9 +161,9 @@ Vanilla matches native. Accepted structural, ambient, and private value-probe ev
 | Rain darker night | `0.8` | commented `0.3` | night behavior | envprobe `0.0099`, indirect `0.05` |
 | Storm darker night | `1.0` | commented `0.3` | night behavior | envprobe `0.0099`, indirect `0.05` |
 
-The native time sites are comments containing `float time = TIME * 0.1` and `Set("f_game_time", (time - floor(time)) * 24.0)`. Linux validates those exact semantic priors, activates them as `float time = TIME * 0.0` and scale `8.0`, and preserves the native trailing explanatory comment. Logic overrides are inserted at the named WEATHER section and `interior_inv` calculation anchors, not by line number. Ambient changes use strict named `VarFloat` prior-value validation.
+The native time sites are comments containing `float time = TIME * 0.1` and `Set("f_game_time", (time - floor(time)) * 24.0)`. Linux validates those semantic priors, activates them as `float time = TIME * 0.0` and scale `8.0`, and preserves the native trailing explanatory comment. Logic overrides are inserted at the named WEATHER section and `interior_inv` calculation anchors, not by line number. The anchor permits the observed blank/whitespace line between the two native WEATHER declarations while still requiring the unique named section, named declarations, and audited order. Ambient changes use strict named `VarFloat` prior-value validation.
 
-All eight non-default choices are mutually exclusive and **Candidate-ready**.
+All eight non-default choices are mutually exclusive and **Native-validated**. Every individual native disposable candidate retained 3060 entries with the expected member scope. A maximal compatible candidate combining darker storm night with armed-bandit forcing and the previously validated option families also passed.
 
 ## Inactive/commented upstream controls
 
@@ -194,8 +194,8 @@ Native transaction QA passed: one validated candidate was atomically installed, 
 
 ## Current validation boundary
 
-The catalog contains **37** semantic non-default options. The original 27 are native disposable-candidate validated. Eight weather/time modes and two donor-backed forced-spawn modes are candidate-ready from accepted native read-only evidence plus focused semantic regression coverage.
+The catalog contains **37 semantic non-default options, all Native-validated** against the accepted native baseline. Current choice conflicts reject incompatible selections, and material multi-family interactions include a maximal compatible candidate spanning weather, forced spawn, AI difficulty, firearms, camera FOV, zombie size, and direct controls.
 
-The next physical gate is full-suite/compile validation plus disposable native candidates for those ten new options, choice-conflict rejection, and a material maximal compatible combination. Five forced-spawn modes remain provenance-gated.
+Remaining Milestone-1 parity work is narrower than the current catalog: five forced-spawn modes remain provenance-gated because their desired identifier lists have no exact pristine donor, and the upstream unconditional `game.ini` / `menumain_pc.xui` replacement still needs a provenance/necessity decision. Gameplay/visual QA and the Linux-native GUI/packaging remain later gates.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized.
