@@ -1,0 +1,17 @@
+include LICENSE
+include README.md
+include pyproject.toml
+include DIRUE.ahk
+include tools/check_distribution.py
+
+graft src
+graft tests
+graft docs
+
+exclude Data0.pak
+exclude aibeh_mod.scr
+prune Required_files_and_scripts
+prune UI
+
+global-exclude *~ *.py[cod] *.so
+global-exclude __pycache__
