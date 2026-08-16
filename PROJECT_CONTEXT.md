@@ -59,7 +59,7 @@ Default matches native. Every non-default preset changes active `m_AIPresets` va
 Accepted sanitized evidence proves exact pristine donors exist for **Suicider** and **bandits with guns** only. Those runtime definitions validate exactly 165 active calls and the complete pristine-vector digest, validate the selected donor value by SHA-256, replace only quoted value spans, and preserve layout/comments.
 
 - Suicider uses native donor ordinal 6, preserves ordinal 6, and changes the other 164 calls. **Native-validated.**
-- Armed bandits use native donor ordinal 119, preserve ordinals 60 and 119, and change the other 163 calls. **Native-validated.**
+- Armed bandits use native donor ordinal 119, preserves ordinals 60 and 119, and changes the other 163 calls. **Native-validated.**
 
 Accepted sanitized reconstruction evidence proves **bandits with melee** can be derived entirely from the user's pristine vector without embedding its game-derived target identifier. Runtime starts from native ordinal 40, validates that source by SHA-256, copies six whole alphanumeric tokens from audited positions within native ordinal 37, validates the reconstructed target SHA-256, preserves ordinal 60, and replaces the other 164 quoted values. Separators/punctuation are inherited from the pristine base identifier and cannot be rewritten by the recipe. Its native disposable candidate retained 3060 entries, changed only `data/presets/aispawnbox_pre.def`, changed exactly 164 of 165 active spawn calls, preserved ordinal 60, and rejected combination with either other implemented forced-spawn mode. **Native-validated.**
 
@@ -82,11 +82,13 @@ The replacement files therefore serve upstream branding/cosmetic behavior rather
 
 ## Native application / GUI
 
-A GUI-independent application service now wraps the validated transaction path. It validates selections against the exact ready catalog and exclusivity groups, refuses a first backup from an unknown Data0 hash, creates the retained pristine backup only from the currently validated compatibility baseline, builds candidates in temporary storage, installs only over the exact candidate source hash, and requires pristine restore before a different selection can be applied over a DIRUE-modified live archive.
+A GUI-independent application service wraps the validated transaction path. It validates selections against the exact ready catalog and exclusivity groups, refuses a first backup from an unknown Data0 hash, creates the retained pristine backup only from the currently validated compatibility baseline, builds candidates in temporary storage, installs only over the exact candidate source hash, and requires pristine restore before a different selection can be applied over a DIRUE-modified live archive.
 
 The initial PySide6 GUI is present behind the optional `gui` dependency and `dirue-gui` entry point. Its metadata accounts for all 38 ready options exactly once. The four unresolved spawn choices remain visible but disabled. Qt code delegates validation/build/install/restore to the GUI-independent application service and asks for explicit confirmation before mutation.
 
-This layer is **source-complete but not yet physically GUI-validated on Bazzite**. GUI launch, widget behavior, optional-dependency installation, and one bounded apply/restore smoke transaction still require physical-machine QA before packaging can be treated as validated.
+Physical Bazzite smoke QA now passes for the application/package layer: the full unit suite and compile checks pass, an isolated optional-GUI installation succeeds, PySide6 imports, `MainWindow` constructs with the offscreen Qt backend, all 38 ready options are represented exactly once, all four unresolved spawn choices remain disabled, the real native installation is accepted by the application service, entry points install, and a wheel builds successfully. The smoke run was read-only for the game and left the accepted Data0 hash unchanged.
+
+This is **not yet visual or interactive GUI acceptance**. A real on-screen launch still needs bounded human inspection for layout, readability, disabled-state clarity, selector behavior, and confirmation dialogs. A GUI-driven apply/restore transaction also remains pending; the underlying transaction path itself is already native-validated independently.
 
 ## Transaction safety and native transaction QA
 
@@ -112,18 +114,19 @@ Accepted evidence is scoped to the code state that produced it:
 - private native weather/spawn evidence supplies the pristine spawn-vector digest and final whitelisted weather/time statement arguments;
 - sanitized replacement comparison proves the inherited `game.ini` / `menumain_pc.xui` copies are branding/cosmetic only and unnecessary for Linux gameplay parity;
 - native transaction evidence passes with exact-original recovery;
-- GUI/application source and synthetic tests are present, but physical Bazzite GUI QA has not yet been performed;
+- isolated physical Bazzite GUI/package smoke passes offscreen, including PySide6 installation/import, real-install application validation, exact UI catalog accounting, disabled unresolved choices, entry points, and wheel construction, with no Data0 mutation;
 - no GitHub Actions were used.
 
 ## Remaining gates
 
 1. Treat Butcher, Ram, Bloater, and Thug as intentionally unavailable under the current provenance boundary; do not broaden derivation without materially new provenance/rights evidence.
-2. Validate the optional PySide6 GUI/application layer on Bazzite: clean install into an isolated environment, full unit suite, launch/widget smoke test, and one bounded apply/restore transaction with exact-original recovery.
-3. Perform bounded native gameplay/visual QA through the validated transaction/recovery path for representative option families.
-4. Build reproducible Linux packaging only after GUI/native smoke evidence passes; releases, public binaries, Nexus publication, main integration, and upstream submission remain approval-gated.
+2. Perform one real on-screen PySide6 GUI inspection on Bazzite for layout/readability, disabled unresolved choices, selector behavior, and confirmation-dialog behavior without committing a mutation.
+3. Exercise one GUI-driven bounded apply/restore transaction with exact-original recovery; this validates Qt-to-service integration rather than the already-validated transaction engine itself.
+4. Perform bounded native gameplay/visual QA through the validated transaction/recovery path for representative option families.
+5. Harden reproducible Linux packaging after on-screen/application evidence passes; releases, public binaries, Nexus publication, main integration, and upstream submission remain approval-gated.
 
 ## Cleanup and publication
 
-Cleanup is continuous. Superseded failed weather/provenance/catalog-count diagnostics are obsolete after accepted successful evidence. The first spawn-recipe audit remains because it documents the accepted melee derivation. The broader same-member and bounded-AI exploratory audit modules/tests were removed after their accepted negative results closed that research path. Current accepted native-candidate, preset, recoil, source-map, native-baseline, transaction, unresolved/detail, replacement-provenance, spawn-recipe, final negative spawn evidence, and private value-probe evidence remain preserved while relevant. The pristine backup is retained recovery material.
+Cleanup is continuous. Superseded failed weather/provenance/catalog-count diagnostics are obsolete after accepted successful evidence. The first spawn-recipe audit remains because it documents the accepted melee derivation. The broader same-member and bounded-AI exploratory audit modules/tests were removed after their accepted negative results closed that research path. Current accepted native-candidate, preset, recoil, source-map, native-baseline, transaction, unresolved/detail, replacement-provenance, spawn-recipe, final negative spawn evidence, GUI/package smoke, and private value-probe evidence remain preserved while relevant. The pristine backup is retained recovery material.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized. `linux-port` remains the active development branch.
