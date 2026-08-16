@@ -87,8 +87,8 @@ Keep responsibilities separated:
 
 ## Git workflow
 
-- Keep `main` stable and close to the inherited upstream state until changes are reviewed.
-- Perform Linux-port work on `linux-port` or focused branches derived from it.
+- Keep `main` stable and review changes before integration.
+- Perform Linux-port work on `linux-port` or focused branches derived from the current validated base.
 - Do not force-push or rewrite shared/default history.
 - Preserve unrelated work.
 - Do not add, trigger, query, monitor, or depend on GitHub Actions for the PC workflow unless explicitly approved.

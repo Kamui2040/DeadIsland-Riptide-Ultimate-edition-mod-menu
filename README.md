@@ -6,7 +6,7 @@ The original DIRUE project and this Linux port are licensed under GPL-3.0. Linux
 
 ## Status
 
-Milestone 1 is released-feature parity with the original DIRUE menu. The `linux-port` branch contains the active native-Linux implementation and remains pre-release while final packaging validation is completed.
+Milestone 1 is released-feature parity with the original DIRUE menu. The validated native-Linux implementation is integrated on `main`. Packaging validation is complete, but no public release or binary has been published; the package version remains pre-release (`0.1.0.dev0`). Ongoing Linux-port work should use `linux-port` or focused branches rather than changing stable `main` directly.
 
 The current port provides:
 
@@ -28,7 +28,7 @@ The project patches the user's own validated installed `DIR/Data0.pak`. It does 
 
 ## Development install
 
-From a clean checkout of `linux-port`, use an isolated Python environment and install the GUI extra:
+From a clean checkout of `main` or the active Linux development branch, use an isolated Python environment and install the GUI extra:
 
 ```bash
 python3 -m venv .venv
