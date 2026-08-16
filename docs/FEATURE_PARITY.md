@@ -127,7 +127,7 @@ Default matches native. Every non-default preset changes active `m_AIPresets` va
 
 - **Suiciders**: validate all 165 calls and vector digest, take the value at donor ordinal 6, validate its SHA-256, preserve ordinal 6, replace the other 164 values. **Native-validated.**
 - **Bandits with guns**: take the value at donor ordinal 119, validate its SHA-256, preserve ordinals 60 and 119, replace the other 163 values. **Native-validated.**
-- **Bandits with melee**: no exact desired-value donor exists. Sanitized reconstruction evidence proves the target can instead be rebuilt entirely from pristine native values: validate native ordinal 40 by SHA-256 and its 47-part token/separator shape, copy six whole alphanumeric tokens from audited positions within native ordinal 37 after validating that value by SHA-256, preserve all punctuation/separators from the base, validate the reconstructed target SHA-256, preserve ordinal 60, and replace the other 164 quoted values. No target identifier or token text is stored in source. **Candidate-ready.**
+- **Bandits with melee**: no exact desired-value donor exists. Sanitized reconstruction evidence proves the target can instead be rebuilt entirely from pristine native values: validate native ordinal 40 by SHA-256 and its 47-part token/separator shape, copy six whole alphanumeric tokens from audited positions within native ordinal 37 after validating that value by SHA-256, preserve all punctuation/separators from the base, validate the reconstructed target SHA-256, preserve ordinal 60, and replace the other 164 quoted values. No target identifier or token text is stored in source. Its native disposable candidate retained all 3060 entries, changed only `data/presets/aispawnbox_pre.def`, changed 164 calls while preserving ordinal 60, and rejected combination with either implemented donor-backed mode. **Native-validated.**
 
 Only quoted `m_AIPresets` value spans are replaced; layout/comments remain intact. The three implemented modes share one exclusivity group.
 
@@ -203,7 +203,7 @@ Native transaction QA passed: one validated candidate was atomically installed, 
 
 ## Current validation boundary
 
-The catalog contains **38 semantic non-default options**: 37 are **Native-validated** against the accepted native baseline, and forced bandits with melee is **Candidate-ready**. Previously tested choice conflicts reject incompatible selections; the expanded three-way forced-spawn group still needs a native conflict check including the new mode.
+The catalog contains **38 semantic non-default options, all Native-validated** against the accepted native baseline. Current choice conflicts reject incompatible selections, including the three implemented forced-spawn modes. Material multi-family interactions include a maximal compatible candidate spanning weather, forced spawn, AI difficulty, firearms, camera FOV, zombie size, and direct controls.
 
 The unconditional `game.ini` / `menumain_pc.xui` replacement question is closed: accepted native comparison proves it is cosmetic/branding-only and unnecessary for Linux gameplay parity. Remaining unresolved released gameplay parity is limited to Butcher, Ram, Bloater, and Thug forced-spawn choices, whose target identifiers have neither an exact pristine donor nor an accepted whole-token derivation. Gameplay/visual QA and the Linux-native GUI/packaging remain later gates.
 
