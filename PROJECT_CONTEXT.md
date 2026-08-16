@@ -24,9 +24,9 @@ The hash is evidence for the audited installation, not a permanent compatibility
 
 ## Candidate catalog
 
-The catalog contains **38 semantic non-default options**. The previously implemented 37 options all pass disposable native candidate construction against the accepted 3060-entry baseline; forced bandits with melee is newly candidate-ready and awaits its native disposable build.
+The catalog contains **38 semantic non-default options**, and all 38 pass disposable native candidate construction against the accepted 3060-entry baseline.
 
-Native-validated families include direct gameplay controls, Deeper Pockets, Improved Loot, intro skipping, reverb removal, vehicle noclip, One Hit / Hard / Headshot Only AI, Better Firearms Upgrading, Better Firearms POV 62/72/82, camera FOV 72/82, four non-default zombie-size modes, all eight non-default weather/time choices, forced Suiciders, and forced bandits with guns.
+Native-validated families include direct gameplay controls, Deeper Pockets, Improved Loot, intro skipping, reverb removal, vehicle noclip, One Hit / Hard / Headshot Only AI, Better Firearms Upgrading, Better Firearms POV 62/72/82, camera FOV 72/82, four non-default zombie-size modes, all eight non-default weather/time choices, forced Suiciders, forced bandits with guns, and forced bandits with melee.
 
 Default camera FOV 62.5, normal zombie size, normal AI, default spawns, and vanilla weather/time are pristine-baseline states represented by absence of a non-default patch.
 
@@ -61,7 +61,7 @@ Accepted sanitized evidence proves exact pristine donors exist for **Suicider** 
 - Suicider uses native donor ordinal 6, preserves ordinal 6, and changes the other 164 calls. **Native-validated.**
 - Armed bandits use native donor ordinal 119, preserve ordinals 60 and 119, and change the other 163 calls. **Native-validated.**
 
-Accepted sanitized reconstruction evidence additionally proves **bandits with melee** can be derived entirely from the user's pristine vector without embedding its game-derived target identifier. Runtime starts from native ordinal 40, validates that source by SHA-256, copies six whole alphanumeric tokens from audited positions within native ordinal 37, validates the reconstructed target SHA-256, preserves ordinal 60, and replaces the other 164 quoted values. Separators/punctuation are inherited from the pristine base identifier and cannot be rewritten by the recipe. This mode is **Candidate-ready** pending one native disposable build.
+Accepted sanitized reconstruction evidence additionally proves **bandits with melee** can be derived entirely from the user's pristine vector without embedding its game-derived target identifier. Runtime starts from native ordinal 40, validates that source by SHA-256, copies six whole alphanumeric tokens from audited positions within native ordinal 37, validates the reconstructed target SHA-256, preserves ordinal 60, and replaces the other 164 quoted values. Separators/punctuation are inherited from the pristine base identifier and cannot be rewritten by the recipe. Its native disposable candidate retained 3060 entries, changed only `data/presets/aispawnbox_pre.def`, changed exactly 164 of 165 active spawn calls, preserved ordinal 60, and rejected combination with either other implemented forced-spawn mode. **Native-validated.**
 
 Butcher, Ram, Bloater, and Thug have neither an exact desired-value donor nor an accepted whole-token reconstruction from the audited pristine vector. Their target identifiers remain provenance-sensitive and are not embedded in source, so those four choices remain unresolved.
 
@@ -92,8 +92,8 @@ The retained pristine backup is recovery material and must not be cleaned up or 
 
 Accepted evidence is scoped to the code state that produced it:
 
-- 37 catalog options pass native disposable candidate construction; the 38th, forced melee bandits, is candidate-ready;
-- all previously native-tested choice conflicts reject incompatible selections; the expanded three-way forced-spawn group awaits the new mode's native conflict check;
+- all 38 current catalog options pass native disposable candidate construction;
+- all native-tested choice conflicts reject incompatible selections, including the three implemented forced-spawn modes;
 - material FOV/Upgrading/POV interactions and a maximal compatible multi-family candidate pass;
 - accepted firearm source-map evidence supplies complete firearm reconstruction data;
 - hardened preset evidence supplies Hard-AI/zombie-size behavior and preset boundaries;
@@ -107,13 +107,12 @@ Accepted evidence is scoped to the code state that produced it:
 
 ## Remaining gates
 
-1. Run one native disposable candidate and forced-spawn conflict check for the new melee-bandit reconstruction.
-2. Keep Butcher, Ram, Bloater, and Thug unresolved unless another public-safe derivation is found without embedding proprietary target identifiers.
-3. Perform bounded native gameplay/visual QA through the validated transaction/recovery path.
-4. Add and validate the Linux-native GUI and packaging when released parity is complete enough to expose safely.
+1. Keep Butcher, Ram, Bloater, and Thug unresolved unless another public-safe derivation is found without embedding proprietary target identifiers.
+2. Perform bounded native gameplay/visual QA through the validated transaction/recovery path.
+3. Add and validate the Linux-native GUI and packaging when released parity is complete enough to expose safely.
 
 ## Cleanup and publication
 
-Cleanup is continuous. Superseded failed weather/provenance diagnostics are obsolete after accepted successful replacement evidence; current accepted native-candidate, preset, recoil, source-map, native-baseline, transaction, unresolved/detail, replacement-provenance, spawn-recipe, and private value-probe evidence remain preserved while open questions still depend on them. The pristine backup is retained recovery material.
+Cleanup is continuous. Superseded failed weather/provenance/catalog-count diagnostics are obsolete after accepted successful replacement evidence; current accepted native-candidate, preset, recoil, source-map, native-baseline, transaction, unresolved/detail, replacement-provenance, spawn-recipe, and private value-probe evidence remain preserved while open questions still depend on them. The pristine backup is retained recovery material.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized. `linux-port` remains the active development branch.
