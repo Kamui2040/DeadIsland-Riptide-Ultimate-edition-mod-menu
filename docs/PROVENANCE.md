@@ -61,7 +61,7 @@ Butcher, Ram, Bloater, and Thug remain intentionally unresolved. Accepted saniti
 2. any quoted string in native `data/presets/aispawnbox_pre.def`; or
 3. the bounded native AI/preset source set consisting of `aispawnbox_pre.def`, `zombieai.pre`, `zombieai_pre.def`, `infectedai.pre`, `infectedai_pre.def`, and `bestiary.scr`.
 
-The project will not widen this into arbitrary whole-archive string assembly or character-level encoding. Those four modes stay unavailable unless new rights/provenance evidence or a comparably narrow semantic derivation is established.
+The project will not widen this into arbitrary whole-archive string assembly or character-level encoding. Those four modes stay unavailable unless new rights/provenance evidence or a comparably narrow semantic derivation is established. Ongoing resolution work is tracked in Issue #2.
 
 ## Preferred Linux distribution model
 
