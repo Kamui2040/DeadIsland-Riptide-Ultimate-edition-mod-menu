@@ -8,11 +8,11 @@ from dirue.replacement_audit import game_ini_summary, menu_summary
 class ReplacementAuditTests(unittest.TestCase):
     def test_game_ini_reports_identity_and_digests_not_raw_values(self):
         native = (
-            'sub main()\n'
-            '{\n'
-            '    GameName("Dead Island Riptide - Definitive Edition");\n'
-            '    //CrashCanShowMessageBox(0);\n'
-            '}\n'
+            'sub main()\r\n'
+            '{\r\n'
+            '    GameName("Dead Island Riptide - Definitive Edition");\r\n'
+            '    //CrashCanShowMessageBox(0);\r\n'
+            '}\r\n'
         ).encode()
         replacement = (
             'sub main()\n'
