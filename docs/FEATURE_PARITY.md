@@ -131,7 +131,7 @@ Default matches native. Every non-default preset changes active `m_AIPresets` va
 
 Only quoted `m_AIPresets` value spans are replaced; layout/comments remain intact. The three implemented modes share one exclusivity group.
 
-Butcher, Ram, Bloater, and Thug have no exact desired-value donor and no accepted whole-token reconstruction from the audited pristine 165-value vector. Their target identifiers remain provenance-sensitive and are not copied into source, so those four choices remain **Preset unresolved**.
+Butcher, Ram, Bloater, and Thug have no exact desired-value donor and no accepted whole-token reconstruction from the audited pristine 165-value vector. Their target identifiers remain provenance-sensitive and are not copied into source, so those four choices remain **Preset unresolved**. Ongoing resolution work is tracked in Issue #2.
 
 ## Weather/time dropdown
 
