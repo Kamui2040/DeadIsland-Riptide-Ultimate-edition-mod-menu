@@ -85,6 +85,7 @@ class SpawnRecipeAuditTests(unittest.TestCase):
 
         self.assertEqual(result["changed_count"], 164)
         self.assertEqual(result["changed_occurrences"], 164)
+        self.assertEqual(result["preserved_ordinals"], [1])
         self.assertTrue(result["recipe_found"])
         serialized = json.dumps(result, sort_keys=True)
         self.assertNotIn(target, serialized)
