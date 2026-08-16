@@ -41,7 +41,7 @@ CHECKBOX_OPTIONS = (
     CheckboxOption("deeper_pockets", "Even deeper pockets", "Gameplay"),
     CheckboxOption("skip_intro_videos", "Skip intro videos", "Gameplay"),
     CheckboxOption("improved_loot", "Improved loot", "Gameplay"),
-    CheckboxOption("remove_reverb", "Remove reverb / echo", "Gameplay"),
+    CheckboxOption("remove_reverb_echo", "Remove reverb / echo", "Gameplay"),
     CheckboxOption("noclip_vehicles", "NoClip vehicles", "Gameplay"),
     CheckboxOption(
         "better_firearm_upgrading",
