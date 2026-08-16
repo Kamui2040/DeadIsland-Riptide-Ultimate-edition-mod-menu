@@ -199,12 +199,16 @@ The Linux port does not reproduce these Windows implementation hazards:
 
 Candidate installation validates candidate, live archive, and backup; requires source-hash agreement and matching entry counts; writes through a same-directory temporary file; rechecks the live hash immediately before atomic replacement; and verifies the installed hash afterward. Restore validates the backup hash and can recover even if the live archive is missing.
 
-Native transaction QA passed: one validated candidate was atomically installed, its live hash matched exactly, and the retained pristine backup restored the exact original 3060-entry baseline. The live game is pristine and the backup is retained recovery material.
+Native transaction QA passed at both engine and GUI/application levels. A validated candidate was atomically installed and restored to the exact original 3060-entry baseline, and the real Qt Apply/Restore handlers also passed confirmation, apply-lock/reapply rejection, exact install, and exact restore checks. The pristine backup is retained recovery material.
 
 ## Current validation boundary
 
 The catalog contains **38 semantic non-default options, all Native-validated** against the accepted native baseline. Current choice conflicts reject incompatible selections, including the three implemented forced-spawn modes. Material multi-family interactions include a maximal compatible candidate spanning weather, forced spawn, AI difficulty, firearms, camera FOV, zombie size, and direct controls.
 
-The unconditional `game.ini` / `menumain_pc.xui` replacement question is closed: accepted native comparison proves it is cosmetic/branding-only and unnecessary for Linux gameplay parity. Remaining unresolved released gameplay parity is limited to Butcher, Ram, Bloater, and Thug forced-spawn choices, whose target identifiers have neither an exact pristine donor nor an accepted whole-token derivation. Gameplay/visual QA and the Linux-native GUI/packaging remain later gates.
+The Linux-native application/GUI layer is physically validated on Bazzite: isolated optional-GUI installation, PySide6 import, exact 38-option catalog accounting, disabled unresolved spawn choices, offscreen construction, real on-screen visual QA, native installation validation, wheel construction, and the real confirmation-driven Apply/Restore transaction all pass. The live archive is pristine after accepted tests and the retained pristine backup remains valid.
+
+Representative native gameplay QA now validates camera FOV82, Better Firearms POV82, darker storm/night, Run with weapons, One Hit AI, supersize behavior on active infected/walker AI, and Forced Suiciders, with stable playable sessions and exact pristine restore after each bounded test. The supersize release-equivalent four-member transform does not necessarily affect every corpse-decoy/ground actor; that observed entity-state variation is retained as upstream/native behavior rather than expanded beyond the released preset.
+
+The unconditional `game.ini` / `menumain_pc.xui` replacement question is closed: accepted native comparison proves it is cosmetic/branding-only and unnecessary for Linux gameplay parity. Remaining unresolved released implementation parity is limited to Butcher, Ram, Bloater, and Thug forced-spawn choices, whose target identifiers have neither an exact pristine donor nor an accepted whole-token derivation. Additional representative gameplay QA and reproducible packaging hardening remain before any release/publication decision.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized.
