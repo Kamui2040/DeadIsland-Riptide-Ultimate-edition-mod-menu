@@ -20,7 +20,7 @@ Accepted physical evidence:
 - archive size 7,932,941 bytes;
 - SHA-256 `0afeadca8fb84147cc2c815ec37d1f3c940d40fab6c0a343b7b84e7f41d3c991`.
 
-The hash is evidence for the audited installation, not a permanent compatibility requirement. Raw local reports, machine-specific paths, extracted game content, authentic backups, and temporary candidates are not committed to Git.
+The hash is evidence for the audited installation, not a permanent compatibility requirement. The current GUI application layer intentionally uses it as the only first-backup compatibility baseline until additional native baselines are independently validated. Raw local reports, machine-specific paths, extracted game content, authentic backups, and temporary candidates are not committed to Git.
 
 ## Candidate catalog
 
@@ -61,9 +61,9 @@ Accepted sanitized evidence proves exact pristine donors exist for **Suicider** 
 - Suicider uses native donor ordinal 6, preserves ordinal 6, and changes the other 164 calls. **Native-validated.**
 - Armed bandits use native donor ordinal 119, preserve ordinals 60 and 119, and change the other 163 calls. **Native-validated.**
 
-Accepted sanitized reconstruction evidence additionally proves **bandits with melee** can be derived entirely from the user's pristine vector without embedding its game-derived target identifier. Runtime starts from native ordinal 40, validates that source by SHA-256, copies six whole alphanumeric tokens from audited positions within native ordinal 37, validates the reconstructed target SHA-256, preserves ordinal 60, and replaces the other 164 quoted values. Separators/punctuation are inherited from the pristine base identifier and cannot be rewritten by the recipe. Its native disposable candidate retained 3060 entries, changed only `data/presets/aispawnbox_pre.def`, changed exactly 164 of 165 active spawn calls, preserved ordinal 60, and rejected combination with either other implemented forced-spawn mode. **Native-validated.**
+Accepted sanitized reconstruction evidence proves **bandits with melee** can be derived entirely from the user's pristine vector without embedding its game-derived target identifier. Runtime starts from native ordinal 40, validates that source by SHA-256, copies six whole alphanumeric tokens from audited positions within native ordinal 37, validates the reconstructed target SHA-256, preserves ordinal 60, and replaces the other 164 quoted values. Separators/punctuation are inherited from the pristine base identifier and cannot be rewritten by the recipe. Its native disposable candidate retained 3060 entries, changed only `data/presets/aispawnbox_pre.def`, changed exactly 164 of 165 active spawn calls, preserved ordinal 60, and rejected combination with either other implemented forced-spawn mode. **Native-validated.**
 
-Butcher, Ram, Bloater, and Thug have neither an exact desired-value donor nor an accepted whole-token reconstruction from the audited pristine vector. Their target identifiers remain provenance-sensitive and are not embedded in source, so those four choices remain unresolved.
+Butcher, Ram, Bloater, and Thug remain a hard provenance boundary. Accepted sanitized audits establish that each preserves ordinal 60 and changes the other 164 calls, but no acceptable whole-token reconstruction exists from the pristine 165-value spawn vector, from any of the 1,573 quoted strings in native `aispawnbox_pre.def`, or from the bounded six-member native AI/preset source set (`aispawnbox_pre.def`, `zombieai.pre`, `zombieai_pre.def`, `infectedai.pre`, `infectedai_pre.def`, `bestiary.scr`). The project will not widen this into arbitrary whole-archive string assembly or character-level encoding. Those four choices remain unresolved unless new provenance/rights evidence or a comparably narrow semantic derivation appears.
 
 ### Weather/time
 
@@ -79,6 +79,14 @@ The Windows script unconditionally copied bundled replacements over `data/game.i
 - `menumain_pc.xui` has no native-only component, exactly one replacement-only component (`MyText:T_Mylogo`), and becomes structurally equivalent to native after removing that component; no existing component property differs independently of the inserted child.
 
 The replacement files therefore serve upstream branding/cosmetic behavior rather than released gameplay behavior. The Linux runtime and packaging will **not** copy or redistribute either replacement. The inherited files remain provenance-sensitive historical upstream material and are not treated as Linux payloads.
+
+## Native application / GUI
+
+A GUI-independent application service now wraps the validated transaction path. It validates selections against the exact ready catalog and exclusivity groups, refuses a first backup from an unknown Data0 hash, creates the retained pristine backup only from the currently validated compatibility baseline, builds candidates in temporary storage, installs only over the exact candidate source hash, and requires pristine restore before a different selection can be applied over a DIRUE-modified live archive.
+
+The initial PySide6 GUI is present behind the optional `gui` dependency and `dirue-gui` entry point. Its metadata accounts for all 38 ready options exactly once. The four unresolved spawn choices remain visible but disabled. Qt code delegates validation/build/install/restore to the GUI-independent application service and asks for explicit confirmation before mutation.
+
+This layer is **source-complete but not yet physically GUI-validated on Bazzite**. GUI launch, widget behavior, optional-dependency installation, and one bounded apply/restore smoke transaction still require physical-machine QA before packaging can be treated as validated.
 
 ## Transaction safety and native transaction QA
 
@@ -99,20 +107,23 @@ Accepted evidence is scoped to the code state that produced it:
 - hardened preset evidence supplies Hard-AI/zombie-size behavior and preset boundaries;
 - corrected recoil evidence supplies repeated-block camera-recoil mapping;
 - sanitized unresolved/detail evidence supplies the public-safe spawn donor boundary and weather structure;
-- sanitized spawn-recipe evidence proves the melee-bandit target can be reconstructed from native whole tokens while the other four no-donor modes cannot under that rule;
+- sanitized spawn-recipe evidence proves the melee-bandit target can be reconstructed from native whole tokens;
+- sanitized same-member and bounded-AI-source evidence closes further whole-token derivation for Butcher/Ram/Bloater/Thug without widening to arbitrary archive strings;
 - private native weather/spawn evidence supplies the pristine spawn-vector digest and final whitelisted weather/time statement arguments;
 - sanitized replacement comparison proves the inherited `game.ini` / `menumain_pc.xui` copies are branding/cosmetic only and unnecessary for Linux gameplay parity;
 - native transaction evidence passes with exact-original recovery;
+- GUI/application source and synthetic tests are present, but physical Bazzite GUI QA has not yet been performed;
 - no GitHub Actions were used.
 
 ## Remaining gates
 
-1. Keep Butcher, Ram, Bloater, and Thug unresolved unless another public-safe derivation is found without embedding proprietary target identifiers.
-2. Perform bounded native gameplay/visual QA through the validated transaction/recovery path.
-3. Add and validate the Linux-native GUI and packaging when released parity is complete enough to expose safely.
+1. Treat Butcher, Ram, Bloater, and Thug as intentionally unavailable under the current provenance boundary; do not broaden derivation without materially new provenance/rights evidence.
+2. Validate the optional PySide6 GUI/application layer on Bazzite: clean install into an isolated environment, full unit suite, launch/widget smoke test, and one bounded apply/restore transaction with exact-original recovery.
+3. Perform bounded native gameplay/visual QA through the validated transaction/recovery path for representative option families.
+4. Build reproducible Linux packaging only after GUI/native smoke evidence passes; releases, public binaries, Nexus publication, main integration, and upstream submission remain approval-gated.
 
 ## Cleanup and publication
 
-Cleanup is continuous. Superseded failed weather/provenance/catalog-count diagnostics are obsolete after accepted successful replacement evidence; current accepted native-candidate, preset, recoil, source-map, native-baseline, transaction, unresolved/detail, replacement-provenance, spawn-recipe, and private value-probe evidence remain preserved while open questions still depend on them. The pristine backup is retained recovery material.
+Cleanup is continuous. Superseded failed weather/provenance/catalog-count diagnostics are obsolete after accepted successful evidence. The first spawn-recipe audit remains because it documents the accepted melee derivation. The broader same-member and bounded-AI exploratory audit modules/tests were removed after their accepted negative results closed that research path. Current accepted native-candidate, preset, recoil, source-map, native-baseline, transaction, unresolved/detail, replacement-provenance, spawn-recipe, final negative spawn evidence, and private value-probe evidence remain preserved while relevant. The pristine backup is retained recovery material.
 
 No main integration, release, public binary, Nexus publication, upstream submission, GitHub Actions use, or other external publication has been authorized. `linux-port` remains the active development branch.
