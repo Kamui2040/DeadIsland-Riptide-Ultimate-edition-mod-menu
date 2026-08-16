@@ -199,6 +199,11 @@ def unresolved_mode_summary(
         for ordinal, (before, after) in enumerate(zip(native_values, preset_values), 1)
         if before != after
     )
+    preserved_ordinals = tuple(
+        ordinal
+        for ordinal, (before, after) in enumerate(zip(native_values, preset_values), 1)
+        if before == after
+    )
     desired = Counter(preset_values[ordinal - 1] for ordinal in changed_ordinals)
     if len(desired) != 1:
         raise ValidationError(
@@ -209,6 +214,7 @@ def unresolved_mode_summary(
     return {
         "changed_count": len(changed_ordinals),
         "changed_occurrences": changed_occurrences,
+        "preserved_ordinals": list(preserved_ordinals),
         **recipe,
     }
 
