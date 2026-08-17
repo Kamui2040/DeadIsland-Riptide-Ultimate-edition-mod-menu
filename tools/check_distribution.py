@@ -18,6 +18,7 @@ WHEEL_REQUIRED_SUFFIXES = (
     "dirue/cli.py",
     "dirue/forced_spawn_compat.py",
     "dirue/gui.py",
+    "dirue/post_parity.py",
 )
 SDIST_REQUIRED_SUFFIXES = (
     "pyproject.toml",
@@ -27,6 +28,7 @@ SDIST_REQUIRED_SUFFIXES = (
     "DIRUE.ahk",
     "src/dirue/__init__.py",
     "src/dirue/forced_spawn_compat.py",
+    "src/dirue/post_parity.py",
     "tools/check_distribution.py",
 )
 
