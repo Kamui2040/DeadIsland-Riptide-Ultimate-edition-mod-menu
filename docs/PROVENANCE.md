@@ -65,11 +65,13 @@ A later focused audit established a narrower compatibility path. The four releas
 
 Focused branch `agent/forced-spawn-identifiers` therefore carries only those minimum compatibility identifier lists plus pinned SHA-256, syntax, identifier-count, pristine-vector, preserved-ordinal, changed-call-count, and post-transform validation. The Linux runtime does **not** copy, extract, install, or package the inherited preset ZIPs.
 
-Accepted physical candidate QA confirms all four focused-branch transforms against the pristine native baseline: each candidate keeps all 3060 archive entries and member order, changes only `data/presets/aispawnbox_pre.def`, preserves ordinal 60, replaces exactly the other 164 active calls, validates archive integrity and reported hashes, and leaves the live Data0 unchanged. Bounded gameplay confirmation remains pending before Issue #2 can close.
+Accepted physical candidate QA confirms all four focused-branch transforms against the pristine native baseline: each candidate keeps all 3060 archive entries and member order, changes only `data/presets/aispawnbox_pre.def`, preserves ordinal 60, replaces exactly the other 164 active calls, validates archive integrity and reported hashes, and leaves the live Data0 unchanged.
+
+Accepted bounded native gameplay QA then applied Butchers, Rams, Bloaters, and Thugs one at a time through the normal application transaction path. Each mode produced the intended forced-spawn behavior in the native game. After the native ELF process exited, the exact pristine Data0 was restored before the observation was accepted. The retained pristine backup remained valid and unchanged throughout.
 
 This is a narrow project compatibility treatment for the minimum machine identifiers required to reproduce released behavior. It does not assert that the inherited preset ZIPs, Data0 archives, replacement files, or other Techland-derived content are GPL-covered or otherwise redistributable. Those files remain provenance-sensitive historical material and are excluded from Linux runtime/distribution payloads.
 
-The project will not widen this exception into arbitrary whole-archive string assembly, character-level encoding, asset extraction, or general reuse of bundled preset content. Ongoing acceptance work is tracked in Issue #2.
+The project will not widen this exception into arbitrary whole-archive string assembly, character-level encoding, asset extraction, or general reuse of bundled preset content. Issue #2 records the completed provenance and native-game acceptance path for these four released choices.
 
 ## Preferred Linux distribution model
 
