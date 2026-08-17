@@ -41,6 +41,8 @@ The inherited upstream `Data0.pak` is historical upstream material. Linux-port c
 - Keep manual handoffs minimal and deterministic.
 - For interactive handoffs run as `bash -s <<'EOF'`, read human responses explicitly from `/dev/tty`, never inherited stdin, and verify any required external process actually starts and exits before accepting observations.
 - When embedded Python in a shell handoff reads `os.environ`, pass every required shell value explicitly on that Python invocation; do not rely on unexported shell variables.
+- Before comparing filesystem paths, canonicalize existing paths and compare the canonical values; symlink or mount aliases are not evidence of different locations.
+- Parse command output by fields or delimiters instead of relying on exact whitespace formatting.
 - For gameplay QA after candidate installation, use a bounded automatic process-start wait rather than a one-shot keypress-gated start check; accept observations only after verified native-game start and exit.
 - Use simple, natural, direct language in repository submissions and project chat. Avoid needless jargon, robotic phrasing, and long explanations.
 
