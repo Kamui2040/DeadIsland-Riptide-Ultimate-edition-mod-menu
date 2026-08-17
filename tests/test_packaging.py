@@ -183,7 +183,9 @@ class DistributionArtifactTests(unittest.TestCase):
             with zipfile.ZipFile(artifact, "w") as archive:
                 archive.writestr("dirue/__init__.py", "")
                 archive.writestr("dirue/cli.py", "")
+                archive.writestr("dirue/forced_spawn_compat.py", "")
                 archive.writestr("dirue/gui.py", "")
+                archive.writestr("dirue/post_parity.py", "")
                 archive.writestr("dirue_linux-0.1.0.dist-info/METADATA", "")
 
             self.assertEqual(self.checker.check_artifact(artifact), "wheel")
@@ -212,6 +214,8 @@ class DistributionArtifactTests(unittest.TestCase):
                     "LICENSE",
                     "DIRUE.ahk",
                     "src/dirue/__init__.py",
+                    "src/dirue/forced_spawn_compat.py",
+                    "src/dirue/post_parity.py",
                     "tools/check_distribution.py",
                 ):
                     _add_tar_file(archive, f"{root}/{relative}")
