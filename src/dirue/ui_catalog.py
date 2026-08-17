@@ -34,7 +34,6 @@ CHECKBOX_OPTIONS = (
     CheckboxOption("reduce_sunflare", "Reduce sunflare 90%", "Gameplay"),
     CheckboxOption("run_with_weapons", "Run with weapons", "Gameplay"),
     CheckboxOption("better_movement", "Better movement", "Gameplay"),
-    CheckboxOption("hold_more_ammo", "Hold more ammo", "Gameplay"),
     CheckboxOption("instant_break_doors", "Instantly break doors", "Gameplay"),
     CheckboxOption("increase_durability", "Increase durability", "Gameplay"),
     CheckboxOption("bullet_penetration", "Bullet penetration", "Gameplay"),
@@ -82,6 +81,16 @@ CHOICE_GROUPS = (
             Choice("Default (62.5)"),
             Choice("72", "camera_fov_72"),
             Choice("82", "camera_fov_82"),
+        ),
+    ),
+    ChoiceGroup(
+        "ammo_capacity",
+        "Ammo capacity",
+        "Gameplay",
+        (
+            Choice("Default"),
+            Choice("More ammo", "hold_more_ammo"),
+            Choice("9999", "hold_even_more_ammo"),
         ),
     ),
     ChoiceGroup(
