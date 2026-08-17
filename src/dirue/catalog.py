@@ -12,6 +12,7 @@ from .forced_spawn import FORCED_SPAWN_PATCHES
 from .forced_spawn_compat import FORCED_SPAWN_COMPAT_PATCHES
 from .fov import FOV_PATCHES
 from .hard_ai import HARD_AI_PATCHES
+from .post_parity import POST_PARITY_PATCHES
 from .weather import WEATHER_PATCHES
 from .zombie_size import ZOMBIE_SIZE_PATCHES
 
@@ -27,6 +28,7 @@ _all_names = [
     *WEATHER_PATCHES,
     *FORCED_SPAWN_PATCHES,
     *FORCED_SPAWN_COMPAT_PATCHES,
+    *POST_PARITY_PATCHES,
 ]
 if len(_all_names) != len(set(_all_names)):
     counts = Counter(_all_names)
@@ -44,10 +46,10 @@ READY_PATCHES = {
     **WEATHER_PATCHES,
     **FORCED_SPAWN_PATCHES,
     **FORCED_SPAWN_COMPAT_PATCHES,
+    **POST_PARITY_PATCHES,
 }
 
-# These represent one-choice upstream controls. Candidate builds must never
-# combine multiple values from the same choice group.
+# Choice-like controls must never combine multiple values from the same group.
 EXCLUSIVE_PATCH_GROUPS = (
     frozenset({"one_hit_ai", "hard_ai", "headshot_only_ai"}),
     frozenset(
@@ -66,6 +68,7 @@ EXCLUSIVE_PATCH_GROUPS = (
             "zombie_size_supersize",
         }
     ),
+    frozenset({"hold_more_ammo", "hold_even_more_ammo"}),
     frozenset(WEATHER_PATCHES),
     frozenset((*FORCED_SPAWN_PATCHES, *FORCED_SPAWN_COMPAT_PATCHES)),
 )
