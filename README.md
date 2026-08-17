@@ -6,7 +6,7 @@ The original DIRUE project and this Linux port are licensed under GPL-3.0. Linux
 
 ## Status
 
-Milestone 1 is released-feature parity with the original DIRUE menu. The previously integrated native-Linux implementation remains stable on `main`; focused branch `agent/forced-spawn-identifiers` now completes the four remaining released forced-spawn choices and has passed native candidate and gameplay validation with exact pristine restore. `main` is unchanged pending explicit integration approval. No public release or binary has been published; the package version remains pre-release (`0.1.0.dev0`).
+Milestone 1 is released-feature parity with the original DIRUE menu. The previously integrated native-Linux implementation remains stable on `main`; focused branch `agent/forced-spawn-identifiers` completes the four remaining released forced-spawn choices and has passed native candidate, gameplay, transaction-restore, and reproducible packaging validation. `main` is unchanged pending explicit integration approval. No public release or binary has been published; the package version remains pre-release (`0.1.0.dev0`).
 
 The current validated focused branch provides:
 
@@ -14,9 +14,10 @@ The current validated focused branch provides:
 - a GUI-independent transaction/application layer;
 - a PySide6 native Linux GUI;
 - pristine-backup preservation, validated candidate construction, atomic Data0 replacement, and exact restore;
-- native gameplay QA across representative direct, AI, camera/POV, firearm-upgrading, zombie-size, weather/time, and all released forced-spawn families.
+- native gameplay QA across representative direct, AI, camera/POV, firearm-upgrading, zombie-size, weather/time, and all released forced-spawn families;
+- reproducible wheel/sdist packaging with provenance-sensitive inherited payloads excluded.
 
-Butcher, Ram, Bloater, and Thug forced spawning are now implemented on the focused branch using only the minimum machine-facing compatibility identifiers required for released behavior. The inherited preset ZIPs remain provenance-sensitive historical material and are not Linux runtime or package payloads.
+Butcher, Ram, Bloater, and Thug forced spawning are implemented on the focused branch using only the minimum machine-facing compatibility identifiers required for released behavior. The inherited preset ZIPs remain provenance-sensitive historical material and are not Linux runtime or package payloads.
 
 ## Requirements
 
@@ -52,9 +53,14 @@ The retained pristine backup is recovery material and must not be overwritten or
 
 ## Packaging and game-content boundary
 
-Tracked upstream history contains provenance-sensitive game-derived archives, presets, replacements, UI assets, sounds, and helper binaries. They are not Linux runtime dependencies and are explicitly excluded from Linux distribution artifacts. `tools/check_distribution.py` validates built wheel/sdist contents before any release can be considered.
+Tracked upstream history contains provenance-sensitive game-derived archives, presets, replacements, UI assets, sounds, and helper binaries. They are not Linux runtime dependencies and are explicitly excluded from Linux distribution artifacts. `tools/check_distribution.py` validates built wheel/sdist contents before any release can be considered and requires the focused branch's `forced_spawn_compat.py` runtime module in both artifact types.
 
-Reproducible packaging evidence remains accepted for the integrated 38-option state. The focused 42-option branch adds a new packaged Python module and a CLI-entry fix, so a bounded packaging refresh is required before integration; this does not reopen gameplay parity.
+The validated 42-option branch produced byte-identical clean builds with commit-derived `SOURCE_DATE_EPOCH`:
+
+- wheel `dirue_linux-0.1.0.dev0-py3-none-any.whl`: SHA-256 `f870e68409fa351caabdacd2566989f2c06b7ca1086658438a1a8105753febd3`;
+- sdist `dirue_linux-0.1.0.dev0.tar.gz`: SHA-256 `72d783b2faf73f45346a916490c0bccb0830ff3ea9c0ca56d0cd724bebe7a29a`.
+
+The wheel also passed isolated installation, `pip check`, console/module CLI execution, 42-option catalog verification, forced-spawn compatibility registration, and CLI/GUI entry-point metadata checks.
 
 See `docs/PROVENANCE.md` for the redistribution policy and `docs/FEATURE_PARITY.md` for the released-control inventory.
 
