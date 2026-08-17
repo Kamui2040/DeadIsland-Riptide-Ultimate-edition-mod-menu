@@ -7,25 +7,26 @@ from dirue.ui_catalog import CHOICE_GROUPS, ready_ui_options
 class UICatalogTests(unittest.TestCase):
     def test_ready_ui_options_match_semantic_catalog_exactly(self):
         ui_options = ready_ui_options()
-        self.assertEqual(len(ui_options), 38)
+        self.assertEqual(len(ui_options), 42)
         self.assertEqual(len(ui_options), len(set(ui_options)))
         self.assertEqual(set(ui_options), set(READY_PATCHES))
 
-    def test_unresolved_spawn_choices_are_visible_but_disabled(self):
+    def test_all_released_spawn_choices_are_available(self):
         forced = next(group for group in CHOICE_GROUPS if group.key == "forced_spawn")
-        disabled = [choice for choice in forced.choices if not choice.enabled]
-
+        self.assertTrue(all(choice.enabled for choice in forced.choices))
         self.assertEqual(
-            [choice.label for choice in disabled],
+            [(choice.label, choice.option) for choice in forced.choices],
             [
-                "Butchers — unavailable",
-                "Rams — unavailable",
-                "Bloaters — unavailable",
-                "Thugs — unavailable",
+                ("Normal", None),
+                ("Butchers", "force_butchers"),
+                ("Rams", "force_rams"),
+                ("Bloaters", "force_bloaters"),
+                ("Thugs", "force_thugs"),
+                ("Suiciders", "force_suiciders"),
+                ("Bandits with guns", "force_bandits_guns"),
+                ("Bandits with melee", "force_bandits_melee"),
             ],
         )
-        self.assertTrue(all(choice.option is None for choice in disabled))
-        self.assertTrue(all(choice.note for choice in disabled))
 
 
 if __name__ == "__main__":
