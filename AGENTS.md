@@ -8,7 +8,7 @@ These rules apply to the entire repository.
 
 This repository is the Linux-native port of FireEyeEian's Dead Island Riptide Ultimate Edition mod menu (DIRUE), targeting the native Linux build of Dead Island: Riptide Definitive Edition.
 
-Milestone 1 is feature parity with the existing DIRUE release. Do not add or redesign gameplay tweaks until parity is implemented and validated.
+Milestone 1 feature parity is implemented and validated on `main`. Post-parity gameplay tweaks may be developed on focused branches while the validated parity baseline remains stable.
 
 ## Compatibility boundary
 
@@ -73,6 +73,7 @@ Never perform an in-place partial rewrite of the live archive. Never install ove
 - Preserve file encoding, newline conventions, and archive paths unless a tested transformation requires otherwise.
 - Preserve observed native whitespace/layout variants in semantic-anchor regression fixtures; do not normalize them away when spacing is part of the accepted source shape.
 - Keep gameplay values faithful to upstream during Milestone 1.
+- Post-parity variants that modify the same semantic targets as a released option must preserve the released definition unchanged, validate the same pristine priors independently, and be mutually exclusive with the released option.
 - Record every user-facing option with target file(s), upstream/default state, modified state, and any replacement/preset dependency.
 
 ## Architecture
