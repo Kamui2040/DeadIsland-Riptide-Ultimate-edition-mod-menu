@@ -15,7 +15,7 @@ from dirue.errors import PatchError
 class AdvancedDefinitionTests(unittest.TestCase):
     def test_ready_catalog_includes_semantic_options(self):
         self.assertEqual(len(DIRECT_PATCHES), 13)
-        self.assertEqual(len(READY_PATCHES), 38)
+        self.assertEqual(len(READY_PATCHES), 43)
         self.assertIn("noclip_vehicles", READY_PATCHES)
         self.assertIn("one_hit_ai", READY_PATCHES)
         self.assertIn("hard_ai", READY_PATCHES)
@@ -41,6 +41,11 @@ class AdvancedDefinitionTests(unittest.TestCase):
         self.assertIn("force_suiciders", READY_PATCHES)
         self.assertIn("force_bandits_guns", READY_PATCHES)
         self.assertIn("force_bandits_melee", READY_PATCHES)
+        self.assertIn("force_butchers", READY_PATCHES)
+        self.assertIn("force_rams", READY_PATCHES)
+        self.assertIn("force_bloaters", READY_PATCHES)
+        self.assertIn("force_thugs", READY_PATCHES)
+        self.assertIn("hold_even_more_ammo", READY_PATCHES)
         self.assertIn(
             frozenset({"one_hit_ai", "hard_ai", "headshot_only_ai"}),
             EXCLUSIVE_PATCH_GROUPS,
@@ -71,6 +76,10 @@ class AdvancedDefinitionTests(unittest.TestCase):
             EXCLUSIVE_PATCH_GROUPS,
         )
         self.assertIn(
+            frozenset({"hold_more_ammo", "hold_even_more_ammo"}),
+            EXCLUSIVE_PATCH_GROUPS,
+        )
+        self.assertIn(
             frozenset(
                 {
                     "weather_just_night",
@@ -91,6 +100,10 @@ class AdvancedDefinitionTests(unittest.TestCase):
                     "force_suiciders",
                     "force_bandits_guns",
                     "force_bandits_melee",
+                    "force_butchers",
+                    "force_rams",
+                    "force_bloaters",
+                    "force_thugs",
                 }
             ),
             EXCLUSIVE_PATCH_GROUPS,
