@@ -51,17 +51,25 @@ These replacements therefore implement upstream branding/cosmetic behavior rathe
 
 ## Forced-spawn provenance boundary
 
-Released forced-spawn presets contain game-derived identifiers that must not be copied into Linux source merely because they are present in inherited upstream ZIPs. Public-safe runtime transforms therefore derive values only from the user's own validated native Data0 and bind every derivation to audited hashes and semantic structure.
+Forced-spawn transforms must not use inherited preset ZIPs as runtime payloads or replacement files. The Linux runtime always patches the user's own validated native Data0 and validates the complete pristine 165-call `m_AIPresets` vector before mutation.
 
 Suicider and bandits-with-guns use exact native donors. Bandits-with-melee uses an accepted whole-token reconstruction from the pristine 165-value spawn vector; the target identifier and substituted token text are not stored in source.
 
-Butcher, Ram, Bloater, and Thug remain intentionally unresolved. Accepted sanitized audits establish that each changes 164 of the 165 active spawn calls while preserving ordinal 60, but no acceptable whole-token recipe exists from:
+For Butcher, Ram, Bloater, and Thug, earlier accepted audits found no exact pristine donor and no acceptable bounded whole-token reconstruction from:
 
 1. the pristine 165-value `m_AIPresets` vector;
 2. any quoted string in native `data/presets/aispawnbox_pre.def`; or
 3. the bounded native AI/preset source set consisting of `aispawnbox_pre.def`, `zombieai.pre`, `zombieai_pre.def`, `infectedai.pre`, `infectedai_pre.def`, and `bestiary.scr`.
 
-The project will not widen this into arbitrary whole-archive string assembly or character-level encoding. Those four modes stay unavailable unless new rights/provenance evidence or a comparably narrow semantic derivation is established. Ongoing resolution work is tracked in Issue #2.
+A later focused audit established a narrower compatibility path. The four released upstream preset blobs were read without extracting or reusing their files as runtime content. For each preset, the audit verified the expected inherited Git blob identity, ZIP integrity, the single expected `aispawnbox_pre.def` member, 165 active `m_AIPresets` calls, one dominant target value used in exactly 164 calls, and preservation of ordinal 60. The target values are machine-facing preset identifier lists rather than replacement game files.
+
+Focused branch `agent/forced-spawn-identifiers` therefore carries only those minimum compatibility identifier lists plus pinned SHA-256, syntax, identifier-count, pristine-vector, preserved-ordinal, changed-call-count, and post-transform validation. The Linux runtime does **not** copy, extract, install, or package the inherited preset ZIPs.
+
+Accepted physical candidate QA confirms all four focused-branch transforms against the pristine native baseline: each candidate keeps all 3060 archive entries and member order, changes only `data/presets/aispawnbox_pre.def`, preserves ordinal 60, replaces exactly the other 164 active calls, validates archive integrity and reported hashes, and leaves the live Data0 unchanged. Bounded gameplay confirmation remains pending before Issue #2 can close.
+
+This is a narrow project compatibility treatment for the minimum machine identifiers required to reproduce released behavior. It does not assert that the inherited preset ZIPs, Data0 archives, replacement files, or other Techland-derived content are GPL-covered or otherwise redistributable. Those files remain provenance-sensitive historical material and are excluded from Linux runtime/distribution payloads.
+
+The project will not widen this exception into arbitrary whole-archive string assembly, character-level encoding, asset extraction, or general reuse of bundled preset content. Ongoing acceptance work is tracked in Issue #2.
 
 ## Preferred Linux distribution model
 
