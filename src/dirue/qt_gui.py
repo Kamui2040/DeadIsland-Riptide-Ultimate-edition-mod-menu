@@ -49,8 +49,7 @@ class MainWindow(QMainWindow):
 
         intro = QLabel(
             "Select the native Linux game folder. Candidate construction and installation "
-            "use the validated transactional patch engine; unresolved forced-spawn modes "
-            "remain visible but disabled."
+            "use the validated transactional patch engine."
         )
         intro.setWordWrap(True)
         layout.addWidget(intro)
