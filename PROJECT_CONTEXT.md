@@ -6,12 +6,11 @@
 - Fork: `Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu`
 - Primary branch: `main`
 - Development branch: `linux-port`
-- Focused parity branch: `agent/forced-spawn-identifiers`
 - License: GNU GPLv3, inherited and preserved
 
-Milestone 1 is a faithful native-Linux port of released DIRUE behavior. The previously validated Linux implementation was integrated into fork `main` by approved fast-forward on 2026-08-16. The focused branch now resolves the final four released forced-spawn choices—Butcher, Ram, Bloater, and Thug—and has passed native candidate, live gameplay, exact-restore, and reproducible packaging validation. Released-option parity is technically complete on the focused branch. `main` remains unchanged until explicit integration approval.
+Milestone 1 is a faithful native-Linux port of released DIRUE behavior. Released-option parity is now integrated on the fork. On 2026-08-17, approved non-force fast-forwards moved both `main` and `linux-port` to `66a6e9294bd045569683c64947a31bacd0aee421`, the validated 42-option parity commit. PR #3 was recognized by GitHub as merged through that exact fast-forward. Upstream remains untouched.
 
-New gameplay tweaks remain deferred until the validated parity branch is integrated.
+New gameplay tweaks remain deferred until a separate post-parity decision.
 
 ## Verified native Linux baseline
 
@@ -27,7 +26,7 @@ The hash is evidence for the audited installation, not a universal game requirem
 
 ## Current implementation state
 
-Integrated `main` contains **38 semantic non-default options**. Focused branch `agent/forced-spawn-identifiers` contains **42 semantic non-default options** after adding Butcher, Ram, Bloater, and Thug forced spawning. All 42 pass disposable native candidate construction against the accepted 3060-entry baseline.
+Integrated `main` contains **42 semantic non-default options** covering the released gameplay controls. All 42 pass disposable native candidate construction against the accepted 3060-entry baseline.
 
 Validated families include direct gameplay controls, Improved Loot, AI difficulty, Better Firearms Upgrading, Better Firearms POV 62/72/82, camera FOV 72/82, all four non-default zombie-size modes, all eight non-default weather/time modes, and all seven non-default forced-spawn modes.
 
@@ -42,7 +41,7 @@ Default spawning matches native behavior. Forced-spawn transforms validate the c
 - **Bandits with melee**: bounded whole-token reconstruction from validated pristine native values; Native-validated.
 - **Butcher, Ram, Bloater, and Thug**: use only the minimum machine-facing compatibility identifier lists required to reproduce released behavior. Each target is pinned by SHA-256, syntax/identifier count, pristine-vector validation, preserved ordinal 60, exact 164-call replacement count, and post-transform validation.
 
-The four formerly blocked modes were derived read-only from the inherited upstream preset blobs as compatibility evidence. The preset ZIPs themselves are not copied, extracted into runtime state, installed, or packaged. This narrow treatment does not assert redistribution rights over those ZIPs, Data0 archives, replacement files, or other Techland-derived content.
+The four formerly blocked modes were derived read-only from inherited upstream preset blobs as compatibility evidence. The preset ZIPs themselves are not copied, installed, or packaged. This narrow treatment does not assert redistribution rights over those ZIPs, Data0 archives, replacement files, or other Techland-derived content.
 
 Issue #2 records the completed provenance, candidate, gameplay, restore, and packaging acceptance path and is closed as completed.
 
@@ -67,37 +66,34 @@ The GUI-independent application service validates selections, compatibility, arc
 
 The retained pristine backup is recovery material and must not be deleted or overwritten.
 
-The focused branch enables all four formerly disabled forced-spawn choices. UI/catalog tests verify the 42 ready options match the semantic catalog exactly.
+The integrated GUI exposes all 42 ready options, including the four formerly disabled forced-spawn choices. UI/catalog tests verify the ready options match the semantic catalog exactly.
 
 ## Packaging and distribution validation
 
-The build system pins `setuptools==83.0.0`, uses a repo-local deterministic PEP 517 backend wrapper, disables implicit package-data inclusion, and excludes provenance-sensitive inherited payloads from Linux distributions. `tools/check_distribution.py` now requires `forced_spawn_compat.py` in both wheel and sdist so the new runtime module cannot be silently omitted.
+The build system pins `setuptools==83.0.0`, uses a repo-local deterministic PEP 517 backend wrapper, disables implicit package-data inclusion, and excludes provenance-sensitive inherited payloads from Linux distributions. `tools/check_distribution.py` requires `forced_spawn_compat.py` in both wheel and sdist so the runtime module cannot be silently omitted.
 
-A fresh physical Bazzite packaging run for the 42-option focused branch used an isolated PyPA `build==1.5.0` frontend and a commit-derived `SOURCE_DATE_EPOCH`. Two clean builds were byte-identical:
+A physical Bazzite packaging run for the 42-option state used an isolated PyPA `build==1.5.0` frontend and a commit-derived `SOURCE_DATE_EPOCH`. Two clean builds were byte-identical:
 
 - wheel `dirue_linux-0.1.0.dev0-py3-none-any.whl`: SHA-256 `f870e68409fa351caabdacd2566989f2c06b7ca1086658438a1a8105753febd3`;
 - sdist `dirue_linux-0.1.0.dev0.tar.gz`: SHA-256 `72d783b2faf73f45346a916490c0bccb0830ff3ea9c0ca56d0cd724bebe7a29a`.
 
 Both artifact copies passed the distribution payload checker. The built wheel installed in an isolated environment; `pip check`, the `dirue` console entry point, direct `python -m dirue.cli`, the 42-option semantic/UI catalog, all four compatibility-mode registrations, and CLI/GUI entry-point metadata passed. The primary working branch, HEAD, and status remained unchanged, and disposable worktrees/build artifacts/QA environments were removed.
 
-Earlier 38-option reproducible hashes remain historical evidence only; the hashes above are the accepted artifacts for the current focused-branch head tested on 2026-08-17.
-
 ## Validation boundary
 
-- all 42 focused-branch non-default options pass native disposable candidate construction;
-- the four newly resolved forced-spawn modes pass bounded native gameplay QA with exact pristine restore;
+- all 42 integrated non-default options pass native disposable candidate construction;
+- the four formerly blocked forced-spawn modes pass bounded native gameplay QA with exact pristine restore;
 - UI/catalog accounting passes at 42 options;
 - forced-spawn exclusivity and fail-closed validation pass;
 - application transaction and recovery behavior remain validated;
-- fresh reproducible wheel/sdist packaging and isolated installed-wheel checks pass for the 42-option state;
+- reproducible wheel/sdist packaging and isolated installed-wheel checks pass for the 42-option state;
 - no GitHub Actions were used.
 
 No further routine gameplay or packaging QA is required absent a newly identified risk.
 
 ## Remaining gates
 
-1. **Explicit approval is required before integrating `agent/forced-spawn-identifiers` into fork `main` and realigning `linux-port`.**
-2. Public releases/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, and GitHub Actions remain unauthorized unless separately approved.
+Public releases/binaries, Nexus publication, upstream submission, announcements, distribution or visibility changes, and GitHub Actions remain unauthorized unless separately approved.
 
 ## Cleanup and publication
 
