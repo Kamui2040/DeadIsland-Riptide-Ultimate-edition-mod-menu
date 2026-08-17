@@ -16,6 +16,7 @@ FORBIDDEN_SUFFIXES = (".pak", ".zip", ".exe", ".wav", ".xui", ".scr")
 WHEEL_REQUIRED_SUFFIXES = (
     "dirue/__init__.py",
     "dirue/cli.py",
+    "dirue/forced_spawn_compat.py",
     "dirue/gui.py",
 )
 SDIST_REQUIRED_SUFFIXES = (
@@ -25,6 +26,7 @@ SDIST_REQUIRED_SUFFIXES = (
     "LICENSE",
     "DIRUE.ahk",
     "src/dirue/__init__.py",
+    "src/dirue/forced_spawn_compat.py",
     "tools/check_distribution.py",
 )
 
