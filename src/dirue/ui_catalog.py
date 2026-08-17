@@ -118,26 +118,10 @@ CHOICE_GROUPS = (
         "AI",
         (
             Choice("Normal"),
-            Choice(
-                "Butchers — unavailable",
-                enabled=False,
-                note="Provenance-safe transform unresolved",
-            ),
-            Choice(
-                "Rams — unavailable",
-                enabled=False,
-                note="Provenance-safe transform unresolved",
-            ),
-            Choice(
-                "Bloaters — unavailable",
-                enabled=False,
-                note="Provenance-safe transform unresolved",
-            ),
-            Choice(
-                "Thugs — unavailable",
-                enabled=False,
-                note="Provenance-safe transform unresolved",
-            ),
+            Choice("Butchers", "force_butchers"),
+            Choice("Rams", "force_rams"),
+            Choice("Bloaters", "force_bloaters"),
+            Choice("Thugs", "force_thugs"),
             Choice("Suiciders", "force_suiciders"),
             Choice("Bandits with guns", "force_bandits_guns"),
             Choice("Bandits with melee", "force_bandits_melee"),
