@@ -10,7 +10,7 @@
 
 Milestone 1 is a faithful native-Linux port of released DIRUE behavior. On 2026-08-16, the validated Linux-port implementation was explicitly approved for main integration and fast-forwarded into `main` without rewriting history. `linux-port` is retained as the development branch and should remain aligned unless new work intentionally diverges.
 
-New gameplay tweaks remain deferred until released parity is fully resolved. Four released forced-spawn choices remain intentionally unavailable because their required target identifiers cannot currently be reconstructed or redistributed under the accepted provenance boundary. This durable unresolved gate is tracked in Issue #2.
+New gameplay tweaks remain deferred until released parity is fully resolved. Focused branch `agent/forced-spawn-identifiers` now implements the four previously blocked Butcher, Ram, Bloater, and Thug forced-spawn choices using narrowly scoped machine-facing compatibility identifiers extracted read-only from the inherited upstream preset blobs. The preset archives themselves remain excluded from Linux runtime/distribution use. All four new transforms pass disposable native candidate validation; bounded native gameplay QA and exact pristine restore remain the final acceptance gate tracked in Issue #2. `main` is unchanged until explicit integration approval.
 
 ## Verified native Linux baseline
 
@@ -26,7 +26,7 @@ The hash is evidence for the audited installation, not a permanent compatibility
 
 ## Current implementation state
 
-The catalog contains **38 semantic non-default options**, and all 38 pass disposable native candidate construction against the accepted 3060-entry baseline.
+Integrated `main` contains **38 semantic non-default options**. Focused branch `agent/forced-spawn-identifiers` contains **42 semantic non-default options** after adding Butcher, Ram, Bloater, and Thug forced spawning. All 42 branch options pass disposable native candidate construction against the accepted 3060-entry baseline.
 
 Native-validated families include:
 
@@ -36,7 +36,7 @@ Native-validated families include:
 - camera FOV 72/82;
 - extra-small, midget, large, and supersize zombie modes;
 - all eight non-default weather/time choices;
-- forced Suiciders, bandits with guns, and bandits with melee.
+- forced Suiciders, bandits with guns, bandits with melee, Butchers, Rams, Bloaters, and Thugs on the focused branch.
 
 Choice groups fail closed on incompatible selections. Runtime transforms are semantic and validate expected source state, match counts, archive identity, and result state rather than using historical line numbers.
 
@@ -49,8 +49,11 @@ Default spawning matches native behavior. Implemented forced-spawn modes validat
 - **Suiciders**: derived from a validated pristine donor; Native-validated and gameplay-validated.
 - **Bandits with guns**: derived from a validated pristine donor; Native-validated.
 - **Bandits with melee**: reconstructed entirely from validated whole tokens already present in the pristine native vector; Native-validated.
+- **Butcher, Ram, Bloater, and Thug**: focused-branch implementations use only the minimal machine-facing compatibility identifier lists required to reproduce the released transforms. The identifiers are pinned by digest and syntax/count validation; each released mode preserves ordinal 60 and replaces the other 164 active calls. No preset archive or replacement file is reused by the Linux runtime.
 
-**Butcher, Ram, Bloater, and Thug remain unavailable.** Accepted audits found no exact pristine donor and no acceptable bounded whole-token reconstruction from the audited native spawn vector or bounded AI/preset source set. The project will not widen this into arbitrary archive-string assembly, character-level encoding, or embedding provenance-sensitive target identifiers. Revisit only if materially new provenance/rights evidence or an equally narrow semantic derivation appears.
+Accepted physical candidate QA for the four new modes proves that each candidate retains all 3060 entries, changes only `data/presets/aispawnbox_pre.def`, preserves the released ordinal-60 exception, replaces exactly the other 164 active calls, validates ZIP integrity/member order and candidate hashes, and leaves the live pristine Data0 unchanged. Native gameplay behavior for these four modes is still pending bounded QA.
+
+This narrow compatibility treatment does not establish or claim redistribution rights over the inherited preset ZIPs or other game-derived assets. Those remain provenance-sensitive historical material and stay excluded from Linux runtime/distribution payloads.
 
 ## Replacement and redistribution boundary
 
@@ -62,7 +65,7 @@ The inherited upstream `Data0.pak`, preset ZIPs, replacement assets, and other p
 
 The GUI-independent application service validates selections, compatibility, archive identity, and exclusivity before any mutation. It creates a retained pristine backup only from a recognized baseline, builds candidates in isolated temporary storage, validates them before installation, rechecks the live source immediately before atomic replacement, and requires pristine restore before applying a different selection over an already modified live archive.
 
-The PySide6 GUI exposes all 38 ready options exactly once. The four unresolved forced-spawn choices are visible but disabled. Real on-screen Bazzite QA passes for layout, scrolling, grouping, selector behavior, readability, disabled-state clarity, and the confirmation-driven Apply/Restore workflow.
+The integrated GUI exposes all 38 `main` options exactly once. On `agent/forced-spawn-identifiers`, the four new spawn choices are enabled, raising the ready catalog to 42; their on-screen selection/application path remains to be exercised during bounded native QA. Existing real on-screen Bazzite QA passes for layout, scrolling, grouping, selector behavior, readability, and the confirmation-driven Apply/Restore workflow.
 
 Native transaction QA passes at both engine and GUI/application levels. Accepted tests prove exact candidate installation, apply lock/reapply rejection while modified, exact-original restore, and retained pristine backup recovery. The live game is pristine after accepted transaction and gameplay tests.
 
@@ -87,33 +90,35 @@ Supersize behavior matches the released four-member preset semantics. Some corps
 
 Better Firearms Upgrading was validated on the same fully upgraded Magnum/revolver path before and after mutation. The pristine UI reload value `4.5` and modified value `3.6` preserve the same `1.125` multiplier implied by accepted raw values `4.0 -> 3.2`; the earlier expectation that the UI would display raw `3.2` directly was a QA-model error, not a runtime defect.
 
+Butcher, Ram, Bloater, and Thug gameplay confirmation is pending. Their current accepted evidence stops at exact disposable native candidate construction; no live mutation for those four has yet been accepted.
+
 ## Packaging and distribution validation
 
-Physical Bazzite packaging QA passes for the real repository state. The build system pins `setuptools==83.0.0`, uses a repo-local deterministic PEP 517 backend wrapper, disables implicit package-data inclusion, and explicitly excludes provenance-sensitive inherited payloads from the source distribution.
+Physical Bazzite packaging QA passes for the integrated 38-option state. The build system pins `setuptools==83.0.0`, uses a repo-local deterministic PEP 517 backend wrapper, disables implicit package-data inclusion, and explicitly excludes provenance-sensitive inherited payloads from the source distribution.
 
 Two clean builds under the same commit-derived `SOURCE_DATE_EPOCH` produced byte-identical artifacts:
 
 - wheel `dirue_linux-0.1.0.dev0-py3-none-any.whl`: SHA-256 `062feed8162f67c23877e20bbb7588bc0cda17edb49f79c0fba902d3c0c9f076`;
 - sdist `dirue_linux-0.1.0.dev0.tar.gz`: SHA-256 `47732086c7f078750be956f239b26c58cd2d6cdd6eb84862e2b48565c34ea06f`.
 
-The distribution checker passes, deterministic sdist metadata normalization passes, the wheel installs in isolation, `pip check` passes, CLI help works, and both CLI and GUI entry-point metadata are present. Packaging QA left the repository clean and did not mutate the game archive or pristine backup.
+The distribution checker passes, deterministic sdist metadata normalization passes, the wheel installs in isolation, `pip check` passes, CLI help works, and both CLI and GUI entry-point metadata are present. Packaging QA left the repository clean and did not mutate the game archive or pristine backup. Packaging has not been rerun for the focused 42-option branch because the current new risk is confined to the four runtime transforms and their CLI/catalog wiring.
 
 ## Validation and QA rules
 
-- All 38 current catalog options pass native disposable candidate construction.
+- All 38 integrated catalog options pass native disposable candidate construction; all 42 focused-branch options now pass it as well.
 - Native-tested choice conflicts reject incompatible selections.
-- Material multi-family interactions pass.
+- Material multi-family interactions pass for the integrated state.
 - Engine and GUI/application transaction QA pass with exact-original recovery.
-- Representative gameplay QA covers direct controls, AI, camera/POV, firearm upgrading, zombie size, weather/time, and forced spawning.
-- Reproducible wheel/sdist packaging and artifact payload-safety checks pass.
+- Representative gameplay QA covers direct controls, AI, camera/POV, firearm upgrading, zombie size, weather/time, and forced spawning; the four new forced-spawn modes still require bounded gameplay confirmation.
+- Reproducible wheel/sdist packaging and artifact payload-safety checks pass for the integrated state.
 - No GitHub Actions were used.
 
-Interactive `bash -s <<'EOF'` handoffs must read human input from `/dev/tty`; gameplay handoffs should automatically poll for the native game process rather than relying on a keypress-timed start check. Embedded Python must receive required shell values explicitly through its invocation environment. Numeric gameplay QA must distinguish raw data values from derived UI values.
+Interactive `bash -s <<'EOF'` handoffs must read human input from `/dev/tty`; gameplay handoffs should automatically poll for the native game process rather than relying on a keypress-timed start check. Embedded Python must receive required shell values explicitly through its invocation environment. Numeric gameplay QA must distinguish raw data values from derived UI values. Existing filesystem paths must be canonicalized before comparison, command output must be parsed structurally rather than by exact whitespace, and a CLI handoff must verify its expected output or artifact instead of treating exit status alone as proof of execution.
 
 ## Remaining gates
 
-1. Keep Butcher, Ram, Bloater, and Thug unavailable under the current provenance boundary unless materially new evidence changes that boundary.
-2. Additional gameplay QA should be bounded to a specific newly identified risk; representative coverage is sufficient for the current implementation set.
+1. Run bounded native gameplay QA for Butcher, Ram, Bloater, and Thug from the focused branch, with exact pristine restore after each mutation.
+2. If those four pass, update parity/provenance documentation and Issue #2, then request explicit approval before integrating the focused branch into `main`.
 3. Public releases/binaries, Nexus publication, upstream submission, announcements, and other publication or visibility changes still require explicit approval.
 
 ## Cleanup and publication
