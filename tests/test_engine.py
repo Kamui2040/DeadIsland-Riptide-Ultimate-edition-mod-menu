@@ -99,10 +99,11 @@ class CandidateBuilderTests(unittest.TestCase):
                 )
             self.assertFalse(candidate.exists())
 
-    def test_rejects_mutually_exclusive_camera_fov_or_zombie_size_options(self):
+    def test_rejects_other_mutually_exclusive_choice_options(self):
         for selected in (
             ["camera_fov_72", "camera_fov_82"],
             ["zombie_size_extra_small", "zombie_size_large"],
+            ["hold_more_ammo", "hold_even_more_ammo"],
         ):
             with self.subTest(selected=selected), tempfile.TemporaryDirectory() as td:
                 td = Path(td)
