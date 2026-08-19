@@ -107,6 +107,7 @@ Keep responsibilities separated:
 - Reproducible distribution QA must build the wheel and sdist twice from the same head with a fixed `SOURCE_DATE_EPOCH`; source archives must normalize member order, ownership, timestamps, and gzip metadata before byte comparison.
 - Packaging handoffs must provision required non-project build tooling in a disposable isolated environment with an explicit version instead of assuming it exists in the host Python environment.
 - When a new runtime module is added, distribution validation must require that module in both wheel and sdist payload checks before packaging can be accepted.
+- Full-suite QA must derive the discovered test count from the current suite and require the executed count to match it with no setup, fixture, test, or teardown failures; never reuse a count from an earlier failed run.
 - Record sanitized validation evidence where useful; do not record personal paths or identifiers in tracked files.
 
 ## Maintenance and cleanup
