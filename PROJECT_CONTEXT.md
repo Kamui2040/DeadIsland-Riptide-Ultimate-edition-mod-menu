@@ -10,7 +10,7 @@
 
 Milestone 1 is a faithful native-Linux port of released DIRUE behavior. Released-option parity is now integrated on the fork. On 2026-08-17, approved non-force fast-forwards moved both `main` and `linux-port` to `66a6e9294bd045569683c64947a31bacd0aee421`, the validated 42-option parity commit. PR #3 was recognized by GitHub as merged through that exact fast-forward. Upstream remains untouched.
 
-New gameplay tweaks remain deferred until a separate post-parity decision.
+Post-parity gameplay development is isolated on focused branches so the validated 42-option `main` baseline remains stable.
 
 ## Verified native Linux baseline
 
@@ -31,6 +31,24 @@ Integrated `main` contains **42 semantic non-default options** covering the rele
 Validated families include direct gameplay controls, Improved Loot, AI difficulty, Better Firearms Upgrading, Better Firearms POV 62/72/82, camera FOV 72/82, all four non-default zombie-size modes, all eight non-default weather/time modes, and all seven non-default forced-spawn modes.
 
 Choice groups fail closed on incompatible selections. Runtime transforms validate expected source state, exact match counts, archive identity, and result state rather than using historical line numbers.
+
+## Post-parity development
+
+`post-parity-mods` currently adds one experimental non-default option, `hold_even_more_ammo`, while leaving the released `hold_more_ammo` definition unchanged. Both modes target the same three validated pristine properties in `data/skills/default_levels.xml` and are mutually exclusive.
+
+`hold_even_more_ammo` preserves the validated pristine priors and sets `MaxAmmoPistol`, `MaxAmmoRifle`, and `MaxAmmoShotgun` to `9999` independently of the released `200` / `150` / `90` values.
+
+Accepted read-only physical QA on 2026-08-19 established:
+
+- every discovered repository test executed and passed: 200/200;
+- the real PySide6 GUI exposes one `Ammo capacity` choice with `Default`, released `More ammo`, and `9999` modes;
+- a disposable candidate built from the accepted pristine native Data0 changed only `data/skills/default_levels.xml`;
+- all three target properties were exactly `9999` in the candidate;
+- candidate SHA-256: `76b4a9bdf37556619dff5165547aab562839aa9f11609f90226c1c2fe9d0ea66`;
+- live Data0 remained exactly pristine and the primary local checkout remained unchanged;
+- disposable worktree, test tooling, and candidate residue were removed.
+
+Gameplay validation is still required to determine whether the native game honors `9999` directly or clamps the configured value internally. The option is not integrated into `main` and no post-parity package has been accepted yet.
 
 ## Forced-spawn parity and provenance
 
@@ -83,17 +101,18 @@ Both artifact copies passed the distribution payload checker. The built wheel in
 
 - all 42 integrated non-default options pass native disposable candidate construction;
 - the four formerly blocked forced-spawn modes pass bounded native gameplay QA with exact pristine restore;
-- UI/catalog accounting passes at 42 options;
+- UI/catalog accounting passes at 42 integrated options;
 - forced-spawn exclusivity and fail-closed validation pass;
 - application transaction and recovery behavior remain validated;
-- reproducible wheel/sdist packaging and isolated installed-wheel checks pass for the 42-option state;
+- reproducible wheel/sdist packaging and isolated installed-wheel checks pass for the 42-option integrated state;
+- the focused post-parity `9999` ammo option passes 200/200 tests, GUI validation, and read-only native candidate validation, with gameplay and post-parity packaging still pending;
 - no GitHub Actions were used.
 
-No further routine gameplay or packaging QA is required absent a newly identified risk.
+No further routine parity gameplay or packaging QA is required absent a newly identified risk. Post-parity changes require focused validation before integration.
 
 ## Remaining gates
 
-Public releases/binaries, Nexus publication, upstream submission, announcements, distribution or visibility changes, and GitHub Actions remain unauthorized unless separately approved.
+Public releases/binaries, Nexus publication, upstream submission, announcements, distribution or visibility changes, and GitHub Actions remain unauthorized unless separately approved. Integration of post-parity gameplay changes into `main` also remains an explicit approval gate.
 
 ## Cleanup and publication
 
