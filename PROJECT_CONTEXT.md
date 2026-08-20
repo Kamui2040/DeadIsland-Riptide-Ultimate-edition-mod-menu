@@ -130,11 +130,21 @@ Physical Bazzite QA on 2026-08-21 accepted a full UBI baseline build at commit `
 
 The finished-artifact ELF audit then identified a real compatibility issue: PyInstaller had collected UBI's `libgcc_s.so.1`, and that bundled copy requires `GLIBC_2.35`. Raising the declared floor would hide rather than fix the mismatch. The active builder instead treats `libgcc_s.so.1` as a low-level target-system base runtime, removes any collected copy before assembling the AppDir, and makes `check_appdir.py` reject the name if it reappears. The program/dynamic-header ELF audit remains mandatory for the AppImage runtime and all remaining bundled ELF payloads.
 
-After that exclusion, the physical double build reached the reproducibility gate but failed byte comparison even with the same source commit and fixed `SOURCE_DATE_EPOCH`. The two artifacts had SHA-256 values `c4491876d285ddc875c7ac4dac22d8735e589a20519666f3f49c35f6a48066fc` and `f22abba0169e2d430d81c7578e92af75dae8887c1a99a9b4b74efc344f7428cd`. Issue #5 tracks the unresolved reproducibility defect. No game mutation occurred.
+An initial post-exclusion double build reached the reproducibility gate but produced different hashes, so Issue #5 was opened. PyInstaller's documented deterministic-build requirement for a fixed `PYTHONHASHSEED` was then applied together with fixed locale/timezone inputs, normalized AppDir timestamps, and an AppDir content fingerprint.
 
-PyInstaller documents that deterministic builds require a fixed `PYTHONHASHSEED`. The active builder now fixes `PYTHONHASHSEED=1`, locale and timezone inputs, normalizes every AppDir timestamp including symlinks to `SOURCE_DATE_EPOCH`, and emits a deterministic `APPIMAGE_APPDIR_CONTENT_SHA256` fingerprint over entry type, mode, path, symlink target, and file content. The next double build can therefore distinguish PyInstaller/AppDir content nondeterminism from SquashFS/AppImage container metadata if byte reproducibility still fails.
+Physical Bazzite QA on 2026-08-21 accepted hardening stage 2 at commit `f37d39165212b84954cf60c34b0d97bdec313511`:
 
-These reproducibility controls are implemented but not yet physically accepted. The remaining stage-2 gate is a double build with the same source commit and `SOURCE_DATE_EPOCH`, comparison of AppDir fingerprints and final artifact bytes/hashes, finished-artifact ELF `GLIBC_*` audit, and packaged launch validation. Broader SteamOS/general-Linux AppImage portability is not claimed until those checks pass.
+- both builds used glibc `2.34`, Python `3.11.13`, `PYTHONHASHSEED=1`, and the same source-derived `SOURCE_DATE_EPOCH`;
+- both AppDirs produced the same deterministic content fingerprint: SHA-256 `5741e2dab0460061bc5a1d26187a8eb5323ec30a0b6187757c4cd067d5a175ce`;
+- both final AppImages were byte-identical;
+- final AppImage SHA-256 was `07284a312c929cd46bcc191ba9f76f3683d2134f36e912622b77656079376dd4`;
+- final AppImage size was `60,246,520` bytes;
+- the finished-artifact ELF audit inspected 179 ELF files and found a maximum required glibc symbol of `GLIBC_2.34`;
+- the explicit `libgcc_s.so.1` exclusion remained enforced;
+- direct packaged AppImage launch passed;
+- `PACKAGING_HARDENING_STAGE2=PASS`.
+
+Shared packaging hardening is therefore complete. Issue #5 is resolved. The accepted AppImage portability evidence is bounded to x86-64 systems meeting the glibc 2.34 floor and the target-system base-library expectations; it is not a claim of support for every historical x86-64 CPU.
 
 ## UI-polish decision carried from packaging QA
 
@@ -151,23 +161,22 @@ Verified now:
 - reproducible wheel/sdist packaging passes;
 - bounded Flatpak build/import/sandbox/portal/Apply/Restore proof passes on physical Bazzite;
 - bounded AppImage build/payload/launch/Apply/Restore/relaunch proof passes on physical Bazzite;
-- shared packaging hardening stage 1 passes on physical Bazzite;
+- shared packaging hardening stages 1 and 2 pass on physical Bazzite;
 - the exact UBI glibc-2.34/Python-3.11 baseline image and its shared-Python prerequisites are physically verified on Bazzite;
-- a complete UBI baseline AppImage build and launch passes on physical Bazzite;
-- the finished-artifact audit physically identified the bundled UBI `libgcc_s.so.1` as requiring `GLIBC_2.35`;
-- the explicit `libgcc_s.so.1` exclusion allowed stage 2 to progress to byte reproducibility, where the first double build was rejected because the two hashes differed;
+- the hardened AppImage is byte reproducible from the accepted stage-2 source state;
+- the finished AppImage ELF audit passes with 179 ELF files and maximum `GLIBC_2.34`;
+- the accepted hardened AppImage launches directly on Bazzite;
 - no GitHub Actions were used.
 
-No further routine gameplay or legacy wheel/sdist QA is required absent a newly identified risk.
+No further routine gameplay, legacy wheel/sdist, or packaging-hardening QA is required absent a newly identified risk.
 
 ## Remaining release gates
 
-1. **Finish shared packaging hardening** — physically validate the fixed `PYTHONHASHSEED`/timestamp inputs, compare deterministic AppDir fingerprints, require two byte-identical UBI baseline AppImages, pass the finished-artifact ELF glibc audit and packaged launch, then close Issue #5 if reproducibility is resolved.
-2. **UI polish** — including manual validation flow, first-run clarity, hierarchy/spacing, status/error presentation, Apply/Restore affordances, iconography, window behavior, and version/about information.
-3. **Release candidate** — freeze one exact source commit and build both primary formats from it.
-4. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
-5. **Final rebuild/verification** after accepted RC fixes.
-6. **Explicit approval** before public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
+1. **UI polish** — implement explicit validation flow, first-run clarity, hierarchy/spacing, status/error presentation, Apply/Restore affordances, iconography, window behavior, and version/about information.
+2. **Release candidate** — freeze one exact source commit and build both primary formats from it.
+3. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
+4. **Final rebuild/verification** after accepted RC fixes.
+5. **Explicit approval** before public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
 
 ## Cleanup and publication
 
