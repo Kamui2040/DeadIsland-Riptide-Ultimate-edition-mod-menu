@@ -53,12 +53,20 @@ packaging/appimage/build-baseline.sh /path/to/output
 
 The generated AppDir and extracted final AppImage are both checked. The checker requires the bundled Python/PySide6 runtime, verifies shared desktop/AppStream identity, rejects known inherited/game payload names, and rejects symlinks escaping the AppDir.
 
+## Accepted baseline build
+
+Physical Bazzite QA on 2026-08-21 accepted a full build through the UBI wrapper at commit `40813fc8260a94b9b0594dce4f23fb02ea0dbe1f`.
+
+The wrapper verified glibc `2.34` and Python `3.11.13`, produced exactly one host-visible executable AppImage, and the artifact launched successfully. The artifact size was `60,295,672` bytes and SHA-256 was `4164af8cd4bfd762d7e0d0a2183475e017a1df09c55873252e05c1c3e81b6730`.
+
+This establishes that the pinned UBI environment can produce and launch the hardened AppImage. It does not by itself establish byte reproducibility or prove that every bundled ELF requires no glibc version newer than `2.34`.
+
 ## Compatibility boundary
 
 PySide6 `6.11.1` publishes its x86-64 Linux wheel for `manylinux_2_34`, so glibc `2.34` is the lowest practical x86-64 baseline for this pinned GUI dependency.
 
-The pinned UBI 9 image enforces glibc `2.34` rather than inheriting the developer host's newer glibc. Broader SteamOS/general-Linux AppImage compatibility is still not accepted until an artifact built through `build-baseline.sh` passes physical build, reproducibility, ELF compatibility, and packaged launch checks.
+The pinned UBI 9 image enforces glibc `2.34` rather than inheriting the developer host's newer glibc. Broader SteamOS/general-Linux AppImage compatibility is still not accepted until two baseline builds are byte-identical and the finished artifact passes an ELF `GLIBC_*` requirement audit.
 
 ## Remaining release work
 
-The initial AppImage proof and hardening stage 1 are complete. The digest-pinned UBI glibc-2.34/Python-3.11 baseline is implemented and awaits physical AppImage build validation. Reproducibility/ELF checks, UI polish, and release-candidate QA remain later release work.
+The initial AppImage proof, hardening stage 1, and the single UBI baseline build/launch check are complete. The remaining stage-2 work is double-build reproducibility and the ELF glibc-symbol audit. UI polish and release-candidate QA remain later release work.
