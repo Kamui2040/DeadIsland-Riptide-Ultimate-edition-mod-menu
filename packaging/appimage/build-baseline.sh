@@ -37,7 +37,7 @@ if ! podman image exists "$BASELINE_IMAGE" >/dev/null 2>&1; then
     podman pull "$BASELINE_IMAGE" >/dev/null || fail "failed to pull pinned baseline image"
 fi
 
-podman run --rm \
+podman run --rm -i \
     --userns=keep-id \
     --security-opt label=disable \
     --env HOME=/tmp/dirue-home \
