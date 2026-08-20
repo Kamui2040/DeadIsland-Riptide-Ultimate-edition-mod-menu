@@ -7,6 +7,10 @@ ROOT = Path(__file__).resolve().parents[1]
 APP_ID = "io.github.Kamui2040.DIRUELinux"
 APPIMAGE_DIR = ROOT / "packaging" / "appimage"
 COMMON_DIR = ROOT / "packaging" / "common"
+BASELINE_IMAGE = (
+    "quay.io/pypa/manylinux_2_34_x86_64@"
+    "sha256:64decb8ae4b373180c246525a755c0afb2ca136334f0d64b41cf5f229283a7b6"
+)
 
 
 class AppImagePackagingTests(unittest.TestCase):
@@ -14,6 +18,7 @@ class AppImagePackagingTests(unittest.TestCase):
         for relative in (
             "README.md",
             "build.sh",
+            "build-baseline.sh",
             "check_appdir.py",
             "entrypoint.py",
         ):
@@ -25,15 +30,16 @@ class AppImagePackagingTests(unittest.TestCase):
         ):
             self.assertTrue((COMMON_DIR / relative).is_file(), relative)
 
-    def test_build_script_parses(self):
-        result = subprocess.run(
-            ["bash", "-n", str(APPIMAGE_DIR / "build.sh")],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
+    def test_shell_build_scripts_parse(self):
+        for relative in ("build.sh", "build-baseline.sh"):
+            result = subprocess.run(
+                ["bash", "-n", str(APPIMAGE_DIR / relative)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, f"{relative}: {result.stderr}")
 
     def test_python_helpers_parse(self):
         for relative in ("check_appdir.py", "entrypoint.py"):
@@ -73,6 +79,26 @@ class AppImagePackagingTests(unittest.TestCase):
         self.assertIn('APPIMAGE_GLIBC_BASELINE="2.34"', script)
         self.assertIn("APPIMAGE_TARGET_GLIBC=", script)
         self.assertIn("APPIMAGE_BUILD_GLIBC=", script)
+
+    def test_baseline_builder_pins_verified_manylinux_image(self):
+        script = (APPIMAGE_DIR / "build-baseline.sh").read_text(encoding="utf-8")
+        self.assertIn(f'BASELINE_IMAGE="{BASELINE_IMAGE}"', script)
+        self.assertIn('BASELINE_GLIBC="glibc 2.34"', script)
+        self.assertIn('BASELINE_PYTHON="/opt/python/cp311-cp311/bin/python"', script)
+        self.assertNotIn("manylinux_2_34_x86_64:latest", script)
+        self.assertNotIn("manylinux_2_34_x86_64:202", script)
+
+    def test_baseline_builder_isolated_and_fail_closed(self):
+        script = (APPIMAGE_DIR / "build-baseline.sh").read_text(encoding="utf-8")
+        self.assertIn("podman run --rm", script)
+        self.assertIn("--userns=keep-id", script)
+        self.assertIn("--security-opt label=disable", script)
+        self.assertIn('--volume "$ROOT:/workspace:ro"', script)
+        self.assertIn('actual_glibc="$(getconf GNU_LIBC_VERSION', script)
+        self.assertIn('[ "$actual_glibc" = "$expected_glibc" ]', script)
+        self.assertIn('PYTHON_BIN="$python_bin" packaging/appimage/build.sh /output', script)
+        self.assertIn("SOURCE_DATE_EPOCH=", script)
+        self.assertIn("APPIMAGE_BASELINE_BUILD=PASS", script)
 
     def test_build_checks_both_appdir_and_final_artifact(self):
         script = (APPIMAGE_DIR / "build.sh").read_text(encoding="utf-8")
