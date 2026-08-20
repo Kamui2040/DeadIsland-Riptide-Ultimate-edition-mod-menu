@@ -99,9 +99,19 @@ Physical packaged AppImage UI functional/flow QA on 2026-08-21 passed at commit 
 - About/version/attribution information was present;
 - no game mutation occurred.
 
-This functional/flow pass does **not** constitute maintainer visual approval. UI polish remains active until the packaged appearance is explicitly approved by the maintainer.
+Physical packaged Flatpak UI functional/portal QA on 2026-08-21 passed at commit `ab6682fa33df11d553a06620b2a9b842a029a1d4`:
 
-The remaining UI-polish gates are a bounded Flatpak portal-flow check and explicit maintainer visual approval of the packaged UI. No gameplay mutation is required for either UI-polish check.
+- focused static tests passed;
+- packaged imports reported DIRUE `0.1.0.dev0` and PySide6 `6.11.1`;
+- sandbox permission inspection passed without broad host filesystem or network access;
+- packaged launch passed;
+- the portal Browse flow reached and selected the native game folder;
+- Browse did not auto-validate and explicit Validate produced the ready state;
+- no game mutation occurred.
+
+The commits after `ab6682fa33df11d553a06620b2a9b842a029a1d4` before this documentation update changed only governance/project documentation, not UI or packaging code, so the Flatpak functional evidence remains applicable to the active implementation.
+
+Functional, packaged, and portal-flow QA does **not** constitute maintainer visual approval. UI polish remains active until the packaged appearance is explicitly approved by the maintainer.
 
 ## Validation boundary
 
@@ -117,12 +127,13 @@ Verified now:
 - shared packaging hardening stages 1 and 2 pass;
 - hardened AppImage reproducibility and `GLIBC_2.34` audit pass;
 - packaged AppImage UI-polish functional and explicit-validation QA passes;
+- packaged Flatpak UI-polish functional, sandbox, portal, and explicit-validation QA passes;
 - maintainer visual approval of the UI remains pending;
 - no GitHub Actions were used.
 
 ## Remaining release gates
 
-1. **Finish UI polish** — run the bounded Flatpak portal-flow check, obtain explicit maintainer visual approval of the packaged appearance, and fix any accepted findings.
+1. **Finish UI polish** — obtain explicit maintainer visual approval of the packaged appearance and fix any accepted visual findings.
 2. **Release candidate** — freeze one exact source commit and build both primary formats from it.
 3. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
 4. **Final rebuild/verification** after accepted RC fixes.
