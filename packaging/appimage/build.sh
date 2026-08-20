@@ -138,6 +138,26 @@ mkdir -p "$EXTRACT"
 )
 "$VENV/bin/python" "$ROOT/packaging/appimage/check_appdir.py" "$EXTRACT/squashfs-root"
 
+if ! AUDIT_OUTPUT="$(
+    "$VENV/bin/python" "$ROOT/packaging/appimage/audit_glibc.py" \
+        --max "$APPIMAGE_GLIBC_BASELINE" \
+        "$ARTIFACT" \
+        "$EXTRACT/squashfs-root"
+)"; then
+    fail "finished AppImage failed GLIBC compatibility audit"
+fi
+
+AUDIT_FILES="$(printf '%s\n' "$AUDIT_OUTPUT" | sed -n 's/^GLIBC_ELF_FILES=//p' | tail -n 1)"
+AUDIT_MAX="$(printf '%s\n' "$AUDIT_OUTPUT" | sed -n 's/^GLIBC_MAX_REQUIRED=//p' | tail -n 1)"
+AUDIT_STATUS="$(printf '%s\n' "$AUDIT_OUTPUT" | sed -n 's/^GLIBC_AUDIT=//p' | tail -n 1)"
+
+[ "$AUDIT_STATUS" = "PASS" ] || fail "finished AppImage GLIBC audit did not report PASS"
+case "$AUDIT_FILES" in
+    ''|*[!0-9]*) fail "finished AppImage GLIBC audit returned invalid ELF count" ;;
+esac
+[ "$AUDIT_FILES" -gt 0 ] || fail "finished AppImage GLIBC audit found no ELF payloads"
+[ -n "$AUDIT_MAX" ] || fail "finished AppImage GLIBC audit returned no maximum version"
+
 HASH="$(sha256sum "$ARTIFACT" | awk '{print $1}')"
 SIZE="$(stat -c '%s' "$ARTIFACT")"
 BUILD_GLIBC="$(getconf GNU_LIBC_VERSION 2>/dev/null || printf 'unknown')"
@@ -150,4 +170,7 @@ echo "APPIMAGE_APPIMAGETOOL=$APPIMAGETOOL_VERSION"
 echo "APPIMAGE_RUNTIME_TAG=$APPIMAGE_RUNTIME_TAG"
 echo "APPIMAGE_BUILD_GLIBC=$BUILD_GLIBC"
 echo "APPIMAGE_TARGET_GLIBC=$APPIMAGE_GLIBC_BASELINE"
+echo "APPIMAGE_ELF_FILES=$AUDIT_FILES"
+echo "APPIMAGE_MAX_REQUIRED_GLIBC=$AUDIT_MAX"
+echo "APPIMAGE_GLIBC_AUDIT=PASS"
 echo "APPIMAGE_BUILD=PASS"
