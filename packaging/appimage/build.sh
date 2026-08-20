@@ -8,6 +8,7 @@ APP_ID="io.github.Kamui2040.DIRUELinux"
 COMMON="$ROOT/packaging/common"
 PYINSTALLER_VERSION="6.22.2"
 PYSIDE_VERSION="6.11.1"
+PYINSTALLER_HASH_SEED="1"
 APPIMAGE_GLIBC_BASELINE="2.34"
 HOST_SYSTEM_LIBRARY_EXCLUDES="libgcc_s.so.1"
 APPIMAGETOOL_VERSION="1.9.1"
@@ -30,6 +31,10 @@ case "$(uname -m)" in
     x86_64|amd64) ;;
     *) fail "hardening build currently supports x86_64 builders only" ;;
 esac
+
+export PYTHONHASHSEED="$PYINSTALLER_HASH_SEED"
+export LC_ALL=C
+export TZ=UTC
 
 verify_sha256() {
     path="$1"
@@ -59,6 +64,71 @@ exclude_host_system_libraries() {
         remaining="$(find "$bundle_root" -name "$library" -print -quit)"
         [ -z "$remaining" ] || fail "failed to exclude host system library: $library"
     done
+}
+
+normalize_appdir_timestamps() {
+    appdir="$1"
+    [ -n "${SOURCE_DATE_EPOCH:-}" ] || return 0
+    case "$SOURCE_DATE_EPOCH" in
+        ''|*[!0-9]*) fail "SOURCE_DATE_EPOCH must be an integer" ;;
+    esac
+
+    "$VENV/bin/python" - "$appdir" "$SOURCE_DATE_EPOCH" <<'PY'
+import os
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+epoch = int(sys.argv[2])
+ns = epoch * 1_000_000_000
+paths = [root, *root.rglob("*")]
+for path in paths:
+    os.utime(path, ns=(ns, ns), follow_symlinks=False)
+PY
+}
+
+appdir_content_sha256() {
+    appdir="$1"
+    "$VENV/bin/python" - "$appdir" <<'PY'
+import hashlib
+import os
+from pathlib import Path
+import stat
+import sys
+
+root = Path(sys.argv[1])
+entries = [root, *root.rglob("*")]
+entries.sort(key=lambda path: "." if path == root else path.relative_to(root).as_posix())
+
+digest = hashlib.sha256()
+for path in entries:
+    relative = "." if path == root else path.relative_to(root).as_posix()
+    info = os.lstat(path)
+    mode = stat.S_IMODE(info.st_mode)
+
+    if stat.S_ISDIR(info.st_mode):
+        kind = "D"
+        payload = b""
+    elif stat.S_ISLNK(info.st_mode):
+        kind = "L"
+        payload = os.readlink(path).encode("utf-8", errors="surrogateescape")
+    elif stat.S_ISREG(info.st_mode):
+        kind = "F"
+        payload = hashlib.sha256(path.read_bytes()).digest()
+    else:
+        raise SystemExit(f"unsupported AppDir entry type: {relative}")
+
+    digest.update(kind.encode("ascii"))
+    digest.update(b"\0")
+    digest.update(f"{mode:o}".encode("ascii"))
+    digest.update(b"\0")
+    digest.update(relative.encode("utf-8", errors="surrogateescape"))
+    digest.update(b"\0")
+    digest.update(payload)
+    digest.update(b"\0")
+
+print(digest.hexdigest())
+PY
 }
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/dirue-appimage.XXXXXX")"
@@ -116,6 +186,9 @@ install -Dm644 "$COMMON/$APP_ID.metainfo.xml" "$APPDIR/usr/share/metainfo/$APP_I
 install -Dm644 "$COMMON/$APP_ID.svg" "$APPDIR/usr/share/icons/hicolor/scalable/apps/$APP_ID.svg"
 ln -s "usr/share/icons/hicolor/scalable/apps/$APP_ID.svg" "$APPDIR/$APP_ID.svg"
 ln -s "$APP_ID.svg" "$APPDIR/.DirIcon"
+
+normalize_appdir_timestamps "$APPDIR"
+APPDIR_CONTENT_SHA256="$(appdir_content_sha256 "$APPDIR")"
 
 "$VENV/bin/python" "$ROOT/packaging/appimage/check_appdir.py" "$APPDIR"
 
@@ -190,6 +263,9 @@ echo "APPIMAGE_APPIMAGETOOL=$APPIMAGETOOL_VERSION"
 echo "APPIMAGE_RUNTIME_TAG=$APPIMAGE_RUNTIME_TAG"
 echo "APPIMAGE_BUILD_GLIBC=$BUILD_GLIBC"
 echo "APPIMAGE_TARGET_GLIBC=$APPIMAGE_GLIBC_BASELINE"
+echo "APPIMAGE_PYTHONHASHSEED=$PYINSTALLER_HASH_SEED"
+echo "APPIMAGE_SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-unset}"
+echo "APPIMAGE_APPDIR_CONTENT_SHA256=$APPDIR_CONTENT_SHA256"
 echo "APPIMAGE_SYSTEM_LIBRARY_EXCLUDES=$HOST_SYSTEM_LIBRARY_EXCLUDES"
 echo "APPIMAGE_ELF_FILES=$AUDIT_FILES"
 echo "APPIMAGE_MAX_REQUIRED_GLIBC=$AUDIT_MAX"
