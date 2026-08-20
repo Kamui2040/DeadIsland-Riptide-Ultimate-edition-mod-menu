@@ -25,7 +25,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .application import apply_selection, inspect_game, restore_pristine
+from . import __version__
+from .application import ApplicationStatus, apply_selection, inspect_game, restore_pristine
 from .errors import DirueError
 from .ui_catalog import CHECKBOX_OPTIONS, CHOICE_GROUPS
 
@@ -34,13 +35,16 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("DIRUE Linux")
-        self.resize(900, 760)
+        self.setMinimumSize(760, 640)
+        self.resize(940, 800)
 
         self._checkboxes: dict[str, QCheckBox] = {}
         self._combos: dict[str, QComboBox] = {}
+        self._validated_root: Path | None = None
 
         central = QWidget()
         layout = QVBoxLayout(central)
+        layout.setSpacing(10)
 
         title = QLabel("Dead Island: Riptide Ultimate Edition — native Linux port")
         title.setWordWrap(True)
@@ -48,26 +52,32 @@ class MainWindow(QMainWindow):
         layout.addWidget(title)
 
         intro = QLabel(
-            "Select the native Linux game folder. Candidate construction and installation "
-            "use the validated transactional patch engine; unresolved forced-spawn modes "
-            "remain visible but disabled."
+            "Choose the native Linux game folder, validate it, select the released DIRUE "
+            "options you want, then apply them. Changes use the validated transactional "
+            "patch engine and retain a pristine backup for restore."
         )
         intro.setWordWrap(True)
         layout.addWidget(intro)
 
+        steps = QLabel("1. Choose folder   2. Validate   3. Select options   4. Apply changes")
+        steps.setWordWrap(True)
+        steps.setStyleSheet("font-weight: 600;")
+        layout.addWidget(steps)
+
         folder_row = QHBoxLayout()
         self._root_edit = QLineEdit()
         self._root_edit.setPlaceholderText("Native Dead Island Riptide Definitive Edition folder")
-        browse = QPushButton("Browse…")
-        browse.clicked.connect(self._browse)
-        validate = QPushButton("Validate")
-        validate.clicked.connect(self._refresh_status)
+        self._root_edit.textChanged.connect(self._invalidate_validation)
+        self._browse_button = QPushButton("Browse…")
+        self._browse_button.clicked.connect(self._browse)
+        self._validate_button = QPushButton("Validate")
+        self._validate_button.clicked.connect(self._validate_selected_root)
         folder_row.addWidget(self._root_edit, 1)
-        folder_row.addWidget(browse)
-        folder_row.addWidget(validate)
+        folder_row.addWidget(self._browse_button)
+        folder_row.addWidget(self._validate_button)
         layout.addLayout(folder_row)
 
-        self._status = QLabel("No game folder validated.")
+        self._status = QLabel("Choose the native game folder, then select Validate.")
         self._status.setWordWrap(True)
         layout.addWidget(self._status)
 
@@ -117,10 +127,10 @@ class MainWindow(QMainWindow):
         layout.addWidget(scroll, 1)
 
         buttons = QHBoxLayout()
-        self._apply_button = QPushButton("Apply selected modifications")
+        self._apply_button = QPushButton("Apply changes")
         self._apply_button.clicked.connect(self._apply)
         self._apply_button.setEnabled(False)
-        self._restore_button = QPushButton("Restore pristine Data0")
+        self._restore_button = QPushButton("Restore pristine")
         self._restore_button.clicked.connect(self._restore)
         self._restore_button.setEnabled(False)
         buttons.addWidget(self._apply_button)
@@ -133,18 +143,32 @@ class MainWindow(QMainWindow):
         self._log.setPlaceholderText("Validation and transaction results appear here.")
         layout.addWidget(self._log)
 
+        footer_row = QHBoxLayout()
         footer = QLabel(
-            "DIRUE was created by FireEyeEian. This is a GPLv3 native-Linux port. "
-            "Game assets are not redistributed."
+            f"DIRUE Linux {__version__}. Original DIRUE by FireEyeEian. GPLv3 native-Linux "
+            "port; game assets are not redistributed."
         )
         footer.setWordWrap(True)
-        layout.addWidget(footer)
+        footer_row.addWidget(footer, 1)
+        about = QPushButton("About")
+        about.clicked.connect(self._show_about)
+        footer_row.addWidget(about)
+        layout.addLayout(footer_row)
 
         self.setCentralWidget(central)
 
     def _root(self) -> Path | None:
         value = self._root_edit.text().strip()
         return Path(value).expanduser() if value else None
+
+    def _invalidate_validation(self, _text: str = "") -> None:
+        self._validated_root = None
+        self._apply_button.setEnabled(False)
+        self._restore_button.setEnabled(False)
+        if self._root() is None:
+            self._status.setText("Choose the native game folder, then select Validate.")
+        else:
+            self._status.setText("Folder selected. Validate this folder before applying or restoring changes.")
 
     def _browse(self) -> None:
         selected = QFileDialog.getExistingDirectory(
@@ -154,7 +178,6 @@ class MainWindow(QMainWindow):
         )
         if selected:
             self._root_edit.setText(selected)
-            self._refresh_status()
 
     def _selected_options(self) -> tuple[str, ...]:
         selected = [
@@ -171,23 +194,7 @@ class MainWindow(QMainWindow):
     def _append(self, text: str) -> None:
         self._log.appendPlainText(text)
 
-    def _refresh_status(self) -> None:
-        root = self._root()
-        if root is None:
-            self._status.setText("No game folder selected.")
-            self._apply_button.setEnabled(False)
-            self._restore_button.setEnabled(False)
-            return
-
-        try:
-            status = inspect_game(root)
-        except DirueError as exc:
-            self._status.setText(f"Validation failed: {exc}")
-            self._apply_button.setEnabled(False)
-            self._restore_button.setEnabled(False)
-            self._append(f"VALIDATION FAIL: {exc}")
-            return
-
+    def _render_validated_status(self, root: Path, status: ApplicationStatus) -> None:
         if status.backup is None:
             backup_state = "No pristine backup yet; the first apply will create one."
             can_apply = True
@@ -204,6 +211,7 @@ class MainWindow(QMainWindow):
             can_apply = False
             can_restore = True
 
+        self._validated_root = root
         self._status.setText(
             f"Validated native game. Data0: {status.game.archive.entry_count} entries, "
             f"SHA-256 {status.game.archive.sha256}. {backup_state}"
@@ -214,10 +222,41 @@ class MainWindow(QMainWindow):
         self._append(f"Data0 SHA-256: {status.game.archive.sha256}")
         self._append(backup_state)
 
-    def _apply(self) -> None:
+    def _validate_selected_root(self) -> None:
         root = self._root()
         if root is None:
-            QMessageBox.warning(self, "DIRUE Linux", "Select and validate a game folder first.")
+            self._invalidate_validation()
+            return
+
+        self._validated_root = None
+        self._apply_button.setEnabled(False)
+        self._restore_button.setEnabled(False)
+        self._status.setText("Validating selected game folder…")
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            status = inspect_game(root)
+        except DirueError as exc:
+            self._status.setText(f"Validation failed: {exc}")
+            self._append(f"VALIDATION FAIL: {exc}")
+        else:
+            self._render_validated_status(root, status)
+        finally:
+            QApplication.restoreOverrideCursor()
+
+    def _validated_root_for_action(self) -> Path | None:
+        root = self._root()
+        if root is None or self._validated_root is None or root != self._validated_root:
+            QMessageBox.warning(
+                self,
+                "DIRUE Linux",
+                "Validate the currently selected game folder before continuing.",
+            )
+            return None
+        return root
+
+    def _apply(self) -> None:
+        root = self._validated_root_for_action()
+        if root is None:
             return
 
         selected = self._selected_options()
@@ -237,14 +276,24 @@ class MainWindow(QMainWindow):
             return
 
         self._apply_button.setEnabled(False)
+        self._restore_button.setEnabled(False)
         self._append("APPLY: building validated candidate…")
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             result = apply_selection(root, selected)
         except DirueError as exc:
+            self._validated_root = None
+            self._status.setText("Apply failed. Validate the game folder again before retrying.")
             self._append(f"APPLY FAIL: {exc}")
             QMessageBox.critical(self, "Apply failed", str(exc))
         else:
+            self._validated_root = root
+            self._apply_button.setEnabled(False)
+            self._restore_button.setEnabled(True)
+            self._status.setText(
+                "Modifications installed successfully. The pristine backup is retained; "
+                "restore it before applying a different selection."
+            )
             self._append("APPLY PASS")
             self._append(f"Installed SHA-256: {result.installed_sha256}")
             self._append(f"Pristine backup SHA-256: {result.backup_sha256}")
@@ -257,12 +306,10 @@ class MainWindow(QMainWindow):
             )
         finally:
             QApplication.restoreOverrideCursor()
-            self._refresh_status()
 
     def _restore(self) -> None:
-        root = self._root()
+        root = self._validated_root_for_action()
         if root is None:
-            QMessageBox.warning(self, "DIRUE Linux", "Select and validate a game folder first.")
             return
 
         answer = QMessageBox.question(
@@ -275,14 +322,23 @@ class MainWindow(QMainWindow):
         if answer != QMessageBox.StandardButton.Yes:
             return
 
+        self._apply_button.setEnabled(False)
         self._restore_button.setEnabled(False)
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             result = restore_pristine(root)
         except DirueError as exc:
+            self._validated_root = None
+            self._status.setText("Restore failed. Validate the game folder again before retrying.")
             self._append(f"RESTORE FAIL: {exc}")
             QMessageBox.critical(self, "Restore failed", str(exc))
         else:
+            self._validated_root = root
+            self._apply_button.setEnabled(True)
+            self._restore_button.setEnabled(True)
+            self._status.setText(
+                "Pristine Data0 restored successfully. This folder remains ready for a new selection."
+            )
             self._append("RESTORE PASS")
             self._append(f"Restored SHA-256: {result.restored_sha256}")
             QMessageBox.information(
@@ -292,7 +348,15 @@ class MainWindow(QMainWindow):
             )
         finally:
             QApplication.restoreOverrideCursor()
-            self._refresh_status()
+
+    def _show_about(self) -> None:
+        QMessageBox.information(
+            self,
+            "About DIRUE Linux",
+            f"DIRUE Linux {__version__}\n\n"
+            "Native Linux port of Dead Island: Riptide Ultimate Edition by FireEyeEian.\n"
+            "Licensed under GPLv3. Game assets are not redistributed.",
+        )
 
 
 def run() -> int:
