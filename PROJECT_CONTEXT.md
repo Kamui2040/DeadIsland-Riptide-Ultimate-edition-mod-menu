@@ -113,9 +113,11 @@ Physical Bazzite QA on 2026-08-20 accepted hardening stage 1 at commit `15437a1e
 - artifact hash verification passed;
 - `PACKAGING_HARDENING_STAGE1=PASS`.
 
-Hardening stage 2 now pins the portable AppImage build environment to `quay.io/pypa/manylinux_2_34_x86_64@sha256:64decb8ae4b373180c246525a755c0afb2ca136334f0d64b41cf5f229283a7b6`. A physical Bazzite probe on 2026-08-20 verified that exact image reports glibc `2.34` and CPython `3.11.11`. The new `packaging/appimage/build-baseline.sh` wrapper uses rootless Podman, mounts the repository read-only, checks glibc/Python before building, and invokes the existing hardened AppImage builder inside the digest-pinned environment.
+Hardening stage 2 pins the portable AppImage build environment to `quay.io/pypa/manylinux_2_34_x86_64@sha256:64decb8ae4b373180c246525a755c0afb2ca136334f0d64b41cf5f229283a7b6`. Physical Bazzite probing on 2026-08-20 verified that exact image reports glibc `2.34`, but all probed bundled CPython 3.11.11 executables are static (`Py_ENABLE_SHARED=0`) and therefore cannot satisfy PyInstaller's shared-libpython requirement.
 
-The remaining stage-2 gate is a physical double build through that wrapper with the same `SOURCE_DATE_EPOCH`, followed by byte/hash comparison and packaged launch validation. Broader SteamOS/general-Linux AppImage portability is not claimed until that passes.
+The baseline wrapper now builds pinned CPython `3.11.16` from the official source tarball inside the same digest-pinned glibc-2.34 container with `--enable-shared`. The source SHA-256 is pinned as `91bcdebfdde239a003ae93738a7fce0f9230fee5c4bc2b86f6e6e8c6f98aabe8`. Before invoking the hardened AppImage builder, the wrapper verifies the source digest, exact Python version, `Py_ENABLE_SHARED=1`, installed `libpython`, required standard-library modules, and pip. It still requires exactly one host-visible executable AppImage and emits authoritative host artifact/hash/size values.
+
+This shared-CPython path is implemented but not yet physically accepted. The remaining stage-2 gate is a physical baseline build followed by double-build reproducibility, ELF glibc-symbol inspection, and packaged launch validation. Broader SteamOS/general-Linux AppImage portability is not claimed until those checks pass.
 
 ## UI-polish decision carried from packaging QA
 
@@ -133,14 +135,15 @@ Verified now:
 - bounded Flatpak build/import/sandbox/portal/Apply/Restore proof passes on physical Bazzite;
 - bounded AppImage build/payload/launch/Apply/Restore/relaunch proof passes on physical Bazzite;
 - shared packaging hardening stage 1 passes on physical Bazzite;
-- the exact glibc-2.34 baseline image and CPython 3.11 runtime are physically verified on Bazzite;
+- the exact glibc-2.34 baseline image is physically verified on Bazzite;
+- the image's bundled CPython 3.11.11 runtimes are physically verified as unsuitable for PyInstaller because they lack shared libpython;
 - no GitHub Actions were used.
 
 No further routine gameplay or legacy wheel/sdist QA is required absent a newly identified risk.
 
 ## Remaining release gates
 
-1. **Finish shared packaging hardening** — validate two baseline AppImage builds for reproducibility, verify packaged launch from the baseline artifact, keep Flatpak/AppImage metadata and payload checks aligned, and complete remaining artifact-integrity checks.
+1. **Finish shared packaging hardening** — physically validate the pinned shared-CPython baseline build, then validate two baseline AppImage builds for reproducibility, inspect ELF glibc requirements, verify packaged launch, keep Flatpak/AppImage metadata and payload checks aligned, and complete remaining artifact-integrity checks.
 2. **UI polish** — including manual validation flow, first-run clarity, hierarchy/spacing, status/error presentation, Apply/Restore affordances, iconography, window behavior, and version/about information.
 3. **Release candidate** — freeze one exact source commit and build both primary formats from it.
 4. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
