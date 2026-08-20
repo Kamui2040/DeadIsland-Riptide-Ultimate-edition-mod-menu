@@ -71,6 +71,14 @@ Physical stage-2 auditing on 2026-08-21 identified the PyInstaller-collected `li
 
 This exclusion is implemented but still requires the same physical double-build, audit, and launch validation before stage 2 is accepted.
 
+## Reproducibility finding
+
+The next physical double build reached the byte-comparison gate but was not reproducible. With the same source commit and fixed `SOURCE_DATE_EPOCH`, the two AppImages produced SHA-256 values `c4491876d285ddc875c7ac4dac22d8735e589a20519666f3f49c35f6a48066fc` and `f22abba0169e2d430d81c7578e92af75dae8887c1a99a9b4b74efc344f7428cd`. Issue #5 tracks the unresolved reproducibility gate.
+
+PyInstaller documents that reproducible builds require a fixed `PYTHONHASHSEED`. The active builder now fixes `PYTHONHASHSEED=1`, fixes locale/timezone inputs, normalizes every AppDir timestamp including symlinks to the supplied `SOURCE_DATE_EPOCH`, and emits `APPIMAGE_APPDIR_CONTENT_SHA256`. That fingerprint covers entry type, mode, path, symlink target, and file content while deliberately ignoring timestamps. A subsequent double build can therefore distinguish PyInstaller/AppDir payload nondeterminism from SquashFS/AppImage container metadata.
+
+These reproducibility controls are implemented but have not yet been physically accepted.
+
 ## Compatibility boundary
 
 PySide6 `6.11.1` publishes its x86-64 Linux wheel for `manylinux_2_34`, so glibc `2.34` is the lowest practical x86-64 baseline for this pinned GUI dependency.
@@ -79,4 +87,4 @@ The pinned UBI 9 image enforces glibc `2.34` rather than inheriting the develope
 
 ## Remaining release work
 
-The initial AppImage proof, hardening stage 1, and the single UBI baseline build/launch check are complete. The remaining stage-2 work is double-build reproducibility, the ELF glibc-symbol audit after the explicit base-library exclusion, and packaged launch validation. UI polish and release-candidate QA remain later release work.
+The initial AppImage proof, hardening stage 1, and the single UBI baseline build/launch check are complete. The remaining stage-2 work is physical validation of the fixed-hash/timestamp reproducibility controls, byte-identical double builds, the ELF glibc-symbol audit after the explicit base-library exclusion, and packaged launch validation. UI polish and release-candidate QA remain later release work.
