@@ -39,6 +39,7 @@ The inherited upstream `Data0.pak` is historical upstream material. Linux-port c
 - Do not hand routine repository work to the user when connected tools can do it safely.
 - Ask for manual execution only when work genuinely requires the user's physical Bazzite/game machine and that machine is unavailable to tools, such as native-game execution, local filesystem state, or visual/gameplay QA.
 - Keep manual handoffs minimal and deterministic.
+- Terminal handoffs must start with `clear`, suppress routine command/build/test output, and print only the final concise PASS/FAIL result block. On failure, include only the bounded diagnostics needed to act.
 - For interactive handoffs run as `bash -s <<'EOF'`, read human responses explicitly from `/dev/tty`, never inherited stdin, and verify any required external process actually starts and exits before accepting observations.
 - When embedded Python in a shell handoff reads `os.environ`, pass every required shell value explicitly on that Python invocation; do not rely on unexported shell variables.
 - Before comparing filesystem paths, canonicalize existing paths and compare the canonical values; symlink or mount aliases are not evidence of different locations.
