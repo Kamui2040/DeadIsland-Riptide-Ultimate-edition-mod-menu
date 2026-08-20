@@ -6,7 +6,7 @@
 - Fork: `Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu`
 - Primary branch: `main`
 - Development branch: `linux-port`
-- Active release branch: `release/appimage-proof`
+- Active release branch: `release/packaging-hardening`
 - License: GNU GPLv3, inherited and preserved
 
 Milestone 1 is a faithful native-Linux port of released DIRUE behavior. Released-option parity is integrated on fork `main`; upstream remains untouched. New gameplay tweaks remain deferred until a separate post-parity decision.
@@ -95,9 +95,25 @@ The proof produced `DIRUE-Linux-0.1.0.dev0-x86_64.AppImage`, size `69,351,928` b
 
 The generated proof artifact and temporary build/worktree state were not committed or published.
 
-The proof pins PyInstaller `6.22.2` and PySide6 `6.11.1`. Exact `appimagetool` digest pinning is still required. A Bazzite-built PyInstaller artifact is Bazzite execution evidence only; general-Linux/SteamOS AppImage portability requires choosing and enforcing an oldest-supported glibc build baseline during shared packaging hardening.
-
 The initial AppImage proof is complete.
+
+### Shared packaging hardening
+
+Stage 1 hardening is implemented on `release/packaging-hardening`. Flatpak and AppImage now share one application identity, desktop entry, metainfo, icon, and launcher name. The Flatpak retains its bounded permission model. The AppImage builder pins and verifies `appimagetool` and the type-2 runtime rather than relying on mutable `continuous` assets, and records both the builder glibc and the intended compatibility floor.
+
+Physical Bazzite QA on 2026-08-20 accepted hardening stage 1 at commit `15437a1ee0172cb79092fdc5c230759ff2d3d3bb`:
+
+- 16 focused Flatpak/AppImage static tests passed;
+- Flatpak hardened build passed;
+- Flatpak packaged imports passed with DIRUE `0.1.0.dev0` and PySide6 `6.11.1`;
+- Flatpak sandbox inspection still showed no blanket host-filesystem access;
+- hardened AppImage build passed with pinned `appimagetool` `1.9.1` and runtime tag `20251108`;
+- the Bazzite builder reported glibc `2.43` while the declared AppImage target floor is `2.34`;
+- hardened AppImage artifact size was `69,351,928` bytes and SHA-256 `be8c05e18b7eadbc4dbf594aca7c97c2d47d732581c60421a28334566e9284a6`;
+- artifact hash verification passed;
+- `PACKAGING_HARDENING_STAGE1=PASS`.
+
+The glibc `2.34` target is not yet enforced by the physical builder environment; the Bazzite-built artifact remains Bazzite execution evidence. The next hardening gate is a reproducible AppImage build environment at the chosen compatibility floor before broader SteamOS/general-Linux portability is claimed.
 
 ## UI-polish decision carried from packaging QA
 
@@ -114,13 +130,14 @@ Verified now:
 - reproducible wheel/sdist packaging passes;
 - bounded Flatpak build/import/sandbox/portal/Apply/Restore proof passes on physical Bazzite;
 - bounded AppImage build/payload/launch/Apply/Restore/relaunch proof passes on physical Bazzite;
+- shared packaging hardening stage 1 passes on physical Bazzite;
 - no GitHub Actions were used.
 
 No further routine gameplay or legacy wheel/sdist QA is required absent a newly identified risk.
 
 ## Remaining release gates
 
-1. **Shared packaging hardening** — unify resource/metadata behavior, pin external build-tool digests, define AppImage compatibility baseline, strengthen artifact-content checks, and keep Flatpak/AppImage behavior aligned.
+1. **Finish shared packaging hardening** — enforce the chosen AppImage compatibility baseline in a reproducible build environment, keep Flatpak/AppImage metadata and payload checks aligned, and complete remaining artifact-integrity checks.
 2. **UI polish** — including manual validation flow, first-run clarity, hierarchy/spacing, status/error presentation, Apply/Restore affordances, iconography, window behavior, and version/about information.
 3. **Release candidate** — freeze one exact source commit and build both primary formats from it.
 4. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
