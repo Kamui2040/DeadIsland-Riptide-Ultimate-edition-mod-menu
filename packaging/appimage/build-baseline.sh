@@ -5,7 +5,9 @@ ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="${1:-$ROOT/dist/appimage-baseline}"
 BASELINE_IMAGE="quay.io/pypa/manylinux_2_34_x86_64@sha256:64decb8ae4b373180c246525a755c0afb2ca136334f0d64b41cf5f229283a7b6"
 BASELINE_GLIBC="glibc 2.34"
-BASELINE_PYTHON="/opt/python/cp311-cp311/bin/python"
+PYTHON_VERSION="3.11.16"
+PYTHON_SOURCE_URL="https://www.python.org/ftp/python/3.11.16/Python-3.11.16.tar.xz"
+PYTHON_SOURCE_SHA256="91bcdebfdde239a003ae93738a7fce0f9230fee5c4bc2b86f6e6e8c6f98aabe8"
 
 fail() {
     echo "APPIMAGE_BASELINE_BUILD=FAIL: $*" >&2
@@ -43,6 +45,9 @@ podman run --rm -i \
     --env HOME=/tmp/dirue-home \
     --env PYTHONDONTWRITEBYTECODE=1 \
     --env SOURCE_DATE_EPOCH="$SOURCE_DATE_EPOCH" \
+    --env DIRUE_PYTHON_VERSION="$PYTHON_VERSION" \
+    --env DIRUE_PYTHON_SOURCE_URL="$PYTHON_SOURCE_URL" \
+    --env DIRUE_PYTHON_SOURCE_SHA256="$PYTHON_SOURCE_SHA256" \
     --volume "$ROOT:/workspace:ro" \
     --volume "$OUT:/output:rw" \
     "$BASELINE_IMAGE" \
@@ -50,7 +55,9 @@ podman run --rm -i \
 set -eu
 
 expected_glibc="glibc 2.34"
-python_bin="/opt/python/cp311-cp311/bin/python"
+python_prefix="/tmp/dirue-python"
+python_source="/tmp/dirue-python-source.tar.xz"
+python_tree="/tmp/dirue-python-source"
 
 actual_glibc="$(getconf GNU_LIBC_VERSION 2>/dev/null || true)"
 [ "$actual_glibc" = "$expected_glibc" ] || {
@@ -58,18 +65,73 @@ actual_glibc="$(getconf GNU_LIBC_VERSION 2>/dev/null || true)"
     exit 3
 }
 
+for command in curl sha256sum tar make gcc; do
+    command -v "$command" >/dev/null 2>&1 || {
+        echo "APPIMAGE_BASELINE_BUILD=FAIL: missing container build command: $command" >&2
+        exit 3
+    }
+done
+
+rm -rf "$python_prefix" "$python_tree" "$python_source"
+mkdir -p "$HOME" "$python_tree"
+
+curl --proto '=https' --tlsv1.2 --fail --location --retry 3 --retry-delay 2 \
+    "$DIRUE_PYTHON_SOURCE_URL" --output "$python_source"
+
+actual_source_hash="$(sha256sum "$python_source" | awk '{print $1}')"
+[ "$actual_source_hash" = "$DIRUE_PYTHON_SOURCE_SHA256" ] || {
+    echo "APPIMAGE_BASELINE_BUILD=FAIL: CPython source digest mismatch" >&2
+    exit 3
+}
+
+tar -xJf "$python_source" -C "$python_tree" --strip-components=1
+cd "$python_tree"
+
+./configure \
+    --prefix="$python_prefix" \
+    --enable-shared \
+    --with-ensurepip=install \
+    >/dev/null
+
+make -j2 >/dev/null
+make install >/dev/null
+
+export LD_LIBRARY_PATH="$python_prefix/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+python_bin="$python_prefix/bin/python3.11"
+
 [ -x "$python_bin" ] || {
-    echo "APPIMAGE_BASELINE_BUILD=FAIL: pinned CPython 3.11 runtime missing" >&2
+    echo "APPIMAGE_BASELINE_BUILD=FAIL: shared CPython executable missing" >&2
     exit 3
 }
 
-python_version="$($python_bin -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
-[ "$python_version" = "3.11" ] || {
-    echo "APPIMAGE_BASELINE_BUILD=FAIL: expected Python 3.11, got $python_version" >&2
+python_version="$($python_bin -c 'import platform; print(platform.python_version())')"
+[ "$python_version" = "$DIRUE_PYTHON_VERSION" ] || {
+    echo "APPIMAGE_BASELINE_BUILD=FAIL: expected Python $DIRUE_PYTHON_VERSION, got $python_version" >&2
     exit 3
 }
 
-mkdir -p "$HOME"
+shared="$($python_bin -c 'import sysconfig; print(sysconfig.get_config_var("Py_ENABLE_SHARED") or 0)')"
+[ "$shared" = "1" ] || {
+    echo "APPIMAGE_BASELINE_BUILD=FAIL: compiled CPython is not shared" >&2
+    exit 3
+}
+
+libpython="$($python_bin -c 'import os, sysconfig; print(os.path.join(sysconfig.get_config_var("LIBDIR") or "", sysconfig.get_config_var("LDLIBRARY") or ""))')"
+[ -f "$libpython" ] || {
+    echo "APPIMAGE_BASELINE_BUILD=FAIL: shared libpython was not installed" >&2
+    exit 3
+}
+
+$python_bin -c 'import _ssl, bz2, ctypes, lzma, sqlite3, venv, zlib' || {
+    echo "APPIMAGE_BASELINE_BUILD=FAIL: compiled CPython is missing required standard modules" >&2
+    exit 3
+}
+
+$python_bin -m pip --version >/dev/null || {
+    echo "APPIMAGE_BASELINE_BUILD=FAIL: compiled CPython pip bootstrap failed" >&2
+    exit 3
+}
+
 cd /workspace
 PYTHON_BIN="$python_bin" packaging/appimage/build.sh /output
 CONTAINER
@@ -86,7 +148,8 @@ HOST_SIZE="$(stat -c '%s' "$HOST_ARTIFACT")"
 
 echo "APPIMAGE_BASELINE_IMAGE=$BASELINE_IMAGE"
 echo "APPIMAGE_BASELINE_GLIBC=$BASELINE_GLIBC"
-echo "APPIMAGE_BASELINE_PYTHON=3.11"
+echo "APPIMAGE_BASELINE_PYTHON=$PYTHON_VERSION"
+echo "APPIMAGE_BASELINE_PYTHON_SOURCE_SHA256=$PYTHON_SOURCE_SHA256"
 echo "APPIMAGE_BASELINE_SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
 echo "APPIMAGE_BASELINE_ARTIFACT=$HOST_ARTIFACT"
 echo "APPIMAGE_BASELINE_SHA256=$HOST_HASH"
