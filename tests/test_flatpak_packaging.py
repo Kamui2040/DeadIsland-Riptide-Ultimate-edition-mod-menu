@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 APP_ID = "io.github.Kamui2040.DIRUELinux"
 FLATPAK_DIR = ROOT / "packaging" / "flatpak"
+COMMON_DIR = ROOT / "packaging" / "common"
 MANIFEST = FLATPAK_DIR / f"{APP_ID}.json"
 
 
@@ -21,7 +22,7 @@ class FlatpakPackagingTests(unittest.TestCase):
         self.assertEqual(self.manifest["runtime-version"], "6.11")
         self.assertEqual(self.manifest["base"], "io.qt.PySide.BaseApp")
         self.assertEqual(self.manifest["base-version"], "6.11")
-        self.assertEqual(self.manifest["command"], "dirue-gui")
+        self.assertEqual(self.manifest["command"], "dirue-linux")
         self.assertEqual(
             self.manifest["cleanup-commands"],
             ["/app/cleanup-BaseApp.sh"],
@@ -34,8 +35,9 @@ class FlatpakPackagingTests(unittest.TestCase):
             source_paths,
             [
                 "../../src",
-                f"{APP_ID}.desktop",
-                f"{APP_ID}.metainfo.xml",
+                f"../common/{APP_ID}.desktop",
+                f"../common/{APP_ID}.metainfo.xml",
+                f"../common/{APP_ID}.svg",
             ],
         )
         manifest_text = MANIFEST.read_text(encoding="utf-8")
@@ -60,25 +62,27 @@ class FlatpakPackagingTests(unittest.TestCase):
     def test_manifest_launches_existing_gui_module(self):
         commands = "\n".join(self.manifest["modules"][0]["build-commands"])
         self.assertIn("python3 -m dirue.gui", commands)
+        self.assertIn("/app/bin/dirue-linux", commands)
+        self.assertIn(f"/app/share/icons/hicolor/scalable/apps/{APP_ID}.svg", commands)
 
-    def test_desktop_entry_matches_flatpak_identity(self):
+    def test_shared_desktop_entry_matches_identity(self):
         parser = ConfigParser(interpolation=None)
-        parser.read(FLATPAK_DIR / f"{APP_ID}.desktop", encoding="utf-8")
+        parser.read(COMMON_DIR / f"{APP_ID}.desktop", encoding="utf-8")
         entry = parser["Desktop Entry"]
         self.assertEqual(entry["Type"], "Application")
-        self.assertEqual(entry["Exec"], "dirue-gui")
+        self.assertEqual(entry["Exec"], "dirue-linux")
+        self.assertEqual(entry["Icon"], APP_ID)
         self.assertEqual(entry["Terminal"], "false")
 
-    def test_metainfo_matches_flatpak_identity(self):
-        root = ET.parse(
-            FLATPAK_DIR / f"{APP_ID}.metainfo.xml"
-        ).getroot()
+    def test_shared_metainfo_matches_identity(self):
+        root = ET.parse(COMMON_DIR / f"{APP_ID}.metainfo.xml").getroot()
         self.assertEqual(root.findtext("id"), APP_ID)
         launchable = root.find("launchable")
         self.assertIsNotNone(launchable)
         self.assertEqual(launchable.text, f"{APP_ID}.desktop")
         self.assertEqual(launchable.attrib["type"], "desktop-id")
         self.assertEqual(root.findtext("project_license"), "GPL-3.0-only")
+        self.assertEqual(root.findtext("provides/binary"), "dirue-linux")
 
 
 if __name__ == "__main__":

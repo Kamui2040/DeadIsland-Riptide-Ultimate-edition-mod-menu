@@ -4,24 +4,52 @@ set -eu
 ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="${1:-$ROOT/dist/appimage}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
+APP_ID="io.github.Kamui2040.DIRUELinux"
+COMMON="$ROOT/packaging/common"
 PYINSTALLER_VERSION="6.22.2"
 PYSIDE_VERSION="6.11.1"
-APPIMAGETOOL_URL="${APPIMAGETOOL_URL:-https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage}"
+APPIMAGE_GLIBC_BASELINE="2.34"
+APPIMAGETOOL_VERSION="1.9.1"
+APPIMAGETOOL_URL="https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage"
+APPIMAGETOOL_SHA256="ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0"
+APPIMAGE_RUNTIME_TAG="20251108"
+APPIMAGE_RUNTIME_URL="https://github.com/AppImage/type2-runtime/releases/download/20251108/runtime-x86_64"
+APPIMAGE_RUNTIME_SHA256="2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d"
 
-for command in "$PYTHON_BIN" curl sha256sum; do
-    if ! command -v "$command" >/dev/null 2>&1; then
-        echo "APPIMAGE_BUILD=FAIL: missing build command: $command" >&2
-        exit 2
-    fi
+fail() {
+    echo "APPIMAGE_BUILD=FAIL: $*" >&2
+    exit 2
+}
+
+for command in "$PYTHON_BIN" curl sha256sum stat; do
+    command -v "$command" >/dev/null 2>&1 || fail "missing build command: $command"
 done
 
 case "$(uname -m)" in
     x86_64|amd64) ;;
-    *)
-        echo "APPIMAGE_BUILD=FAIL: proof currently supports x86_64 builders only" >&2
-        exit 2
-        ;;
+    *) fail "hardening build currently supports x86_64 builders only" ;;
 esac
+
+verify_sha256() {
+    path="$1"
+    expected="$2"
+    actual="$(sha256sum "$path" | awk '{print $1}')"
+    if [ "$actual" != "$expected" ]; then
+        echo "APPIMAGE_BUILD=FAIL: digest mismatch for $(basename "$path")" >&2
+        echo "EXPECTED=$expected" >&2
+        echo "ACTUAL=$actual" >&2
+        exit 3
+    fi
+}
+
+download_verified() {
+    url="$1"
+    expected="$2"
+    destination="$3"
+    curl --proto '=https' --tlsv1.2 --fail --location --retry 3 --retry-delay 2 \
+        "$url" --output "$destination"
+    verify_sha256 "$destination" "$expected"
+}
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/dirue-appimage.XXXXXX")"
 cleanup() {
@@ -57,6 +85,7 @@ mkdir -p \
     "$APPDIR/usr/lib/dirue-linux" \
     "$APPDIR/usr/bin" \
     "$APPDIR/usr/share/applications" \
+    "$APPDIR/usr/share/metainfo" \
     "$APPDIR/usr/share/icons/hicolor/scalable/apps"
 
 cp -a "$WORK/dist/dirue-linux/." "$APPDIR/usr/lib/dirue-linux/"
@@ -69,30 +98,28 @@ exec "$APPDIR/usr/bin/dirue-linux" "$@"
 APP_RUN
 chmod 0755 "$APPDIR/AppRun"
 
-install -Dm644 \
-    "$ROOT/packaging/appimage/dirue-linux.desktop" \
-    "$APPDIR/usr/share/applications/dirue-linux.desktop"
-cp "$ROOT/packaging/appimage/dirue-linux.desktop" "$APPDIR/dirue-linux.desktop"
-
-install -Dm644 \
-    "$ROOT/packaging/appimage/dirue-linux.svg" \
-    "$APPDIR/usr/share/icons/hicolor/scalable/apps/dirue-linux.svg"
-ln -s usr/share/icons/hicolor/scalable/apps/dirue-linux.svg "$APPDIR/dirue-linux.svg"
+install -Dm644 "$COMMON/$APP_ID.desktop" "$APPDIR/usr/share/applications/$APP_ID.desktop"
+cp "$COMMON/$APP_ID.desktop" "$APPDIR/$APP_ID.desktop"
+install -Dm644 "$COMMON/$APP_ID.metainfo.xml" "$APPDIR/usr/share/metainfo/$APP_ID.metainfo.xml"
+install -Dm644 "$COMMON/$APP_ID.svg" "$APPDIR/usr/share/icons/hicolor/scalable/apps/$APP_ID.svg"
+ln -s "usr/share/icons/hicolor/scalable/apps/$APP_ID.svg" "$APPDIR/$APP_ID.svg"
+ln -s "$APP_ID.svg" "$APPDIR/.DirIcon"
 
 "$VENV/bin/python" "$ROOT/packaging/appimage/check_appdir.py" "$APPDIR"
 
-APPIMAGETOOL="${APPIMAGETOOL:-}"
-if [ -z "$APPIMAGETOOL" ]; then
-    APPIMAGETOOL="$WORK/appimagetool-x86_64.AppImage"
-    curl --fail --location --retry 3 --retry-delay 2 \
-        "$APPIMAGETOOL_URL" \
-        --output "$APPIMAGETOOL"
-    chmod 0755 "$APPIMAGETOOL"
+APPIMAGETOOL="${APPIMAGETOOL:-$WORK/appimagetool-x86_64.AppImage}"
+if [ ! -e "$APPIMAGETOOL" ]; then
+    download_verified "$APPIMAGETOOL_URL" "$APPIMAGETOOL_SHA256" "$APPIMAGETOOL"
+else
+    verify_sha256 "$APPIMAGETOOL" "$APPIMAGETOOL_SHA256"
 fi
+chmod 0755 "$APPIMAGETOOL"
 
-if [ ! -x "$APPIMAGETOOL" ]; then
-    echo "APPIMAGE_BUILD=FAIL: appimagetool is not executable" >&2
-    exit 3
+APPIMAGE_RUNTIME="${APPIMAGE_RUNTIME:-$WORK/runtime-x86_64}"
+if [ ! -e "$APPIMAGE_RUNTIME" ]; then
+    download_verified "$APPIMAGE_RUNTIME_URL" "$APPIMAGE_RUNTIME_SHA256" "$APPIMAGE_RUNTIME"
+else
+    verify_sha256 "$APPIMAGE_RUNTIME" "$APPIMAGE_RUNTIME_SHA256"
 fi
 
 mkdir -p "$OUT"
@@ -100,7 +127,7 @@ ARTIFACT="$OUT/DIRUE-Linux-$VERSION-x86_64.AppImage"
 rm -f "$ARTIFACT"
 
 ARCH=x86_64 VERSION="$VERSION" APPIMAGE_EXTRACT_AND_RUN=1 \
-    "$APPIMAGETOOL" "$APPDIR" "$ARTIFACT"
+    "$APPIMAGETOOL" --runtime-file "$APPIMAGE_RUNTIME" "$APPDIR" "$ARTIFACT"
 chmod 0755 "$ARTIFACT"
 
 EXTRACT="$WORK/extracted"
@@ -113,9 +140,14 @@ mkdir -p "$EXTRACT"
 
 HASH="$(sha256sum "$ARTIFACT" | awk '{print $1}')"
 SIZE="$(stat -c '%s' "$ARTIFACT")"
+BUILD_GLIBC="$(getconf GNU_LIBC_VERSION 2>/dev/null || printf 'unknown')"
 
 echo "APPIMAGE_ARTIFACT=$ARTIFACT"
 echo "APPIMAGE_VERSION=$VERSION"
 echo "APPIMAGE_SHA256=$HASH"
 echo "APPIMAGE_SIZE=$SIZE"
+echo "APPIMAGE_APPIMAGETOOL=$APPIMAGETOOL_VERSION"
+echo "APPIMAGE_RUNTIME_TAG=$APPIMAGE_RUNTIME_TAG"
+echo "APPIMAGE_BUILD_GLIBC=$BUILD_GLIBC"
+echo "APPIMAGE_TARGET_GLIBC=$APPIMAGE_GLIBC_BASELINE"
 echo "APPIMAGE_BUILD=PASS"

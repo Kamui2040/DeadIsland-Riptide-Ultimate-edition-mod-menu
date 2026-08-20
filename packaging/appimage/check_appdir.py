@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import argparse
+from configparser import ConfigParser
 from pathlib import Path
 import sys
+import xml.etree.ElementTree as ET
 
+APP_ID = "io.github.Kamui2040.DIRUELinux"
 FORBIDDEN_NAMES = {
     "Data0.pak",
     "DIRUE.ahk",
@@ -13,8 +16,7 @@ FORBIDDEN_NAMES = {
     "DeadIslandRiptideGame",
     "DeadIslandRiptideGame.exe",
 }
-
-REQUIRED_TOP_LEVEL = {"AppRun", "dirue-linux.desktop", "dirue-linux.svg", "usr"}
+REQUIRED_TOP_LEVEL = {"AppRun", f"{APP_ID}.desktop", f"{APP_ID}.svg", ".DirIcon", "usr"}
 
 
 def _is_within(path: Path, root: Path) -> bool:
@@ -48,6 +50,31 @@ def validate_appdir(appdir: Path) -> list[str]:
     pyside_evidence = list((root / "usr" / "lib" / "dirue-linux").rglob("PySide6"))
     if not pyside_evidence:
         errors.append("bundled PySide6 runtime was not found")
+
+    desktop_path = root / f"{APP_ID}.desktop"
+    if desktop_path.is_file():
+        parser = ConfigParser(interpolation=None)
+        parser.read(desktop_path, encoding="utf-8")
+        if "Desktop Entry" not in parser:
+            errors.append("root desktop entry is malformed")
+        else:
+            entry = parser["Desktop Entry"]
+            if entry.get("Exec") != "dirue-linux":
+                errors.append("desktop Exec does not match bundled launcher")
+            if entry.get("Icon") != APP_ID:
+                errors.append("desktop Icon does not match application identity")
+
+    metainfo_path = root / "usr" / "share" / "metainfo" / f"{APP_ID}.metainfo.xml"
+    if not metainfo_path.is_file():
+        errors.append("missing shared AppStream metainfo")
+    else:
+        try:
+            component = ET.parse(metainfo_path).getroot()
+        except ET.ParseError as exc:
+            errors.append(f"invalid AppStream metainfo: {exc}")
+        else:
+            if component.findtext("id") != APP_ID:
+                errors.append("AppStream id does not match application identity")
 
     for path in root.rglob("*"):
         if path.name in FORBIDDEN_NAMES:
