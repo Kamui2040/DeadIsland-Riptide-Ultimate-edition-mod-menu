@@ -138,14 +138,22 @@ mkdir -p "$EXTRACT"
 )
 "$VENV/bin/python" "$ROOT/packaging/appimage/check_appdir.py" "$EXTRACT/squashfs-root"
 
-if ! AUDIT_OUTPUT="$(
-    "$VENV/bin/python" "$ROOT/packaging/appimage/audit_glibc.py" \
-        --max "$APPIMAGE_GLIBC_BASELINE" \
-        "$ARTIFACT" \
-        "$EXTRACT/squashfs-root"
-)"; then
+AUDIT_STDOUT="$WORK/glibc-audit.out"
+AUDIT_STDERR="$WORK/glibc-audit.err"
+if ! "$VENV/bin/python" "$ROOT/packaging/appimage/audit_glibc.py" \
+    --max "$APPIMAGE_GLIBC_BASELINE" \
+    "$ARTIFACT" \
+    "$EXTRACT/squashfs-root" \
+    >"$AUDIT_STDOUT" 2>"$AUDIT_STDERR"
+then
+    AUDIT_DETAIL="$(
+        sed -n '/^GLIBC_AUDIT_\(VIOLATION\|ERROR\)=/p' "$AUDIT_STDERR" |
+            head -n 1
+    )"
+    [ -n "$AUDIT_DETAIL" ] && echo "$AUDIT_DETAIL" >&2
     fail "finished AppImage failed GLIBC compatibility audit"
 fi
+AUDIT_OUTPUT="$(cat "$AUDIT_STDOUT")"
 
 AUDIT_FILES="$(printf '%s\n' "$AUDIT_OUTPUT" | sed -n 's/^GLIBC_ELF_FILES=//p' | tail -n 1)"
 AUDIT_MAX="$(printf '%s\n' "$AUDIT_OUTPUT" | sed -n 's/^GLIBC_MAX_REQUIRED=//p' | tail -n 1)"
