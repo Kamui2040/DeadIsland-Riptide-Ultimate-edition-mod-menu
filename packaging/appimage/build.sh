@@ -9,6 +9,7 @@ COMMON="$ROOT/packaging/common"
 PYINSTALLER_VERSION="6.22.2"
 PYSIDE_VERSION="6.11.1"
 APPIMAGE_GLIBC_BASELINE="2.34"
+HOST_SYSTEM_LIBRARY_EXCLUDES="libgcc_s.so.1"
 APPIMAGETOOL_VERSION="1.9.1"
 APPIMAGETOOL_URL="https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage"
 APPIMAGETOOL_SHA256="ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0"
@@ -21,7 +22,7 @@ fail() {
     exit 2
 }
 
-for command in "$PYTHON_BIN" curl sha256sum stat; do
+for command in "$PYTHON_BIN" curl find sha256sum stat; do
     command -v "$command" >/dev/null 2>&1 || fail "missing build command: $command"
 done
 
@@ -49,6 +50,15 @@ download_verified() {
     curl --proto '=https' --tlsv1.2 --fail --location --retry 3 --retry-delay 2 \
         "$url" --output "$destination"
     verify_sha256 "$destination" "$expected"
+}
+
+exclude_host_system_libraries() {
+    bundle_root="$1"
+    for library in $HOST_SYSTEM_LIBRARY_EXCLUDES; do
+        find "$bundle_root" -name "$library" -exec rm -f -- {} +
+        remaining="$(find "$bundle_root" -name "$library" -print -quit)"
+        [ -z "$remaining" ] || fail "failed to exclude host system library: $library"
+    done
 }
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/dirue-appimage.XXXXXX")"
@@ -79,6 +89,8 @@ mkdir -p "$WORK/pyinstaller" "$WORK/spec" "$WORK/dist"
     --specpath "$WORK/spec" \
     --distpath "$WORK/dist" \
     "$ROOT/packaging/appimage/entrypoint.py"
+
+exclude_host_system_libraries "$WORK/dist/dirue-linux"
 
 APPDIR="$WORK/DIRUELinux.AppDir"
 mkdir -p \
@@ -178,6 +190,7 @@ echo "APPIMAGE_APPIMAGETOOL=$APPIMAGETOOL_VERSION"
 echo "APPIMAGE_RUNTIME_TAG=$APPIMAGE_RUNTIME_TAG"
 echo "APPIMAGE_BUILD_GLIBC=$BUILD_GLIBC"
 echo "APPIMAGE_TARGET_GLIBC=$APPIMAGE_GLIBC_BASELINE"
+echo "APPIMAGE_SYSTEM_LIBRARY_EXCLUDES=$HOST_SYSTEM_LIBRARY_EXCLUDES"
 echo "APPIMAGE_ELF_FILES=$AUDIT_FILES"
 echo "APPIMAGE_MAX_REQUIRED_GLIBC=$AUDIT_MAX"
 echo "APPIMAGE_GLIBC_AUDIT=PASS"
