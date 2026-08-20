@@ -68,6 +68,19 @@ class QtGuiValidationFlowTests(unittest.TestCase):
         self.assertIn("DIRUE Linux {__version__}", SOURCE)
         self.assertIn("About DIRUE Linux", SOURCE)
 
+    def test_packaged_window_icon_uses_shared_app_identity(self):
+        self.assertIn('APP_ID = "io.github.Kamui2040.DIRUELinux"', SOURCE)
+        calls = _call_names(_method("_application_icon"))
+        self.assertIn("fromTheme", calls)
+        self.assertIn("is_file", calls)
+        self.assertIn("APPDIR", SOURCE)
+        self.assertIn("/app/share/icons/hicolor/scalable/apps", SOURCE)
+
+    def test_primary_and_restore_actions_have_clear_labels(self):
+        self.assertIn('QPushButton("Apply changes")', SOURCE)
+        self.assertIn('QPushButton("Restore pristine")', SOURCE)
+        self.assertIn("buttons.addStretch(1)", SOURCE)
+
 
 if __name__ == "__main__":
     unittest.main()
