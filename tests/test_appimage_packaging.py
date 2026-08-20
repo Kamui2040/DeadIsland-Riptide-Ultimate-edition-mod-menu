@@ -90,7 +90,7 @@ class AppImagePackagingTests(unittest.TestCase):
 
     def test_baseline_builder_isolated_and_fail_closed(self):
         script = (APPIMAGE_DIR / "build-baseline.sh").read_text(encoding="utf-8")
-        self.assertIn("podman run --rm", script)
+        self.assertIn("podman run --rm -i", script)
         self.assertIn("--userns=keep-id", script)
         self.assertIn("--security-opt label=disable", script)
         self.assertIn('--volume "$ROOT:/workspace:ro"', script)
