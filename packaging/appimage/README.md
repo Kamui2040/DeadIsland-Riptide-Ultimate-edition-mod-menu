@@ -40,6 +40,8 @@ Physical Bazzite probing on 2026-08-20 verified that the pinned manylinux image 
 
 `build-baseline.sh` is the release-portability entry point. It uses rootless Podman, mounts the repository read-only, writes only to the requested output directory, checks that the container actually reports glibc `2.34` and CPython `3.11`, then invokes `build.sh` inside that exact digest-pinned environment. `SOURCE_DATE_EPOCH` defaults to the source commit timestamp and can be supplied explicitly for reproducibility checks.
 
+The wrapper also fails closed unless exactly one AppImage appears in the host output directory after the container exits. It verifies that host-visible artifact is executable and emits authoritative `APPIMAGE_BASELINE_ARTIFACT`, `APPIMAGE_BASELINE_SHA256`, and `APPIMAGE_BASELINE_SIZE` values. Callers must consume those host values rather than infer a host path from the container's `/output` path.
+
 From the repository root on x86-64 Linux:
 
 ```bash
@@ -57,4 +59,4 @@ The pinned manylinux image enforces that build floor instead of inheriting the d
 
 ## Remaining release work
 
-The initial AppImage proof and hardening stage 1 are complete. The pinned glibc-2.34 baseline environment is now implemented and awaits physical double-build/reproducibility validation. UI polish and release-candidate QA remain later release work.
+The initial AppImage proof and hardening stage 1 are complete. The pinned glibc-2.34 baseline environment is implemented and awaits physical double-build/reproducibility validation. UI polish and release-candidate QA remain later release work.
