@@ -66,6 +66,18 @@ class AppImagePackagingTests(unittest.TestCase):
         self.assertIn('"PySide6==$PYSIDE_VERSION"', script)
         self.assertIn("APPIMAGE_EXTRACT_AND_RUN=1", script)
 
+    def test_reproducible_build_controls_are_fixed(self):
+        script = (APPIMAGE_DIR / "build.sh").read_text(encoding="utf-8")
+        self.assertIn('PYINSTALLER_HASH_SEED="1"', script)
+        self.assertIn('export PYTHONHASHSEED="$PYINSTALLER_HASH_SEED"', script)
+        self.assertIn("normalize_appdir_timestamps", script)
+        self.assertIn("SOURCE_DATE_EPOCH must be an integer", script)
+        self.assertIn("follow_symlinks=False", script)
+        self.assertIn("appdir_content_sha256", script)
+        self.assertIn("APPIMAGE_PYTHONHASHSEED=", script)
+        self.assertIn("APPIMAGE_SOURCE_DATE_EPOCH=", script)
+        self.assertIn("APPIMAGE_APPDIR_CONTENT_SHA256=", script)
+
     def test_external_appimage_tools_are_immutable_and_digest_checked(self):
         script = (APPIMAGE_DIR / "build.sh").read_text(encoding="utf-8")
         self.assertIn("releases/download/1.9.1/appimagetool-x86_64.AppImage", script)
