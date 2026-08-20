@@ -6,7 +6,7 @@
 - Fork: `Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu`
 - Primary branch: `main`
 - Development branch: `linux-port`
-- Active release branch: `release/flatpak-proof`
+- Active release branch: `release/appimage-proof`
 - License: GNU GPLv3, inherited and preserved
 
 Milestone 1 is a faithful native-Linux port of released DIRUE behavior. Released-option parity is integrated on fork `main`. The validated 42-option parity state was integrated on 2026-08-17 and upstream remains untouched.
@@ -113,7 +113,15 @@ KDE/UDisks D-Bus disconnect warnings were observed during the GUI run, but they 
 
 The initial Flatpak proof is therefore **complete**. Final iconography, screenshots, release metadata, Flathub submission lint, UI polish, and release-candidate artifact checks remain later release work.
 
-AppImage proof work follows next. UI polish remains after both packaging proofs.
+### Active AppImage proof
+
+The AppImage proof implementation is now isolated on `release/appimage-proof`. It uses PyInstaller onedir inside a type-2 AppImage so the user-facing artifact remains one file without adding PyInstaller's separate onefile extraction layer. The proof source boundary is limited to `src/dirue` plus public-safe AppImage packaging metadata and explicitly excludes inherited/game payloads.
+
+The proof pins PyInstaller `6.22.2` and PySide6 `6.11.1`, checks both the staged AppDir and the extracted final AppImage for required bundled runtimes, forbidden payload names, and escaping symlinks, and records the final artifact hash and size. The proof-only build may download the official continuous `appimagetool`; exact tool digest pinning is deferred to shared packaging hardening and is required before release builds.
+
+Physical Bazzite AppImage build/launch/Apply/Restore QA has not yet been performed. A Bazzite-built PyInstaller artifact is only Bazzite execution evidence; broader AppImage portability requires a deliberate oldest-supported glibc build baseline during shared packaging hardening.
+
+UI polish remains after both packaging proofs.
 
 SteamOS is treated as an operating-system target, not as a Steam Deck-only target. Hardware-specific Steam Deck or Steam Machine validation is not claimed without corresponding hardware evidence.
 
@@ -126,9 +134,10 @@ SteamOS is treated as an operating-system target, not as a Steam Deck-only targe
 - application transaction and recovery behavior remain validated;
 - reproducible wheel/sdist packaging and isolated installed-wheel checks pass for the 42-option state;
 - bounded Flatpak build/import/sandbox/portal/Apply/Restore proof passes on physical Bazzite;
+- AppImage proof implementation and static safeguards are present, with physical proof pending;
 - no GitHub Actions were used.
 
-No further routine gameplay or legacy wheel/sdist QA is required absent a newly identified risk. AppImage packaging, shared packaging hardening, UI polish, and final release-candidate QA remain separate pending gates.
+No further routine gameplay or legacy wheel/sdist QA is required absent a newly identified risk. AppImage physical proof, shared packaging hardening, UI polish, and final release-candidate QA remain separate pending gates.
 
 ## Remaining gates
 
