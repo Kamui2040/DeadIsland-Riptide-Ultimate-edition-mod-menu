@@ -47,6 +47,7 @@ The inherited upstream `Data0.pak` is historical upstream material. Linux-port c
 - For containerized packaging, do not infer host artifact paths from container paths. The wrapper must verify the artifact is visible on the host and emit an authoritative host path/hash for handoffs to consume.
 - When a container command reads a here-document or other stdin-driven script, attach stdin explicitly and verify the intended side effect before treating a zero exit as success.
 - ELF compatibility audits must use program/dynamic headers rather than requiring section tables; stripped static runtimes may legitimately omit section headers.
+- If a container-only copy of a base system library raises the intended ABI floor, exclude it explicitly, checker-enforce its absence, and keep the finished-artifact audit; do not silently raise the target baseline.
 - When a handoff invokes a Python CLI module, verify that the invocation executes the CLI entrypoint and produces the expected output or artifact; a zero exit from an import-only module is not evidence of execution.
 - For gameplay QA after candidate installation, use a bounded automatic process-start wait rather than a one-shot keypress-gated start check; accept observations only after verified native-game start and exit.
 - Use simple, natural, direct language in repository submissions and project chat. Avoid needless jargon, robotic phrasing, and long explanations.
@@ -117,7 +118,7 @@ Keep responsibilities separated:
 
 Cleanup is continuous maintenance, not an end-of-task step.
 
-- At the start, during, and end of each meaningful work unit, classify residue and remove only items proven obsolete when safe.
+- At the start, during and end of each meaningful work unit, classify residue and remove only items proven obsolete when safe.
 - Regularly maintain repository worktrees, the local mirror, project docs, private evidence, temporary extracts, fixtures, build outputs, and QA artifacts.
 - Remove stale temporary data, duplicate notes, redundant evidence, and superseded scripts when their replacement is verified.
 - For versioned QA report files, delete superseded local report generations in the same work unit once replacement evidence is accepted and no unresolved work still depends on them; manual QA handoffs must clean prior report outputs, not only `/tmp` files.
