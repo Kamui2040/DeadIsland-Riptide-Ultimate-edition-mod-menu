@@ -105,6 +105,8 @@ class MainWindow(QMainWindow):
         steps.setStyleSheet("font-weight: 600;")
         layout.addWidget(steps)
 
+        game_box = QGroupBox("Game installation")
+        game_layout = QVBoxLayout(game_box)
         folder_row = QHBoxLayout()
         self._root_edit = QLineEdit()
         self._root_edit.setPlaceholderText(
@@ -125,11 +127,14 @@ class MainWindow(QMainWindow):
         folder_row.addWidget(self._root_edit, 1)
         folder_row.addWidget(self._browse_button)
         folder_row.addWidget(self._validate_button)
-        layout.addLayout(folder_row)
+        game_layout.addLayout(folder_row)
 
-        self._status = QLabel("Choose the native game folder, then select Validate.")
+        self._status = QLabel(
+            "Needs validation — choose the native game folder, then select Validate."
+        )
         self._status.setWordWrap(True)
-        layout.addWidget(self._status)
+        game_layout.addWidget(self._status)
+        layout.addWidget(game_box)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -194,6 +199,10 @@ class MainWindow(QMainWindow):
         buttons.addWidget(self._restore_button)
         layout.addLayout(buttons)
 
+        activity = QLabel("Activity")
+        activity.setStyleSheet("font-weight: 600;")
+        layout.addWidget(activity)
+
         self._log = QPlainTextEdit()
         self._log.setReadOnly(True)
         self._log.setMaximumBlockCount(500)
@@ -224,10 +233,12 @@ class MainWindow(QMainWindow):
         self._apply_button.setEnabled(False)
         self._restore_button.setEnabled(False)
         if self._root() is None:
-            self._status.setText("Choose the native game folder, then select Validate.")
+            self._status.setText(
+                "Needs validation — choose the native game folder, then select Validate."
+            )
         else:
             self._status.setText(
-                "Folder selected. Validate this folder before applying or restoring changes."
+                "Needs validation — folder selected. Validate it before applying or restoring changes."
             )
 
     def _browse(self) -> None:
@@ -273,8 +284,8 @@ class MainWindow(QMainWindow):
 
         self._validated_root = root
         self._status.setText(
-            f"Validated native game. Data0: {status.game.archive.entry_count} entries, "
-            f"SHA-256 {status.game.archive.sha256}. {backup_state}"
+            f"Ready — native game validated. Data0 has {status.game.archive.entry_count} "
+            f"entries. {backup_state}"
         )
         self._apply_button.setEnabled(can_apply)
         self._restore_button.setEnabled(can_restore)
@@ -291,12 +302,12 @@ class MainWindow(QMainWindow):
         self._validated_root = None
         self._apply_button.setEnabled(False)
         self._restore_button.setEnabled(False)
-        self._status.setText("Validating selected game folder…")
+        self._status.setText("Validating — checking the selected native game folder…")
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             status = inspect_game(root)
         except DirueError as exc:
-            self._status.setText(f"Validation failed: {exc}")
+            self._status.setText(f"Validation failed — {exc}")
             self._append(f"VALIDATION FAIL: {exc}")
         else:
             self._render_validated_status(root, status)
@@ -343,7 +354,9 @@ class MainWindow(QMainWindow):
             result = apply_selection(root, selected)
         except DirueError as exc:
             self._validated_root = None
-            self._status.setText("Apply failed. Validate the game folder again before retrying.")
+            self._status.setText(
+                "Apply failed — validate the game folder again before retrying."
+            )
             self._append(f"APPLY FAIL: {exc}")
             QMessageBox.critical(self, "Apply failed", str(exc))
         else:
@@ -351,8 +364,8 @@ class MainWindow(QMainWindow):
             self._apply_button.setEnabled(False)
             self._restore_button.setEnabled(True)
             self._status.setText(
-                "Modifications installed successfully. The pristine backup is retained; "
-                "restore it before applying a different selection."
+                "Applied — modifications installed successfully. The pristine backup is "
+                "retained; restore it before applying a different selection."
             )
             self._append("APPLY PASS")
             self._append(f"Installed SHA-256: {result.installed_sha256}")
@@ -389,7 +402,9 @@ class MainWindow(QMainWindow):
             result = restore_pristine(root)
         except DirueError as exc:
             self._validated_root = None
-            self._status.setText("Restore failed. Validate the game folder again before retrying.")
+            self._status.setText(
+                "Restore failed — validate the game folder again before retrying."
+            )
             self._append(f"RESTORE FAIL: {exc}")
             QMessageBox.critical(self, "Restore failed", str(exc))
         else:
@@ -397,7 +412,7 @@ class MainWindow(QMainWindow):
             self._apply_button.setEnabled(True)
             self._restore_button.setEnabled(True)
             self._status.setText(
-                "Pristine Data0 restored successfully. This folder remains ready for a new selection."
+                "Ready — pristine Data0 restored successfully. This folder can accept a new selection."
             )
             self._append("RESTORE PASS")
             self._append(f"Restored SHA-256: {result.restored_sha256}")
