@@ -128,7 +128,9 @@ Physical Bazzite QA on 2026-08-21 accepted a full UBI baseline build at commit `
 - the baseline AppImage launched successfully;
 - `UBI_BASELINE_BUILD_CHECK=PASS`.
 
-This establishes a working glibc-2.34 build-and-launch baseline. The remaining stage-2 gate is a double build with the same source commit and `SOURCE_DATE_EPOCH`, followed by byte/hash comparison and an ELF `GLIBC_*` requirement audit. Broader SteamOS/general-Linux AppImage portability is not claimed until those checks pass.
+The finished-artifact ELF audit then identified a real compatibility issue: PyInstaller had collected UBI's `libgcc_s.so.1`, and that bundled copy requires `GLIBC_2.35`. Raising the declared floor would hide rather than fix the mismatch. The active builder instead treats `libgcc_s.so.1` as a low-level target-system base runtime, removes any collected copy before assembling the AppDir, and makes `check_appdir.py` reject the name if it reappears. The program/dynamic-header ELF audit remains mandatory for the AppImage runtime and all remaining bundled ELF payloads.
+
+This explicit base-library exclusion is implemented but not yet physically accepted. The remaining stage-2 gate is still a double build with the same source commit and `SOURCE_DATE_EPOCH`, followed by byte/hash comparison, finished-artifact ELF `GLIBC_*` audit, and packaged launch validation. Broader SteamOS/general-Linux AppImage portability is not claimed until those checks pass.
 
 ## UI-polish decision carried from packaging QA
 
@@ -148,13 +150,14 @@ Verified now:
 - shared packaging hardening stage 1 passes on physical Bazzite;
 - the exact UBI glibc-2.34/Python-3.11 baseline image and its shared-Python prerequisites are physically verified on Bazzite;
 - a complete UBI baseline AppImage build and launch passes on physical Bazzite;
+- the finished-artifact audit physically identified the bundled UBI `libgcc_s.so.1` as requiring `GLIBC_2.35`;
 - no GitHub Actions were used.
 
 No further routine gameplay or legacy wheel/sdist QA is required absent a newly identified risk.
 
 ## Remaining release gates
 
-1. **Finish shared packaging hardening** — validate two UBI baseline AppImage builds for byte reproducibility, inspect finished-artifact ELF glibc requirements, keep Flatpak/AppImage metadata and payload checks aligned, and complete remaining artifact-integrity checks.
+1. **Finish shared packaging hardening** — physically validate the explicit host `libgcc_s.so.1` exclusion, two UBI baseline AppImage builds for byte reproducibility, the finished-artifact ELF glibc audit, and packaged launch; keep Flatpak/AppImage metadata and payload checks aligned.
 2. **UI polish** — including manual validation flow, first-run clarity, hierarchy/spacing, status/error presentation, Apply/Restore affordances, iconography, window behavior, and version/about information.
 3. **Release candidate** — freeze one exact source commit and build both primary formats from it.
 4. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
