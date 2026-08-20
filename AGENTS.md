@@ -46,6 +46,7 @@ The inherited upstream `Data0.pak` is historical upstream material. Linux-port c
 - Parse command output by fields or delimiters instead of relying on exact whitespace formatting.
 - For containerized packaging, do not infer host artifact paths from container paths. The wrapper must verify the artifact is visible on the host and emit an authoritative host path/hash for handoffs to consume.
 - When a container command reads a here-document or other stdin-driven script, attach stdin explicitly and verify the intended side effect before treating a zero exit as success.
+- ELF compatibility audits must use program/dynamic headers rather than requiring section tables; stripped static runtimes may legitimately omit section headers.
 - When a handoff invokes a Python CLI module, verify that the invocation executes the CLI entrypoint and produces the expected output or artifact; a zero exit from an import-only module is not evidence of execution.
 - For gameplay QA after candidate installation, use a bounded automatic process-start wait rather than a one-shot keypress-gated start check; accept observations only after verified native-game start and exit.
 - Use simple, natural, direct language in repository submissions and project chat. Avoid needless jargon, robotic phrasing, and long explanations.
