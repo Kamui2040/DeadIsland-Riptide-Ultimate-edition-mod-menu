@@ -1,6 +1,6 @@
 # AppImage packaging
 
-This directory contains the portable AppImage packaging for DIRUE Linux. The initial Bazzite proof is accepted; current work hardens the build so release artifacts do not inherit mutable external tooling or accidental host compatibility assumptions.
+This directory contains the portable AppImage packaging for DIRUE Linux. The initial Bazzite proof and shared packaging hardening are accepted; the hardened path is the basis for later release-candidate builds.
 
 ## Design
 
@@ -61,7 +61,7 @@ Physical Bazzite QA on 2026-08-21 accepted a full build through the UBI wrapper 
 
 The wrapper verified glibc `2.34` and Python `3.11.13`, produced exactly one host-visible executable AppImage, and the artifact launched successfully. The artifact size was `60,295,672` bytes and SHA-256 was `4164af8cd4bfd762d7e0d0a2183475e017a1df09c55873252e05c1c3e81b6730`.
 
-This establishes that the pinned UBI environment can produce and launch the hardened AppImage. It does not by itself establish byte reproducibility or prove that every bundled ELF requires no glibc version newer than `2.34`.
+This established that the pinned UBI environment could produce and launch the hardened AppImage before the final reproducibility and ELF-compatibility gates were added.
 
 ## GLIBC audit finding
 
@@ -69,22 +69,31 @@ Physical stage-2 auditing on 2026-08-21 identified the PyInstaller-collected `li
 
 `libgcc_s.so.1` is therefore treated as a target-system base runtime rather than bundled payload. `build.sh` removes any collected copy before the AppDir is assembled, `check_appdir.py` rejects the name if it reappears anywhere in the AppImage payload, and the finished-artifact GLIBC audit remains mandatory for all bundled ELFs. The 2.34 floor is not raised to accommodate a container-specific base-library copy.
 
-This exclusion is implemented but still requires the same physical double-build, audit, and launch validation before stage 2 is accepted.
+## Reproducible hardened baseline
 
-## Reproducibility finding
+An initial post-exclusion double build was not byte reproducible. PyInstaller documents that deterministic builds require a fixed `PYTHONHASHSEED`, so the builder now fixes `PYTHONHASHSEED=1`, fixes locale/timezone inputs, normalizes every AppDir timestamp including symlinks to the supplied `SOURCE_DATE_EPOCH`, and emits `APPIMAGE_APPDIR_CONTENT_SHA256` over entry type, mode, path, symlink target, and file content.
 
-The next physical double build reached the byte-comparison gate but was not reproducible. With the same source commit and fixed `SOURCE_DATE_EPOCH`, the two AppImages produced SHA-256 values `c4491876d285ddc875c7ac4dac22d8735e589a20519666f3f49c35f6a48066fc` and `f22abba0169e2d430d81c7578e92af75dae8887c1a99a9b4b74efc344f7428cd`. Issue #5 tracks the unresolved reproducibility gate.
+Physical Bazzite QA on 2026-08-21 accepted the complete hardening stage 2 at commit `f37d39165212b84954cf60c34b0d97bdec313511`:
 
-PyInstaller documents that reproducible builds require a fixed `PYTHONHASHSEED`. The active builder now fixes `PYTHONHASHSEED=1`, fixes locale/timezone inputs, normalizes every AppDir timestamp including symlinks to the supplied `SOURCE_DATE_EPOCH`, and emits `APPIMAGE_APPDIR_CONTENT_SHA256`. That fingerprint covers entry type, mode, path, symlink target, and file content while deliberately ignoring timestamps. A subsequent double build can therefore distinguish PyInstaller/AppDir payload nondeterminism from SquashFS/AppImage container metadata.
+- both builds used glibc `2.34`, Python `3.11.13`, `PYTHONHASHSEED=1`, and the same source-derived `SOURCE_DATE_EPOCH`;
+- both AppDirs matched at SHA-256 `5741e2dab0460061bc5a1d26187a8eb5323ec30a0b6187757c4cd067d5a175ce`;
+- both final AppImages were byte-identical;
+- final AppImage SHA-256 was `07284a312c929cd46bcc191ba9f76f3683d2134f36e912622b77656079376dd4`;
+- final size was `60,246,520` bytes;
+- the ELF audit inspected 179 files and reported maximum required `GLIBC_2.34`;
+- the bundled `libgcc_s.so.1` exclusion remained enforced;
+- direct AppImage launch passed.
 
-These reproducibility controls are implemented but have not yet been physically accepted.
+This closes the stage-2 reproducibility defect tracked as Issue #5 and completes shared AppImage packaging hardening.
 
 ## Compatibility boundary
 
 PySide6 `6.11.1` publishes its x86-64 Linux wheel for `manylinux_2_34`, so glibc `2.34` is the lowest practical x86-64 baseline for this pinned GUI dependency.
 
-The pinned UBI 9 image enforces glibc `2.34` rather than inheriting the developer host's newer glibc. `libgcc_s.so.1` is intentionally resolved from the target system as a low-level base library. Broader SteamOS/general-Linux AppImage compatibility is still not accepted until two baseline builds are byte-identical, the finished artifact passes the ELF `GLIBC_*` requirement audit, and the resulting AppImage launches successfully.
+The pinned UBI 9 image enforces glibc `2.34` rather than inheriting the developer host's newer glibc. `libgcc_s.so.1` is intentionally resolved from the target system as a low-level base library. The accepted artifact has no audited bundled ELF requirement above `GLIBC_2.34` and launches on Bazzite.
+
+This is still a bounded x86-64 compatibility claim. The UBI/RHEL 9 family may imply an x86-64-v2 CPU floor, so compatibility with older pre-v2 x86-64 processors is not established by this evidence.
 
 ## Remaining release work
 
-The initial AppImage proof, hardening stage 1, and the single UBI baseline build/launch check are complete. The remaining stage-2 work is physical validation of the fixed-hash/timestamp reproducibility controls, byte-identical double builds, the ELF glibc-symbol audit after the explicit base-library exclusion, and packaged launch validation. UI polish and release-candidate QA remain later release work.
+The initial AppImage proof and shared packaging hardening stages 1 and 2 are complete. The next release stage is UI polish, followed by release-candidate freeze, packaged Bazzite QA of both primary formats, final rebuild/verification, and an explicitly approved public release.
