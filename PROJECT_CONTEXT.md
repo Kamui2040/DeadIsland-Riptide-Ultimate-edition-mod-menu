@@ -113,11 +113,22 @@ Physical Bazzite QA on 2026-08-20 accepted hardening stage 1 at commit `15437a1e
 - artifact hash verification passed;
 - `PACKAGING_HARDENING_STAGE1=PASS`.
 
-Hardening stage 2 now uses the digest-pinned UBI 9 Python 3.11 image `registry.access.redhat.com/ubi9/python-311@sha256:7b6cb58d3ff034df7b300800bd89a469d9bd2f739d43250d76b9c9e805307ab5` as the portable AppImage build environment. Physical Bazzite probing on 2026-08-21 verified that exact image reports glibc `2.34`, provides Python `3.11.13` at `/usr/bin/python3.11`, exposes shared `libpython`, imports the required `_ssl`, `bz2`, `ctypes`, `lzma`, `venv`, and `zlib` modules, and has pip available.
+Hardening stage 2 uses the digest-pinned UBI 9 Python 3.11 image `registry.access.redhat.com/ubi9/python-311@sha256:7b6cb58d3ff034df7b300800bd89a469d9bd2f739d43250d76b9c9e805307ab5` as the portable AppImage build environment. Physical Bazzite probing on 2026-08-21 verified that exact image reports glibc `2.34`, provides Python `3.11.13` at `/usr/bin/python3.11`, exposes shared `libpython`, imports the required `_ssl`, `bz2`, `ctypes`, `lzma`, `venv`, and `zlib` modules, and has pip available.
 
 The earlier manylinux image was rejected for PyInstaller because its probed CPython 3.11 runtimes were static. A source-built shared-CPython detour was also rejected after physical validation found missing extension modules. The current wrapper no longer compiles Python; it fail-closes on the verified packaged interpreter properties before invoking the hardened AppImage builder, then requires exactly one host-visible executable AppImage and emits authoritative host artifact/hash/size values.
 
-The remaining stage-2 gate is a physical AppImage build through the UBI wrapper, followed by double-build reproducibility, ELF glibc-symbol inspection, and packaged launch validation. Broader SteamOS/general-Linux AppImage portability is not claimed until those checks pass.
+Physical Bazzite QA on 2026-08-21 accepted a full UBI baseline build at commit `40813fc8260a94b9b0594dce4f23fb02ea0dbe1f`:
+
+- the wrapper and inner builder both ran under glibc `2.34`;
+- Python `3.11.13` passed the shared-runtime prerequisite checks;
+- exactly one host-visible executable AppImage was produced;
+- artifact size was `60,295,672` bytes;
+- SHA-256 was `4164af8cd4bfd762d7e0d0a2183475e017a1df09c55873252e05c1c3e81b6730`;
+- the reported and independently computed artifact metadata matched;
+- the baseline AppImage launched successfully;
+- `UBI_BASELINE_BUILD_CHECK=PASS`.
+
+This establishes a working glibc-2.34 build-and-launch baseline. The remaining stage-2 gate is a double build with the same source commit and `SOURCE_DATE_EPOCH`, followed by byte/hash comparison and an ELF `GLIBC_*` requirement audit. Broader SteamOS/general-Linux AppImage portability is not claimed until those checks pass.
 
 ## UI-polish decision carried from packaging QA
 
@@ -136,13 +147,14 @@ Verified now:
 - bounded AppImage build/payload/launch/Apply/Restore/relaunch proof passes on physical Bazzite;
 - shared packaging hardening stage 1 passes on physical Bazzite;
 - the exact UBI glibc-2.34/Python-3.11 baseline image and its shared-Python prerequisites are physically verified on Bazzite;
+- a complete UBI baseline AppImage build and launch passes on physical Bazzite;
 - no GitHub Actions were used.
 
 No further routine gameplay or legacy wheel/sdist QA is required absent a newly identified risk.
 
 ## Remaining release gates
 
-1. **Finish shared packaging hardening** — physically validate the UBI baseline AppImage build, then validate two baseline AppImage builds for reproducibility, inspect ELF glibc requirements, verify packaged launch, keep Flatpak/AppImage metadata and payload checks aligned, and complete remaining artifact-integrity checks.
+1. **Finish shared packaging hardening** — validate two UBI baseline AppImage builds for byte reproducibility, inspect finished-artifact ELF glibc requirements, keep Flatpak/AppImage metadata and payload checks aligned, and complete remaining artifact-integrity checks.
 2. **UI polish** — including manual validation flow, first-run clarity, hierarchy/spacing, status/error presentation, Apply/Restore affordances, iconography, window behavior, and version/about information.
 3. **Release candidate** — freeze one exact source commit and build both primary formats from it.
 4. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
