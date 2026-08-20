@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.Kamui2040.DIRUELinux</id>
+  <name>DIRUE Linux</name>
+  <summary>Native Linux port of the DIRUE mod menu</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <description>
+    <p>DIRUE Linux is a native Linux port of FireEyeEian's Dead Island Riptide Ultimate Edition mod menu.</p>
+    <p>It patches the user's own validated native Dead Island: Riptide Definitive Edition installation and does not redistribute game assets.</p>
+  </description>
+  <launchable type="desktop-id">io.github.Kamui2040.DIRUELinux.desktop</launchable>
+  <provides>
+    <binary>dirue-gui</binary>
+  </provides>
+  <url type="homepage">https://github.com/Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu</url>
+  <content_rating type="oars-1.1"/>
+</component>

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=DIRUE Linux
+GenericName=Game mod menu
+Comment=Native Linux DIRUE mod menu for Dead Island: Riptide Definitive Edition
+Exec=dirue-gui
+Icon=applications-games
+Terminal=false
+Categories=Game;Utility;
+StartupNotify=true

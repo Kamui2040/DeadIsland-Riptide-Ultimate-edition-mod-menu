@@ -1,0 +1,85 @@
+from configparser import ConfigParser
+import json
+from pathlib import Path
+import unittest
+import xml.etree.ElementTree as ET
+
+
+ROOT = Path(__file__).resolve().parents[1]
+APP_ID = "io.github.Kamui2040.DIRUELinux"
+FLATPAK_DIR = ROOT / "packaging" / "flatpak"
+MANIFEST = FLATPAK_DIR / f"{APP_ID}.json"
+
+
+class FlatpakPackagingTests(unittest.TestCase):
+    def setUp(self):
+        self.manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+
+    def test_manifest_uses_pyside_base_app(self):
+        self.assertEqual(self.manifest["id"], APP_ID)
+        self.assertEqual(self.manifest["runtime"], "org.kde.Platform")
+        self.assertEqual(self.manifest["runtime-version"], "6.11")
+        self.assertEqual(self.manifest["base"], "io.qt.PySide.BaseApp")
+        self.assertEqual(self.manifest["base-version"], "6.11")
+        self.assertEqual(self.manifest["command"], "dirue-gui")
+        self.assertEqual(
+            self.manifest["cleanup-commands"],
+            ["/app/cleanup-BaseApp.sh"],
+        )
+
+    def test_manifest_sources_are_public_safe_and_bounded(self):
+        module = self.manifest["modules"][0]
+        source_paths = [source["path"] for source in module["sources"]]
+        self.assertEqual(
+            source_paths,
+            [
+                "../../src",
+                f"{APP_ID}.desktop",
+                f"{APP_ID}.metainfo.xml",
+            ],
+        )
+        manifest_text = MANIFEST.read_text(encoding="utf-8")
+        for forbidden in (
+            "Data0.pak",
+            "Required_files_and_scripts",
+            "DIRUE.ahk",
+            "UI/",
+        ):
+            self.assertNotIn(forbidden, manifest_text)
+
+    def test_manifest_starts_portal_first_without_host_filesystem_access(self):
+        finish_args = self.manifest["finish-args"]
+        self.assertNotIn("--share=network", finish_args)
+        self.assertNotIn("--filesystem=host", finish_args)
+        self.assertFalse(
+            any(argument.startswith("--filesystem=") for argument in finish_args)
+        )
+        self.assertIn("--socket=wayland", finish_args)
+        self.assertIn("--socket=fallback-x11", finish_args)
+
+    def test_manifest_launches_existing_gui_module(self):
+        commands = "\n".join(self.manifest["modules"][0]["build-commands"])
+        self.assertIn("python3 -m dirue.gui", commands)
+
+    def test_desktop_entry_matches_flatpak_identity(self):
+        parser = ConfigParser(interpolation=None)
+        parser.read(FLATPAK_DIR / f"{APP_ID}.desktop", encoding="utf-8")
+        entry = parser["Desktop Entry"]
+        self.assertEqual(entry["Type"], "Application")
+        self.assertEqual(entry["Exec"], "dirue-gui")
+        self.assertEqual(entry["Terminal"], "false")
+
+    def test_metainfo_matches_flatpak_identity(self):
+        root = ET.parse(
+            FLATPAK_DIR / f"{APP_ID}.metainfo.xml"
+        ).getroot()
+        self.assertEqual(root.findtext("id"), APP_ID)
+        launchable = root.find("launchable")
+        self.assertIsNotNone(launchable)
+        self.assertEqual(launchable.text, f"{APP_ID}.desktop")
+        self.assertEqual(launchable.attrib["type"], "desktop-id")
+        self.assertEqual(root.findtext("project_license"), "GPL-3.0-only")
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -6,11 +6,14 @@
 - Fork: `Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu`
 - Primary branch: `main`
 - Development branch: `linux-port`
+- Active release branch: `release/flatpak-proof`
 - License: GNU GPLv3, inherited and preserved
 
-Milestone 1 is a faithful native-Linux port of released DIRUE behavior. Released-option parity is now integrated on the fork. On 2026-08-17, approved non-force fast-forwards moved both `main` and `linux-port` to `66a6e9294bd045569683c64947a31bacd0aee421`, the validated 42-option parity commit. PR #3 was recognized by GitHub as merged through that exact fast-forward. Upstream remains untouched.
+Milestone 1 is a faithful native-Linux port of released DIRUE behavior. Released-option parity is integrated on fork `main`. The validated 42-option parity state was integrated on 2026-08-17 and upstream remains untouched.
 
 New gameplay tweaks remain deferred until a separate post-parity decision.
+
+The active release phase is now end-user packaging. The required order is documented in `docs/RELEASE.md`: Flatpak proof, AppImage proof, shared packaging hardening, UI polish, release candidate, packaged Bazzite QA, final rebuild/verification, then explicitly approved release.
 
 ## Verified native Linux baseline
 
@@ -66,18 +69,35 @@ The GUI-independent application service validates selections, compatibility, arc
 
 The retained pristine backup is recovery material and must not be deleted or overwritten.
 
-The integrated GUI exposes all 42 ready options, including the four formerly disabled forced-spawn choices. UI/catalog tests verify the ready options match the semantic catalog exactly.
+The integrated GUI exposes all 42 ready options. UI/catalog tests verify the ready options match the semantic catalog exactly.
 
 ## Packaging and distribution validation
 
-The build system pins `setuptools==83.0.0`, uses a repo-local deterministic PEP 517 backend wrapper, disables implicit package-data inclusion, and excludes provenance-sensitive inherited payloads from Linux distributions. `tools/check_distribution.py` requires `forced_spawn_compat.py` in both wheel and sdist so the runtime module cannot be silently omitted.
+The existing Python build system pins `setuptools==83.0.0`, uses a repo-local deterministic PEP 517 backend wrapper, disables implicit package-data inclusion, and excludes provenance-sensitive inherited payloads from Linux distributions. `tools/check_distribution.py` requires `forced_spawn_compat.py` in both wheel and sdist so the runtime module cannot be silently omitted.
 
 A physical Bazzite packaging run for the 42-option state used an isolated PyPA `build==1.5.0` frontend and a commit-derived `SOURCE_DATE_EPOCH`. Two clean builds were byte-identical:
 
 - wheel `dirue_linux-0.1.0.dev0-py3-none-any.whl`: SHA-256 `f870e68409fa351caabdacd2566989f2c06b7ca1086658438a1a8105753febd3`;
 - sdist `dirue_linux-0.1.0.dev0.tar.gz`: SHA-256 `72d783b2faf73f45346a916490c0bccb0830ff3ea9c0ca56d0cd724bebe7a29a`.
 
-Both artifact copies passed the distribution payload checker. The built wheel installed in an isolated environment; `pip check`, the `dirue` console entry point, direct `python -m dirue.cli`, the 42-option semantic/UI catalog, all four compatibility-mode registrations, and CLI/GUI entry-point metadata passed. The primary working branch, HEAD, and status remained unchanged, and disposable worktrees/build artifacts/QA environments were removed.
+Both artifact copies passed the distribution payload checker. The built wheel installed in an isolated environment; `pip check`, the `dirue` console entry point, direct `python -m dirue.cli`, the 42-option semantic/UI catalog, all four compatibility-mode registrations, and CLI/GUI entry-point metadata passed.
+
+Those wheel/sdist results remain development/source-distribution evidence. They are not the primary end-user release path.
+
+## End-user release packaging
+
+The primary release targets are now:
+
+- **Flatpak first** for SteamOS, Bazzite, and other Flatpak-friendly Linux systems;
+- **AppImage second** as the portable Linux alternative.
+
+Normal users must not be required to install Python, create a virtual environment, install PySide6, or use development commands to launch the GUI.
+
+The current Flatpak proof uses `org.kde.Platform` and `io.qt.PySide.BaseApp` 6.11, packages only `src/dirue` plus public-safe desktop metadata, and intentionally excludes the repository root and inherited game-content payloads from its source boundary. It also starts without blanket host-filesystem or network permission. Physical Bazzite QA must prove portal-backed selection can provide the required read/write access to a user-selected native game installation before that permission model is accepted.
+
+The Flatpak proof has not yet passed physical Bazzite build/launch or Apply/Restore QA. AppImage proof work has not started. UI polish follows successful packaging proofs rather than preceding them.
+
+SteamOS is treated as an operating-system target, not as a Steam Deck-only target. Hardware-specific Steam Deck or Steam Machine validation is not claimed without corresponding hardware evidence.
 
 ## Validation boundary
 
@@ -89,11 +109,18 @@ Both artifact copies passed the distribution payload checker. The built wheel in
 - reproducible wheel/sdist packaging and isolated installed-wheel checks pass for the 42-option state;
 - no GitHub Actions were used.
 
-No further routine gameplay or packaging QA is required absent a newly identified risk.
+No further routine gameplay or legacy wheel/sdist QA is required absent a newly identified risk. Flatpak/AppImage packaging, packaged UI behavior, and final release-candidate QA remain separate pending gates.
 
 ## Remaining gates
 
-Public releases/binaries, Nexus publication, upstream submission, announcements, distribution or visibility changes, and GitHub Actions remain unauthorized unless separately approved.
+1. Build and launch the bounded Flatpak proof on Bazzite; validate portal-backed game-directory access and packaged Apply/Restore behavior.
+2. Build and validate the AppImage proof from the same application source without host Python/PySide6 requirements.
+3. Harden shared packaging/resource/config behavior and artifact-content checks for both formats.
+4. Polish the UI and validate it from packaged builds.
+5. Freeze and build a release candidate from one exact source commit.
+6. Complete packaged Bazzite end-to-end QA for Flatpak and AppImage.
+7. Rebuild and verify final-version artifacts after any accepted RC fixes.
+8. Obtain explicit approval before public release, binaries, Nexus publication, upstream submission, announcements, distribution, visibility changes, or GitHub Actions use.
 
 ## Cleanup and publication
 

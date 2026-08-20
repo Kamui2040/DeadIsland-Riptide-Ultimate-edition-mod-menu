@@ -1,0 +1,51 @@
+{
+  "id": "io.github.Kamui2040.DIRUELinux",
+  "runtime": "org.kde.Platform",
+  "runtime-version": "6.11",
+  "sdk": "org.kde.Sdk",
+  "base": "io.qt.PySide.BaseApp",
+  "base-version": "6.11",
+  "command": "dirue-gui",
+  "build-options": {
+    "env": {
+      "BASEAPP_REMOVE_WEBENGINE": "1",
+      "BASEAPP_DISABLE_NUMPY": "1"
+    }
+  },
+  "cleanup-commands": [
+    "/app/cleanup-BaseApp.sh"
+  ],
+  "finish-args": [
+    "--share=ipc",
+    "--socket=wayland",
+    "--socket=fallback-x11",
+    "--device=dri"
+  ],
+  "modules": [
+    {
+      "name": "dirue-linux",
+      "buildsystem": "simple",
+      "build-commands": [
+        "PYTHON_VERSION=\"$(python3 -c 'import sys; print(f\"{sys.version_info.major}.{sys.version_info.minor}\")')\" && install -d \"/app/lib/python${PYTHON_VERSION}/site-packages\" && cp -a src/dirue \"/app/lib/python${PYTHON_VERSION}/site-packages/\"",
+        "printf '%s\\n' '#!/bin/sh' 'exec python3 -m dirue.gui \"$@\"' > dirue-gui && install -Dm755 dirue-gui /app/bin/dirue-gui",
+        "install -Dm644 io.github.Kamui2040.DIRUELinux.desktop /app/share/applications/io.github.Kamui2040.DIRUELinux.desktop",
+        "install -Dm644 io.github.Kamui2040.DIRUELinux.metainfo.xml /app/share/metainfo/io.github.Kamui2040.DIRUELinux.metainfo.xml"
+      ],
+      "sources": [
+        {
+          "type": "dir",
+          "path": "../../src",
+          "dest": "src"
+        },
+        {
+          "type": "file",
+          "path": "io.github.Kamui2040.DIRUELinux.desktop"
+        },
+        {
+          "type": "file",
+          "path": "io.github.Kamui2040.DIRUELinux.metainfo.xml"
+        }
+      ]
+    }
+  ]
+}
