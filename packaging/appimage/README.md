@@ -47,11 +47,13 @@ The wrapper fails closed unless exactly one AppImage appears in the host output 
 From the repository root on x86-64 Linux:
 
 ```bash
-python3 -m unittest tests.test_appimage_packaging tests.test_flatpak_packaging
+python3 -m unittest tests.test_appimage_packaging tests.test_flatpak_packaging tests.test_glibc_audit
 packaging/appimage/build-baseline.sh /path/to/output
 ```
 
-The generated AppDir and extracted final AppImage are both checked. The checker requires the bundled Python/PySide6 runtime, verifies shared desktop/AppStream identity, rejects known inherited/game payload names, and rejects symlinks escaping the AppDir.
+The generated AppDir and extracted final AppImage are both checked. The checker requires the bundled Python/PySide6 runtime, verifies shared desktop/AppStream identity, rejects known inherited/game payload names, rejects symlinks escaping the AppDir, and rejects base libraries that are deliberately required from the target system.
+
+The finished AppImage is also audited through ELF program/dynamic headers. The audit fails if a bundled dynamic ELF requires a `GLIBC_*` symbol newer than the declared `2.34` floor; stripped or static ELFs do not need section tables to be audited correctly.
 
 ## Accepted baseline build
 
@@ -61,12 +63,20 @@ The wrapper verified glibc `2.34` and Python `3.11.13`, produced exactly one hos
 
 This establishes that the pinned UBI environment can produce and launch the hardened AppImage. It does not by itself establish byte reproducibility or prove that every bundled ELF requires no glibc version newer than `2.34`.
 
+## GLIBC audit finding
+
+Physical stage-2 auditing on 2026-08-21 identified the PyInstaller-collected `libgcc_s.so.1` as requiring `GLIBC_2.35`. That copy came from the UBI build environment and would have raised the resulting AppImage's effective compatibility floor above the intended `2.34` target.
+
+`libgcc_s.so.1` is therefore treated as a target-system base runtime rather than bundled payload. `build.sh` removes any collected copy before the AppDir is assembled, `check_appdir.py` rejects the name if it reappears anywhere in the AppImage payload, and the finished-artifact GLIBC audit remains mandatory for all bundled ELFs. The 2.34 floor is not raised to accommodate a container-specific base-library copy.
+
+This exclusion is implemented but still requires the same physical double-build, audit, and launch validation before stage 2 is accepted.
+
 ## Compatibility boundary
 
 PySide6 `6.11.1` publishes its x86-64 Linux wheel for `manylinux_2_34`, so glibc `2.34` is the lowest practical x86-64 baseline for this pinned GUI dependency.
 
-The pinned UBI 9 image enforces glibc `2.34` rather than inheriting the developer host's newer glibc. Broader SteamOS/general-Linux AppImage compatibility is still not accepted until two baseline builds are byte-identical and the finished artifact passes an ELF `GLIBC_*` requirement audit.
+The pinned UBI 9 image enforces glibc `2.34` rather than inheriting the developer host's newer glibc. `libgcc_s.so.1` is intentionally resolved from the target system as a low-level base library. Broader SteamOS/general-Linux AppImage compatibility is still not accepted until two baseline builds are byte-identical, the finished artifact passes the ELF `GLIBC_*` requirement audit, and the resulting AppImage launches successfully.
 
 ## Remaining release work
 
-The initial AppImage proof, hardening stage 1, and the single UBI baseline build/launch check are complete. The remaining stage-2 work is double-build reproducibility and the ELF glibc-symbol audit. UI polish and release-candidate QA remain later release work.
+The initial AppImage proof, hardening stage 1, and the single UBI baseline build/launch check are complete. The remaining stage-2 work is double-build reproducibility, the ELF glibc-symbol audit after the explicit base-library exclusion, and packaged launch validation. UI polish and release-candidate QA remain later release work.
