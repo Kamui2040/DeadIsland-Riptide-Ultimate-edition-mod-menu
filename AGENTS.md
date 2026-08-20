@@ -50,6 +50,7 @@ The inherited upstream `Data0.pak` is historical upstream material. Linux-port c
 - If a container-only copy of a base system library raises the intended ABI floor, exclude it explicitly, checker-enforce its absence, and keep the finished-artifact audit; do not silently raise the target baseline.
 - When a handoff invokes a Python CLI module, verify that the invocation executes the CLI entrypoint and produces the expected output or artifact; a zero exit from an import-only module is not evidence of execution.
 - For gameplay QA after candidate installation, use a bounded automatic process-start wait rather than a one-shot keypress-gated start check; accept observations only after verified native-game start and exit.
+- Functional or packaged UI QA does not constitute visual acceptance; UI polish is not complete until the maintainer explicitly approves the packaged appearance.
 - Use simple, natural, direct language in repository submissions and project chat. Avoid needless jargon, robotic phrasing, and long explanations.
 
 ## Data0 transaction rules
