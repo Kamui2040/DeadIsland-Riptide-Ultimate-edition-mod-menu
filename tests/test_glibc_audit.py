@@ -13,16 +13,28 @@ AUDIT = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(AUDIT)
 
 
-def make_elf(path: Path, required: str) -> None:
+def make_dynamic_elf(path: Path, required: str) -> None:
+    base = 0x400000
+    program_offset = 64
+    program_size = 56
+    program_count = 2
+    dynamic_offset = 0x100
+    dynstr_offset = 0x180
+    verneed_offset = 0x1C0
+
     dynstr = b"\0libc.so.6\0" + required.encode("ascii") + b"\0"
     name_offset = dynstr.index(required.encode("ascii"))
-    dynstr_offset = 0x100
-    verneed_offset = 0x140
-    section_offset = 0x200
-    section_size = 64
-    section_count = 3
 
-    size = section_offset + section_size * section_count
+    dynamic_entries = (
+        (AUDIT.DT_STRTAB, base + dynstr_offset),
+        (AUDIT.DT_STRSZ, len(dynstr)),
+        (AUDIT.DT_VERNEED, base + verneed_offset),
+        (AUDIT.DT_VERNEEDNUM, 1),
+        (AUDIT.DT_NULL, 0),
+    )
+    dynamic_size = 16 * len(dynamic_entries)
+    size = 0x300
+
     data = bytearray(size)
     ident = b"\x7fELF" + bytes((2, 1, 1, 0, 0)) + b"\0" * 7
     data[:16] = ident
@@ -33,70 +45,112 @@ def make_elf(path: Path, required: str) -> None:
         62,
         1,
         0,
+        program_offset,
         0,
-        section_offset,
         0,
         64,
+        program_size,
+        program_count,
         0,
         0,
-        section_size,
-        section_count,
         0,
     )
     data[16 : 16 + len(header)] = header
-    data[dynstr_offset : dynstr_offset + len(dynstr)] = dynstr
 
-    verneed = struct.pack("<HHIII", 1, 1, 1, 16, 0)
-    vernaux = struct.pack("<IHHII", 0, 0, 2, name_offset, 0)
-    data[verneed_offset : verneed_offset + 16] = verneed
-    data[verneed_offset + 16 : verneed_offset + 32] = vernaux
-
-    null_section = struct.pack("<IIQQQQIIQQ", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-    dynstr_section = struct.pack(
-        "<IIQQQQIIQQ",
+    load = struct.pack(
+        "<IIQQQQQQ",
+        AUDIT.PT_LOAD,
+        5,
         0,
-        3,
-        0,
-        0,
-        dynstr_offset,
-        len(dynstr),
-        0,
-        0,
-        1,
-        0,
+        base,
+        base,
+        size,
+        size,
+        0x1000,
     )
-    verneed_section = struct.pack(
-        "<IIQQQQIIQQ",
-        0,
-        AUDIT.SHT_GNU_VERNEED,
-        0,
-        0,
-        verneed_offset,
-        32,
-        1,
-        1,
+    dynamic = struct.pack(
+        "<IIQQQQQQ",
+        AUDIT.PT_DYNAMIC,
+        6,
+        dynamic_offset,
+        base + dynamic_offset,
+        base + dynamic_offset,
+        dynamic_size,
+        dynamic_size,
         8,
-        0,
     )
+    data[program_offset : program_offset + program_size] = load
+    data[
+        program_offset + program_size : program_offset + 2 * program_size
+    ] = dynamic
 
-    for index, section in enumerate((null_section, dynstr_section, verneed_section)):
-        start = section_offset + index * section_size
-        data[start : start + section_size] = section
+    for index, entry in enumerate(dynamic_entries):
+        start = dynamic_offset + index * 16
+        data[start : start + 16] = struct.pack("<qQ", *entry)
+
+    data[dynstr_offset : dynstr_offset + len(dynstr)] = dynstr
+    data[verneed_offset : verneed_offset + 16] = struct.pack(
+        "<HHIII", 1, 1, 1, 16, 0
+    )
+    data[verneed_offset + 16 : verneed_offset + 32] = struct.pack(
+        "<IHHII", 0, 0, 2, name_offset, 0
+    )
 
     path.write_bytes(data)
 
 
+def make_static_stripped_elf(path: Path) -> None:
+    base = 0x400000
+    program_offset = 64
+    program_size = 56
+    size = 0x180
+
+    data = bytearray(size)
+    ident = b"\x7fELF" + bytes((2, 1, 1, 0, 0)) + b"\0" * 7
+    data[:16] = ident
+    header = struct.pack(
+        "<HHIQQQIHHHHHH",
+        2,
+        62,
+        1,
+        0,
+        program_offset,
+        0,
+        0,
+        64,
+        program_size,
+        1,
+        0,
+        0,
+        0,
+    )
+    data[16 : 16 + len(header)] = header
+    load = struct.pack(
+        "<IIQQQQQQ",
+        AUDIT.PT_LOAD,
+        5,
+        0,
+        base,
+        base,
+        size,
+        size,
+        0x1000,
+    )
+    data[program_offset : program_offset + program_size] = load
+    path.write_bytes(data)
+
+
 class GlibcAuditTests(unittest.TestCase):
-    def test_reads_required_version_from_elf_verneed(self):
+    def test_reads_required_version_from_stripped_dynamic_elf(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "sample"
-            make_elf(path, "GLIBC_2.34")
+            make_dynamic_elf(path, "GLIBC_2.34")
             self.assertEqual(AUDIT.required_glibc_versions(path), {"GLIBC_2.34"})
 
     def test_allows_requirement_at_floor(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "sample"
-            make_elf(path, "GLIBC_2.34")
+            make_dynamic_elf(path, "GLIBC_2.34")
             count, maximum, violations = AUDIT.audit([path], "2.34")
             self.assertEqual(count, 1)
             self.assertEqual(maximum, "GLIBC_2.34")
@@ -105,10 +159,20 @@ class GlibcAuditTests(unittest.TestCase):
     def test_rejects_requirement_above_floor(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "sample"
-            make_elf(path, "GLIBC_2.35")
+            make_dynamic_elf(path, "GLIBC_2.35")
             _count, maximum, violations = AUDIT.audit([path], "2.34")
             self.assertEqual(maximum, "GLIBC_2.35")
             self.assertEqual(violations, [(path, "GLIBC_2.35")])
+
+    def test_accepts_sectionless_static_elf_without_glibc_requirement(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "runtime"
+            make_static_stripped_elf(path)
+            self.assertEqual(AUDIT.required_glibc_versions(path), set())
+            count, maximum, violations = AUDIT.audit([path], "2.34")
+            self.assertEqual(count, 1)
+            self.assertEqual(maximum, "NONE")
+            self.assertEqual(violations, [])
 
     def test_non_elf_is_not_counted(self):
         with tempfile.TemporaryDirectory() as tmp:
