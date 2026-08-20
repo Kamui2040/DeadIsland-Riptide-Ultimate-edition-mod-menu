@@ -83,6 +83,14 @@ class AppImagePackagingTests(unittest.TestCase):
         self.assertIn("APPIMAGE_TARGET_GLIBC=", script)
         self.assertIn("APPIMAGE_BUILD_GLIBC=", script)
 
+    def test_build_excludes_incompatible_host_libgcc(self):
+        script = (APPIMAGE_DIR / "build.sh").read_text(encoding="utf-8")
+        self.assertIn('HOST_SYSTEM_LIBRARY_EXCLUDES="libgcc_s.so.1"', script)
+        self.assertIn("exclude_host_system_libraries", script)
+        self.assertIn('find "$bundle_root" -name "$library" -exec rm -f -- {} +', script)
+        self.assertIn('exclude_host_system_libraries "$WORK/dist/dirue-linux"', script)
+        self.assertIn("APPIMAGE_SYSTEM_LIBRARY_EXCLUDES=", script)
+
     def test_finished_artifact_enforces_glibc_floor(self):
         script = (APPIMAGE_DIR / "build.sh").read_text(encoding="utf-8")
         self.assertIn('"$ROOT/packaging/appimage/audit_glibc.py"', script)
@@ -156,6 +164,11 @@ class AppImagePackagingTests(unittest.TestCase):
         self.assertIn("bundled Python runtime was not found", checker)
         self.assertIn("bundled PySide6 runtime was not found", checker)
         self.assertIn("missing shared AppStream metainfo", checker)
+
+    def test_payload_checker_rejects_bundled_host_libgcc(self):
+        checker = (APPIMAGE_DIR / "check_appdir.py").read_text(encoding="utf-8")
+        self.assertIn('FORBIDDEN_BASE_LIBRARIES = {"libgcc_s.so.1"}', checker)
+        self.assertIn("forbidden bundled base library", checker)
 
     def test_entrypoint_is_gui_only(self):
         entrypoint = (APPIMAGE_DIR / "entrypoint.py").read_text(encoding="utf-8")
