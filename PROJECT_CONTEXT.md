@@ -11,11 +11,11 @@
 
 Milestone 1 is a faithful native-Linux port of released DIRUE behavior. Released-option parity is integrated on fork `main`; upstream remains untouched. New gameplay tweaks remain deferred until a separate post-parity decision.
 
-The release sequence is: Flatpak proof, AppImage proof, shared packaging hardening, UI polish, release candidate, packaged Bazzite QA, final rebuild/verification, then explicitly approved release.
+Release sequence: Flatpak proof, AppImage proof, shared packaging hardening, UI polish, release candidate, packaged Bazzite QA, final rebuild/verification, then explicitly approved release.
 
 ## Verified native Linux baseline
 
-Accepted physical evidence for the audited native installation:
+Accepted physical evidence for the audited installation:
 
 - native ELF `DeadIslandRiptideGame`;
 - ZIP-compatible `DIR/Data0.pak`;
@@ -35,14 +35,14 @@ The GUI-independent application service validates selections, compatibility, arc
 
 The retained pristine backup is recovery material and must not be overwritten or deleted. The GUI catalog exposes all 42 ready options and matches the semantic catalog.
 
-## Existing Python distribution evidence
+## Developer/source distribution evidence
 
-Reproducible Bazzite packaging produced byte-identical developer/source artifacts:
+Reproducible Bazzite packaging produced byte-identical artifacts:
 
 - wheel `dirue_linux-0.1.0.dev0-py3-none-any.whl`: SHA-256 `f870e68409fa351caabdacd2566989f2c06b7ca1086658438a1a8105753febd3`;
 - sdist `dirue_linux-0.1.0.dev0.tar.gz`: SHA-256 `72d783b2faf73f45346a916490c0bccb0830ff3ea9c0ca56d0cd724bebe7a29a`.
 
-These are not the primary one-click release path.
+These are developer/source artifacts, not the primary one-click release path.
 
 ## End-user packaging
 
@@ -54,48 +54,58 @@ Physical Bazzite QA accepted the Flatpak proof on 2026-08-20. The package built 
 
 The KDE/UDisks D-Bus disconnect warning observed during proof QA was harmless and did not block Browse, Validate, Apply, Restore, or exit.
 
-### AppImage
+### AppImage hardening
 
-Physical Bazzite QA accepted the initial AppImage proof on 2026-08-20. It launched directly, passed staged/final payload checks, validated the native game, applied `Reduce sprint stamina`, restored pristine Data0, exited cleanly, and relaunched successfully.
+The initial AppImage proof passed on physical Bazzite. Shared hardening stage 1 was accepted at commit `15437a1ee0172cb79092fdc5c230759ff2d3d3bb`.
 
-Shared hardening stage 1 was accepted at commit `15437a1ee0172cb79092fdc5c230759ff2d3d3bb`. Flatpak/AppImage now share one application identity and public-safe metadata. AppImage tooling and the type-2 runtime are pinned and SHA-verified.
-
-Shared hardening stage 2 was accepted on physical Bazzite at source commit `f37d39165212b84954cf60c34b0d97bdec313511`:
+Shared hardening stage 2 was accepted at commit `f37d39165212b84954cf60c34b0d97bdec313511`:
 
 - digest-pinned UBI 9 Python 3.11 baseline;
-- glibc `2.34` and Python `3.11.13` verified;
-- fixed `PYTHONHASHSEED=1` and source-derived `SOURCE_DATE_EPOCH`;
+- glibc `2.34`, Python `3.11.13`, fixed `PYTHONHASHSEED=1`, and source-derived `SOURCE_DATE_EPOCH`;
 - deterministic AppDir SHA-256 `5741e2dab0460061bc5a1d26187a8eb5323ec30a0b6187757c4cd067d5a175ce`;
-- byte-identical final AppImages;
+- byte-identical AppImages;
 - final AppImage SHA-256 `07284a312c929cd46bcc191ba9f76f3683d2134f36e912622b77656079376dd4`;
 - final size `60,246,520` bytes;
 - 179 ELF files audited with maximum required `GLIBC_2.34`;
 - incompatible container-collected `libgcc_s.so.1` excluded and checker-enforced;
 - direct packaged launch passed.
 
-Issue #5 is closed as resolved. The accepted portability evidence is bounded to x86-64 systems meeting the glibc 2.34 floor and target-system base-library expectations; older pre-x86-64-v2 CPUs are not proven compatible.
+Issue #5 is closed as resolved. Portability evidence is bounded to x86-64 systems meeting the glibc 2.34 floor and target-system base-library expectations; older pre-x86-64-v2 CPUs are not proven compatible.
 
 ## UI polish — active
 
-`release/ui-polish` is based on the accepted packaging-hardening checkpoint. Provider-side implementation now includes:
+`release/ui-polish` is based on the accepted packaging-hardening checkpoint. The implementation includes:
 
 - Browse selects a folder only and does not auto-validate;
-- Validate performs one explicit user-facing inspection;
+- Validate performs one explicit inspection;
 - editing/changing the selected path invalidates prior validation and disables Apply/Restore;
-- Apply and Restore require the currently selected path to be explicitly validated, while the GUI-independent transaction service still revalidates for safety;
-- transaction failures invalidate GUI validation state rather than leaving stale actions enabled;
+- Apply and Restore require the currently selected path to be explicitly validated, while the transaction service still revalidates for safety;
+- transaction failures invalidate GUI validation state;
 - successful Apply leaves Restore enabled and Apply disabled until pristine restore;
-- first-run steps, game-installation grouping, clearer status wording, activity labeling, shorter Apply/Restore labels, tooltips, packaged icon lookup, minimum window size, version display, and About information;
+- first-run steps, game-installation grouping, clearer status wording, Activity labeling, shorter Apply/Restore labels, tooltips, packaged icon lookup, minimum window size, version display, and About information;
 - stale text about unresolved forced-spawn modes is removed;
-- source-level regression coverage locks the explicit validation flow without requiring PySide6 to import during ordinary unit discovery.
+- source-level regression coverage locks the explicit validation flow without requiring PySide6 during ordinary unit discovery.
 
-These UI changes are **implemented but not yet accepted on the physical packaged GUI**. The next evidence gate is bounded packaged Bazzite UI validation; no gameplay mutation is required for the first visual/flow pass.
+Physical packaged AppImage UI QA on 2026-08-21 accepted this flow at commit `fb46e7f9438fb218edd7673ea03621ab0f28dcf2`:
+
+- focused GUI/catalog static tests passed;
+- packaged AppImage SHA-256 `90624c9be56b50d39685dc81430a6cebcd99537be774894e557707d6bfb7ea2c`;
+- packaged AppImage size `60,246,520` bytes;
+- packaged launch passed;
+- first-run layout and scrolling were accepted;
+- Browse did not auto-validate;
+- explicit Validate enabled the appropriate actions;
+- editing the selected path invalidated validation immediately without implicit revalidation;
+- About/version/attribution information was present;
+- no game mutation occurred.
+
+The remaining UI-polish gate is a bounded Flatpak portal-flow check to confirm the same Browse/Validate behavior still works inside the sandbox. No gameplay mutation is required.
 
 ## Validation boundary
 
 Verified now:
 
-- all 42 non-default released options pass native candidate construction;
+- all 42 released non-default options pass native candidate construction;
 - representative native gameplay QA and exact pristine restore pass;
 - UI/catalog accounting passes at 42 options;
 - transaction/recovery behavior is validated;
@@ -104,13 +114,12 @@ Verified now:
 - AppImage build/payload/launch/Apply/Restore/relaunch proof passes;
 - shared packaging hardening stages 1 and 2 pass;
 - hardened AppImage reproducibility and `GLIBC_2.34` audit pass;
+- packaged AppImage UI-polish visual and explicit-validation QA passes;
 - no GitHub Actions were used.
-
-Do not claim the active UI-polish implementation is accepted until packaged physical QA is performed.
 
 ## Remaining release gates
 
-1. **Finish UI polish** — run focused static checks and packaged Bazzite visual/flow QA; fix any accepted findings.
+1. **Finish UI polish** — run the bounded Flatpak portal-flow check and fix any accepted findings.
 2. **Release candidate** — freeze one exact source commit and build both primary formats from it.
 3. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
 4. **Final rebuild/verification** after accepted RC fixes.
