@@ -1,4 +1,5 @@
 from pathlib import Path
+import subprocess
 import unittest
 
 
@@ -17,6 +18,21 @@ class AppImagePackagingTests(unittest.TestCase):
             "dirue-linux.svg",
         ):
             self.assertTrue((APPIMAGE_DIR / relative).is_file(), relative)
+
+    def test_build_script_parses(self):
+        result = subprocess.run(
+            ["bash", "-n", str(APPIMAGE_DIR / "build.sh")],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_python_helpers_parse(self):
+        for relative in ("check_appdir.py", "entrypoint.py"):
+            source = (APPIMAGE_DIR / relative).read_text(encoding="utf-8")
+            compile(source, relative, "exec")
 
     def test_build_is_bounded_to_runtime_source(self):
         script = (APPIMAGE_DIR / "build.sh").read_text(encoding="utf-8")
