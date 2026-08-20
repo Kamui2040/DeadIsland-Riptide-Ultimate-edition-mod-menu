@@ -22,32 +22,39 @@ The generated QA artifact and disposable build state were not committed or publi
 
 ## Hardened build inputs
 
-The build currently pins:
+The build pins:
 
 - PyInstaller `6.22.2`;
 - PySide6 `6.11.1`;
 - `appimagetool` `1.9.1` x86-64, SHA-256 `ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0`;
-- AppImage type-2 runtime tag `20251108` x86-64, SHA-256 `2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d`.
+- AppImage type-2 runtime tag `20251108` x86-64, SHA-256 `2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d`;
+- manylinux glibc-2.34 build image `quay.io/pypa/manylinux_2_34_x86_64@sha256:64decb8ae4b373180c246525a755c0afb2ca136334f0d64b41cf5f229283a7b6`.
 
 Both AppImage tool downloads are verified before execution. The runtime is passed explicitly with `--runtime-file`, so `appimagetool` cannot silently fetch a mutable continuous runtime during the build.
+
+Physical Bazzite probing on 2026-08-20 verified that the pinned manylinux image resolves to glibc `2.34` and provides CPython `3.11.11` at `/opt/python/cp311-cp311/bin/python`.
+
+## Build entry points
+
+`build.sh` is the inner AppImage builder. It is useful for bounded host-side proof work and records the glibc version of the environment that produced the artifact.
+
+`build-baseline.sh` is the release-portability entry point. It uses rootless Podman, mounts the repository read-only, writes only to the requested output directory, checks that the container actually reports glibc `2.34` and CPython `3.11`, then invokes `build.sh` inside that exact digest-pinned environment. `SOURCE_DATE_EPOCH` defaults to the source commit timestamp and can be supplied explicitly for reproducibility checks.
 
 From the repository root on x86-64 Linux:
 
 ```bash
 python3 -m unittest tests.test_appimage_packaging tests.test_flatpak_packaging
-packaging/appimage/build.sh /path/to/output
+packaging/appimage/build-baseline.sh /path/to/output
 ```
 
 The generated AppDir and extracted final AppImage are both checked. The checker requires the bundled Python/PySide6 runtime, verifies shared desktop/AppStream identity, rejects known inherited/game payload names, and rejects symlinks escaping the AppDir.
 
 ## Compatibility boundary
 
-PySide6 `6.11.1` publishes its x86-64 Linux wheel for `manylinux_2_34`, so glibc `2.34` is the lowest practical x86-64 baseline for this pinned GUI dependency. The build records both the build host glibc and target baseline.
+PySide6 `6.11.1` publishes its x86-64 Linux wheel for `manylinux_2_34`, so glibc `2.34` is the lowest practical x86-64 baseline for this pinned GUI dependency.
 
-A Bazzite-built PyInstaller binary remains Bazzite execution evidence only. Before the AppImage becomes a general-Linux release artifact, the release build must run in a reproducible x86-64 environment whose glibc is at the chosen `2.34` baseline (or demonstrate an equivalent lower/equal symbol requirement) rather than inheriting the developer host's newer glibc.
-
-SteamOS compatibility is not claimed from the Bazzite AppImage proof alone.
+The pinned manylinux image enforces that build floor instead of inheriting the developer host's newer glibc. Broader SteamOS/general-Linux AppImage compatibility is still not accepted until an artifact built through `build-baseline.sh` passes reproducibility and packaged launch checks.
 
 ## Remaining release work
 
-The initial AppImage proof is complete. Portable baseline build-environment enforcement, reproducibility checks, final iconography/desktop integration, UI polish, and release-candidate QA remain later release work.
+The initial AppImage proof and hardening stage 1 are complete. The pinned glibc-2.34 baseline environment is now implemented and awaits physical double-build/reproducibility validation. UI polish and release-candidate QA remain later release work.
