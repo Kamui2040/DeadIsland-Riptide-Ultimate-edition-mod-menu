@@ -16,6 +16,7 @@ FORBIDDEN_NAMES = {
     "DeadIslandRiptideGame",
     "DeadIslandRiptideGame.exe",
 }
+FORBIDDEN_BASE_LIBRARIES = {"libgcc_s.so.1"}
 REQUIRED_TOP_LEVEL = {"AppRun", f"{APP_ID}.desktop", f"{APP_ID}.svg", ".DirIcon", "usr"}
 
 
@@ -79,6 +80,9 @@ def validate_appdir(appdir: Path) -> list[str]:
     for path in root.rglob("*"):
         if path.name in FORBIDDEN_NAMES:
             errors.append(f"forbidden payload entry: {path.relative_to(root)}")
+
+        if path.name in FORBIDDEN_BASE_LIBRARIES:
+            errors.append(f"forbidden bundled base library: {path.relative_to(root)}")
 
         if path.is_symlink():
             try:
