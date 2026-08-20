@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import sys
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -26,15 +28,54 @@ from PySide6.QtWidgets import (
 )
 
 from . import __version__
-from .application import ApplicationStatus, apply_selection, inspect_game, restore_pristine
+from .application import (
+    ApplicationStatus,
+    apply_selection,
+    inspect_game,
+    restore_pristine,
+)
 from .errors import DirueError
 from .ui_catalog import CHECKBOX_OPTIONS, CHOICE_GROUPS
+
+
+APP_ID = "io.github.Kamui2040.DIRUELinux"
+
+
+def _application_icon() -> QIcon:
+    icon = QIcon.fromTheme(APP_ID)
+    if not icon.isNull():
+        return icon
+
+    candidates: list[Path] = []
+    appdir = os.environ.get("APPDIR")
+    if appdir:
+        candidates.append(
+            Path(appdir)
+            / "usr"
+            / "share"
+            / "icons"
+            / "hicolor"
+            / "scalable"
+            / "apps"
+            / f"{APP_ID}.svg"
+        )
+    candidates.append(
+        Path("/app/share/icons/hicolor/scalable/apps") / f"{APP_ID}.svg"
+    )
+
+    for path in candidates:
+        if path.is_file():
+            return QIcon(str(path))
+    return QIcon()
 
 
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("DIRUE Linux")
+        icon = _application_icon()
+        if not icon.isNull():
+            self.setWindowIcon(icon)
         self.setMinimumSize(760, 640)
         self.resize(940, 800)
 
@@ -66,11 +107,20 @@ class MainWindow(QMainWindow):
 
         folder_row = QHBoxLayout()
         self._root_edit = QLineEdit()
-        self._root_edit.setPlaceholderText("Native Dead Island Riptide Definitive Edition folder")
+        self._root_edit.setPlaceholderText(
+            "Native Dead Island Riptide Definitive Edition folder"
+        )
+        self._root_edit.setToolTip(
+            "Choose the native Linux Dead Island: Riptide Definitive Edition folder."
+        )
         self._root_edit.textChanged.connect(self._invalidate_validation)
         self._browse_button = QPushButton("Browse…")
+        self._browse_button.setToolTip("Choose a folder without validating it yet.")
         self._browse_button.clicked.connect(self._browse)
         self._validate_button = QPushButton("Validate")
+        self._validate_button.setToolTip(
+            "Verify the selected folder and Data0 before enabling actions."
+        )
         self._validate_button.clicked.connect(self._validate_selected_root)
         folder_row.addWidget(self._root_edit, 1)
         folder_row.addWidget(self._browse_button)
@@ -128,12 +178,19 @@ class MainWindow(QMainWindow):
 
         buttons = QHBoxLayout()
         self._apply_button = QPushButton("Apply changes")
+        self._apply_button.setToolTip(
+            "Build, validate, and atomically install the selected modifications."
+        )
         self._apply_button.clicked.connect(self._apply)
         self._apply_button.setEnabled(False)
         self._restore_button = QPushButton("Restore pristine")
+        self._restore_button.setToolTip(
+            "Restore the retained validated pristine Data0 backup."
+        )
         self._restore_button.clicked.connect(self._restore)
         self._restore_button.setEnabled(False)
         buttons.addWidget(self._apply_button)
+        buttons.addStretch(1)
         buttons.addWidget(self._restore_button)
         layout.addLayout(buttons)
 
@@ -151,6 +208,7 @@ class MainWindow(QMainWindow):
         footer.setWordWrap(True)
         footer_row.addWidget(footer, 1)
         about = QPushButton("About")
+        about.setToolTip("Show version, attribution, and license information.")
         about.clicked.connect(self._show_about)
         footer_row.addWidget(about)
         layout.addLayout(footer_row)
@@ -168,7 +226,9 @@ class MainWindow(QMainWindow):
         if self._root() is None:
             self._status.setText("Choose the native game folder, then select Validate.")
         else:
-            self._status.setText("Folder selected. Validate this folder before applying or restoring changes.")
+            self._status.setText(
+                "Folder selected. Validate this folder before applying or restoring changes."
+            )
 
     def _browse(self) -> None:
         selected = QFileDialog.getExistingDirectory(
