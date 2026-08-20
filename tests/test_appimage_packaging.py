@@ -22,6 +22,7 @@ class AppImagePackagingTests(unittest.TestCase):
             "build.sh",
             "build-baseline.sh",
             "check_appdir.py",
+            "audit_glibc.py",
             "entrypoint.py",
         ):
             self.assertTrue((APPIMAGE_DIR / relative).is_file(), relative)
@@ -44,7 +45,7 @@ class AppImagePackagingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, f"{relative}: {result.stderr}")
 
     def test_python_helpers_parse(self):
-        for relative in ("check_appdir.py", "entrypoint.py"):
+        for relative in ("check_appdir.py", "audit_glibc.py", "entrypoint.py"):
             source = (APPIMAGE_DIR / relative).read_text(encoding="utf-8")
             compile(source, relative, "exec")
 
@@ -81,6 +82,17 @@ class AppImagePackagingTests(unittest.TestCase):
         self.assertIn('APPIMAGE_GLIBC_BASELINE="2.34"', script)
         self.assertIn("APPIMAGE_TARGET_GLIBC=", script)
         self.assertIn("APPIMAGE_BUILD_GLIBC=", script)
+
+    def test_finished_artifact_enforces_glibc_floor(self):
+        script = (APPIMAGE_DIR / "build.sh").read_text(encoding="utf-8")
+        self.assertIn('"$ROOT/packaging/appimage/audit_glibc.py"', script)
+        self.assertIn('--max "$APPIMAGE_GLIBC_BASELINE"', script)
+        self.assertIn('"$ARTIFACT"', script)
+        self.assertIn('"$EXTRACT/squashfs-root"', script)
+        self.assertIn("APPIMAGE_ELF_FILES=", script)
+        self.assertIn("APPIMAGE_MAX_REQUIRED_GLIBC=", script)
+        self.assertIn("APPIMAGE_GLIBC_AUDIT=PASS", script)
+        self.assertIn("finished AppImage failed GLIBC compatibility audit", script)
 
     def test_baseline_builder_pins_verified_ubi_image(self):
         script = (APPIMAGE_DIR / "build-baseline.sh").read_text(encoding="utf-8")
