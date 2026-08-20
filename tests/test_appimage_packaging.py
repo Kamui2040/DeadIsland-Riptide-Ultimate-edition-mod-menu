@@ -8,13 +8,11 @@ APP_ID = "io.github.Kamui2040.DIRUELinux"
 APPIMAGE_DIR = ROOT / "packaging" / "appimage"
 COMMON_DIR = ROOT / "packaging" / "common"
 BASELINE_IMAGE = (
-    "quay.io/pypa/manylinux_2_34_x86_64@"
-    "sha256:64decb8ae4b373180c246525a755c0afb2ca136334f0d64b41cf5f229283a7b6"
+    "registry.access.redhat.com/ubi9/python-311@"
+    "sha256:7b6cb58d3ff034df7b300800bd89a469d9bd2f739d43250d76b9c9e805307ab5"
 )
-PYTHON_VERSION = "3.11.16"
-PYTHON_SOURCE_SHA256 = (
-    "91bcdebfdde239a003ae93738a7fce0f9230fee5c4bc2b86f6e6e8c6f98aabe8"
-)
+BASELINE_PYTHON = "/usr/bin/python3.11"
+BASELINE_PYTHON_VERSION = "3.11.13"
 
 
 class AppImagePackagingTests(unittest.TestCase):
@@ -84,37 +82,37 @@ class AppImagePackagingTests(unittest.TestCase):
         self.assertIn("APPIMAGE_TARGET_GLIBC=", script)
         self.assertIn("APPIMAGE_BUILD_GLIBC=", script)
 
-    def test_baseline_builder_pins_verified_manylinux_image(self):
+    def test_baseline_builder_pins_verified_ubi_image(self):
         script = (APPIMAGE_DIR / "build-baseline.sh").read_text(encoding="utf-8")
         self.assertIn(f'BASELINE_IMAGE="{BASELINE_IMAGE}"', script)
         self.assertIn('BASELINE_GLIBC="glibc 2.34"', script)
-        self.assertNotIn("manylinux_2_34_x86_64:latest", script)
-        self.assertNotIn("manylinux_2_34_x86_64:202", script)
+        self.assertNotIn("ubi9/python-311:latest", script)
+        self.assertNotIn("manylinux_2_34_x86_64", script)
 
-    def test_baseline_builder_builds_pinned_shared_python(self):
+    def test_baseline_builder_requires_shared_packaged_python(self):
         script = (APPIMAGE_DIR / "build-baseline.sh").read_text(encoding="utf-8")
-        self.assertIn(f'PYTHON_VERSION="{PYTHON_VERSION}"', script)
-        self.assertIn(
-            f'PYTHON_SOURCE_URL="https://www.python.org/ftp/python/{PYTHON_VERSION}/Python-{PYTHON_VERSION}.tar.xz"',
-            script,
-        )
-        self.assertIn(f'PYTHON_SOURCE_SHA256="{PYTHON_SOURCE_SHA256}"', script)
-        self.assertIn("actual_source_hash=", script)
-        self.assertIn('--enable-shared', script)
-        self.assertIn('Py_ENABLE_SHARED', script)
-        self.assertIn('shared libpython was not installed', script)
-        self.assertIn('import _ssl, bz2, ctypes, lzma, sqlite3, venv, zlib', script)
-        self.assertIn('-m pip --version', script)
-        self.assertNotIn('BASELINE_PYTHON="/opt/python/cp311-cp311/bin/python"', script)
+        self.assertIn(f'BASELINE_PYTHON="{BASELINE_PYTHON}"', script)
+        self.assertIn(f'BASELINE_PYTHON_VERSION="{BASELINE_PYTHON_VERSION}"', script)
+        self.assertIn("Py_ENABLE_SHARED", script)
+        self.assertIn("shared libpython was not found", script)
+        for module in ("_ssl", "bz2", "ctypes", "lzma", "venv", "zlib"):
+            self.assertIn(f'"{module}"', script)
+        self.assertIn("-m pip --version", script)
+        self.assertNotIn("python.org/ftp/python", script)
+        self.assertNotIn("--enable-shared", script)
+        self.assertNotIn("make install", script)
 
     def test_baseline_builder_isolated_and_fail_closed(self):
         script = (APPIMAGE_DIR / "build-baseline.sh").read_text(encoding="utf-8")
         self.assertIn("podman run --rm -i", script)
         self.assertIn("--userns=keep-id", script)
+        self.assertIn('--user "$(id -u):$(id -g)"', script)
         self.assertIn("--security-opt label=disable", script)
+        self.assertIn("--entrypoint /bin/bash", script)
         self.assertIn('--volume "$ROOT:/workspace:ro"', script)
+        self.assertIn('--volume "$OUT:/output:rw"', script)
         self.assertIn('actual_glibc="$(getconf GNU_LIBC_VERSION', script)
-        self.assertIn('[ "$actual_glibc" = "$expected_glibc" ]', script)
+        self.assertIn('[ "$actual_glibc" = "$DIRUE_BASELINE_GLIBC" ]', script)
         self.assertIn('PYTHON_BIN="$python_bin" packaging/appimage/build.sh /output', script)
         self.assertIn("SOURCE_DATE_EPOCH=", script)
         self.assertIn("output directory already contains an AppImage", script)
