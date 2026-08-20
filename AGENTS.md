@@ -44,6 +44,7 @@ The inherited upstream `Data0.pak` is historical upstream material. Linux-port c
 - When embedded Python in a shell handoff reads `os.environ`, pass every required shell value explicitly on that Python invocation; do not rely on unexported shell variables.
 - Before comparing filesystem paths, canonicalize existing paths and compare the canonical values; symlink or mount aliases are not evidence of different locations.
 - Parse command output by fields or delimiters instead of relying on exact whitespace formatting.
+- For containerized packaging, do not infer host artifact paths from container paths. The wrapper must verify the artifact is visible on the host and emit an authoritative host path/hash for handoffs to consume.
 - When a handoff invokes a Python CLI module, verify that the invocation executes the CLI entrypoint and produces the expected output or artifact; a zero exit from an import-only module is not evidence of execution.
 - For gameplay QA after candidate installation, use a bounded automatic process-start wait rather than a one-shot keypress-gated start check; accept observations only after verified native-game start and exit.
 - Use simple, natural, direct language in repository submissions and project chat. Avoid needless jargon, robotic phrasing, and long explanations.
