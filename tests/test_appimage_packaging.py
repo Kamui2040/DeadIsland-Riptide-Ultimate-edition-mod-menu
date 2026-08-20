@@ -98,6 +98,12 @@ class AppImagePackagingTests(unittest.TestCase):
         self.assertIn('[ "$actual_glibc" = "$expected_glibc" ]', script)
         self.assertIn('PYTHON_BIN="$python_bin" packaging/appimage/build.sh /output', script)
         self.assertIn("SOURCE_DATE_EPOCH=", script)
+        self.assertIn("output directory already contains an AppImage", script)
+        self.assertIn("expected exactly one host-visible AppImage", script)
+        self.assertIn("host-visible AppImage is not executable", script)
+        self.assertIn("APPIMAGE_BASELINE_ARTIFACT=", script)
+        self.assertIn("APPIMAGE_BASELINE_SHA256=", script)
+        self.assertIn("APPIMAGE_BASELINE_SIZE=", script)
         self.assertIn("APPIMAGE_BASELINE_BUILD=PASS", script)
 
     def test_build_checks_both_appdir_and_final_artifact(self):
