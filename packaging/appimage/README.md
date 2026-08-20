@@ -28,18 +28,19 @@ The build pins:
 - PySide6 `6.11.1`;
 - `appimagetool` `1.9.1` x86-64, SHA-256 `ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0`;
 - AppImage type-2 runtime tag `20251108` x86-64, SHA-256 `2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d`;
-- manylinux glibc-2.34 build image `quay.io/pypa/manylinux_2_34_x86_64@sha256:64decb8ae4b373180c246525a755c0afb2ca136334f0d64b41cf5f229283a7b6`;
-- CPython `3.11.16` source tarball from python.org, SHA-256 `91bcdebfdde239a003ae93738a7fce0f9230fee5c4bc2b86f6e6e8c6f98aabe8`.
+- UBI 9 Python 3.11 baseline image `registry.access.redhat.com/ubi9/python-311@sha256:7b6cb58d3ff034df7b300800bd89a469d9bd2f739d43250d76b9c9e805307ab5`.
 
-Both AppImage tool downloads and the CPython source tarball are verified before use. The runtime is passed explicitly with `--runtime-file`, so `appimagetool` cannot silently fetch a mutable continuous runtime during the build.
+Both AppImage tool downloads are verified before execution. The runtime is passed explicitly with `--runtime-file`, so `appimagetool` cannot silently fetch a mutable continuous runtime during the build.
 
-Physical Bazzite probing on 2026-08-20 verified that the pinned manylinux image resolves to glibc `2.34`. Its bundled CPython 3.11 builds are static and therefore cannot be used by PyInstaller. The baseline wrapper now compiles the pinned CPython 3.11.16 source inside that same digest-pinned container with `--enable-shared`, then verifies the shared runtime, required standard-library modules, and pip before invoking PyInstaller.
+Physical Bazzite probing on 2026-08-21 verified that the pinned UBI image reports glibc `2.34`, provides Python `3.11.13` at `/usr/bin/python3.11`, exposes shared `libpython`, imports the required `_ssl`, `bz2`, `ctypes`, `lzma`, `venv`, and `zlib` modules, and has pip available.
+
+The previously explored manylinux baseline was rejected for PyInstaller use because its probed CPython 3.11 runtimes were static. A temporary source-built CPython approach was also rejected after physical validation showed missing extension modules. Neither rejected approach is used by the current builder.
 
 ## Build entry points
 
 `build.sh` is the inner AppImage builder. It is useful for bounded host-side proof work and records the glibc version of the environment that produced the artifact.
 
-`build-baseline.sh` is the release-portability entry point. It uses rootless Podman, mounts the repository read-only, writes only to the requested output directory, checks that the container actually reports glibc `2.34`, builds and verifies the pinned shared CPython runtime in container-local temporary storage, then invokes `build.sh` with that interpreter. `SOURCE_DATE_EPOCH` defaults to the source commit timestamp and can be supplied explicitly for reproducibility checks.
+`build-baseline.sh` is the release-portability entry point. It uses rootless Podman, mounts the repository read-only, writes only to the requested output directory, and runs under the exact digest-pinned UBI image. Before invoking `build.sh`, it requires glibc `2.34`, exact Python `3.11.13`, `Py_ENABLE_SHARED=1`, an installed shared `libpython`, the required extension modules, pip, and the inner build commands.
 
 The wrapper fails closed unless exactly one AppImage appears in the host output directory after the container exits. It verifies that host-visible artifact is executable and emits authoritative `APPIMAGE_BASELINE_ARTIFACT`, `APPIMAGE_BASELINE_SHA256`, and `APPIMAGE_BASELINE_SIZE` values. Callers must consume those host values rather than infer a host path from the container's `/output` path.
 
@@ -56,8 +57,8 @@ The generated AppDir and extracted final AppImage are both checked. The checker 
 
 PySide6 `6.11.1` publishes its x86-64 Linux wheel for `manylinux_2_34`, so glibc `2.34` is the lowest practical x86-64 baseline for this pinned GUI dependency.
 
-The pinned manylinux image enforces that build floor instead of inheriting the developer host's newer glibc. Broader SteamOS/general-Linux AppImage compatibility is still not accepted until an artifact built through `build-baseline.sh` passes the shared-CPython build, reproducibility, ELF compatibility, and packaged launch checks.
+The pinned UBI 9 image enforces glibc `2.34` rather than inheriting the developer host's newer glibc. Broader SteamOS/general-Linux AppImage compatibility is still not accepted until an artifact built through `build-baseline.sh` passes physical build, reproducibility, ELF compatibility, and packaged launch checks.
 
 ## Remaining release work
 
-The initial AppImage proof and hardening stage 1 are complete. The glibc-2.34 baseline and shared-CPython build path are implemented and await physical validation. Reproducibility/ELF checks, UI polish, and release-candidate QA remain later release work.
+The initial AppImage proof and hardening stage 1 are complete. The digest-pinned UBI glibc-2.34/Python-3.11 baseline is implemented and awaits physical AppImage build validation. Reproducibility/ELF checks, UI polish, and release-candidate QA remain later release work.
