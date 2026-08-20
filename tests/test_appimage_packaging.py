@@ -11,6 +11,10 @@ BASELINE_IMAGE = (
     "quay.io/pypa/manylinux_2_34_x86_64@"
     "sha256:64decb8ae4b373180c246525a755c0afb2ca136334f0d64b41cf5f229283a7b6"
 )
+PYTHON_VERSION = "3.11.16"
+PYTHON_SOURCE_SHA256 = (
+    "91bcdebfdde239a003ae93738a7fce0f9230fee5c4bc2b86f6e6e8c6f98aabe8"
+)
 
 
 class AppImagePackagingTests(unittest.TestCase):
@@ -84,9 +88,24 @@ class AppImagePackagingTests(unittest.TestCase):
         script = (APPIMAGE_DIR / "build-baseline.sh").read_text(encoding="utf-8")
         self.assertIn(f'BASELINE_IMAGE="{BASELINE_IMAGE}"', script)
         self.assertIn('BASELINE_GLIBC="glibc 2.34"', script)
-        self.assertIn('BASELINE_PYTHON="/opt/python/cp311-cp311/bin/python"', script)
         self.assertNotIn("manylinux_2_34_x86_64:latest", script)
         self.assertNotIn("manylinux_2_34_x86_64:202", script)
+
+    def test_baseline_builder_builds_pinned_shared_python(self):
+        script = (APPIMAGE_DIR / "build-baseline.sh").read_text(encoding="utf-8")
+        self.assertIn(f'PYTHON_VERSION="{PYTHON_VERSION}"', script)
+        self.assertIn(
+            f'PYTHON_SOURCE_URL="https://www.python.org/ftp/python/{PYTHON_VERSION}/Python-{PYTHON_VERSION}.tar.xz"',
+            script,
+        )
+        self.assertIn(f'PYTHON_SOURCE_SHA256="{PYTHON_SOURCE_SHA256}"', script)
+        self.assertIn("actual_source_hash=", script)
+        self.assertIn('--enable-shared', script)
+        self.assertIn('Py_ENABLE_SHARED', script)
+        self.assertIn('shared libpython was not installed', script)
+        self.assertIn('import _ssl, bz2, ctypes, lzma, sqlite3, venv, zlib', script)
+        self.assertIn('-m pip --version', script)
+        self.assertNotIn('BASELINE_PYTHON="/opt/python/cp311-cp311/bin/python"', script)
 
     def test_baseline_builder_isolated_and_fail_closed(self):
         script = (APPIMAGE_DIR / "build-baseline.sh").read_text(encoding="utf-8")
