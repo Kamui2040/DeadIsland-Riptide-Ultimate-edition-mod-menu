@@ -118,7 +118,7 @@ Keep responsibilities separated:
 
 Cleanup is continuous maintenance, not an end-of-task step.
 
-- At the start, during and end of each meaningful work unit, classify residue and remove only items proven obsolete when safe.
+- At the start, during, and end of each meaningful work unit, classify residue and remove only items proven obsolete when safe.
 - Regularly maintain repository worktrees, the local mirror, project docs, private evidence, temporary extracts, fixtures, build outputs, and QA artifacts.
 - Remove stale temporary data, duplicate notes, redundant evidence, and superseded scripts when their replacement is verified.
 - For versioned QA report files, delete superseded local report generations in the same work unit once replacement evidence is accepted and no unresolved work still depends on them; manual QA handoffs must clean prior report outputs, not only `/tmp` files.
