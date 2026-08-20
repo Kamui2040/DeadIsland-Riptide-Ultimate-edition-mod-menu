@@ -26,7 +26,7 @@
       "name": "dirue-linux",
       "buildsystem": "simple",
       "build-commands": [
-        "PYTHON_VERSION=\"$(python3 -c 'import sys; print(f\"{sys.version_info.major}.{sys.version_info.minor}\")')\" && install -d \"/app/lib/python${PYTHON_VERSION}/site-packages\" && cp -a src/dirue \"/app/lib/python${PYTHON_VERSION}/site-packages/\"",
+        "SITE_PACKAGES=\"$(python3 -c 'import sysconfig; print(sysconfig.get_path(\"purelib\", vars={\"base\": \"/app\", \"platbase\": \"/app\"}))')\" && install -d \"${SITE_PACKAGES}\" && cp -a src/dirue \"${SITE_PACKAGES}/\"",
         "printf '%s\\n' '#!/bin/sh' 'exec python3 -m dirue.gui \"$@\"' > dirue-gui && install -Dm755 dirue-gui /app/bin/dirue-gui",
         "install -Dm644 io.github.Kamui2040.DIRUELinux.desktop /app/share/applications/io.github.Kamui2040.DIRUELinux.desktop",
         "install -Dm644 io.github.Kamui2040.DIRUELinux.metainfo.xml /app/share/metainfo/io.github.Kamui2040.DIRUELinux.metainfo.xml"
