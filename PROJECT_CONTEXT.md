@@ -86,20 +86,22 @@ Issue #5 is closed as resolved. Portability evidence is bounded to x86-64 system
 - stale text about unresolved forced-spawn modes is removed;
 - source-level regression coverage locks the explicit validation flow without requiring PySide6 during ordinary unit discovery.
 
-Physical packaged AppImage UI QA on 2026-08-21 accepted this flow at commit `fb46e7f9438fb218edd7673ea03621ab0f28dcf2`:
+Physical packaged AppImage UI functional/flow QA on 2026-08-21 passed at commit `fb46e7f9438fb218edd7673ea03621ab0f28dcf2`:
 
 - focused GUI/catalog static tests passed;
 - packaged AppImage SHA-256 `90624c9be56b50d39685dc81430a6cebcd99537be774894e557707d6bfb7ea2c`;
 - packaged AppImage size `60,246,520` bytes;
 - packaged launch passed;
-- first-run layout and scrolling were accepted;
+- first-run controls were readable and the option area scrolled correctly during the functional check;
 - Browse did not auto-validate;
 - explicit Validate enabled the appropriate actions;
 - editing the selected path invalidated validation immediately without implicit revalidation;
 - About/version/attribution information was present;
 - no game mutation occurred.
 
-The remaining UI-polish gate is a bounded Flatpak portal-flow check to confirm the same Browse/Validate behavior still works inside the sandbox. No gameplay mutation is required.
+This functional/flow pass does **not** constitute maintainer visual approval. UI polish remains active until the packaged appearance is explicitly approved by the maintainer.
+
+The remaining UI-polish gates are a bounded Flatpak portal-flow check and explicit maintainer visual approval of the packaged UI. No gameplay mutation is required for either UI-polish check.
 
 ## Validation boundary
 
@@ -114,12 +116,13 @@ Verified now:
 - AppImage build/payload/launch/Apply/Restore/relaunch proof passes;
 - shared packaging hardening stages 1 and 2 pass;
 - hardened AppImage reproducibility and `GLIBC_2.34` audit pass;
-- packaged AppImage UI-polish visual and explicit-validation QA passes;
+- packaged AppImage UI-polish functional and explicit-validation QA passes;
+- maintainer visual approval of the UI remains pending;
 - no GitHub Actions were used.
 
 ## Remaining release gates
 
-1. **Finish UI polish** — run the bounded Flatpak portal-flow check and fix any accepted findings.
+1. **Finish UI polish** — run the bounded Flatpak portal-flow check, obtain explicit maintainer visual approval of the packaged appearance, and fix any accepted findings.
 2. **Release candidate** — freeze one exact source commit and build both primary formats from it.
 3. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
 4. **Final rebuild/verification** after accepted RC fixes.
