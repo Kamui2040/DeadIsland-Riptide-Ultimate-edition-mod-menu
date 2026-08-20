@@ -12,7 +12,7 @@ fail() {
     exit 2
 }
 
-for command in podman git; do
+for command in podman git find sha256sum stat; do
     command -v "$command" >/dev/null 2>&1 || fail "missing build command: $command"
 done
 
@@ -23,6 +23,10 @@ esac
 
 mkdir -p "$OUT"
 OUT="$(CDPATH= cd -- "$OUT" && pwd)"
+
+if find "$OUT" -maxdepth 1 -type f -name '*.AppImage' -print -quit | grep -q .; then
+    fail "output directory already contains an AppImage"
+fi
 
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(git -C "$ROOT" log -1 --format=%ct HEAD)}"
 case "$SOURCE_DATE_EPOCH" in
@@ -70,8 +74,21 @@ cd /workspace
 PYTHON_BIN="$python_bin" packaging/appimage/build.sh /output
 CONTAINER
 
+artifact_count="$(find "$OUT" -maxdepth 1 -type f -name '*.AppImage' -print | wc -l | tr -d '[:space:]')"
+[ "$artifact_count" = "1" ] || fail "expected exactly one host-visible AppImage, found $artifact_count"
+
+HOST_ARTIFACT="$(find "$OUT" -maxdepth 1 -type f -name '*.AppImage' -print -quit)"
+[ -f "$HOST_ARTIFACT" ] || fail "host-visible AppImage was not found"
+[ -x "$HOST_ARTIFACT" ] || fail "host-visible AppImage is not executable"
+
+HOST_HASH="$(sha256sum "$HOST_ARTIFACT" | awk '{print $1}')"
+HOST_SIZE="$(stat -c '%s' "$HOST_ARTIFACT")"
+
 echo "APPIMAGE_BASELINE_IMAGE=$BASELINE_IMAGE"
 echo "APPIMAGE_BASELINE_GLIBC=$BASELINE_GLIBC"
 echo "APPIMAGE_BASELINE_PYTHON=3.11"
 echo "APPIMAGE_BASELINE_SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
+echo "APPIMAGE_BASELINE_ARTIFACT=$HOST_ARTIFACT"
+echo "APPIMAGE_BASELINE_SHA256=$HOST_HASH"
+echo "APPIMAGE_BASELINE_SIZE=$HOST_SIZE"
 echo "APPIMAGE_BASELINE_BUILD=PASS"
