@@ -109,6 +109,7 @@ Keep responsibilities separated:
 - Before any QA write to the installed game, verify the target archive and backup state and use the transaction path implemented by the project.
 - When validating numeric gameplay changes through an in-game UI, do not assume a raw data value is displayed directly; establish the pristine-to-UI relationship or use an A/B comparison before asserting an exact displayed value.
 - Reproducible distribution QA must build the wheel and sdist twice from the same head with a fixed `SOURCE_DATE_EPOCH`; source archives must normalize member order, ownership, timestamps, and gzip metadata before byte comparison.
+- Reproducible PyInstaller/AppImage builds must use a fixed `PYTHONHASHSEED`, normalize AppDir timestamps to `SOURCE_DATE_EPOCH`, and expose a deterministic AppDir content fingerprint so payload nondeterminism can be distinguished from container metadata.
 - Packaging handoffs must provision required non-project build tooling in a disposable isolated environment with an explicit version instead of assuming it exists in the host Python environment.
 - Before adopting a PyInstaller container baseline, pin the image by digest and verify its glibc floor, exact Python version, shared `libpython`, required extension modules, and pip; prefer a verified packaged interpreter over an ad hoc source build.
 - When a new runtime module is added, distribution validation must require that module in both wheel and sdist payload checks before packaging can be accepted.
