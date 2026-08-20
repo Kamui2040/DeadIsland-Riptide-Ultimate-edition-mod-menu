@@ -15,7 +15,7 @@ The application ID is `io.github.Kamui2040.DIRUELinux`. The proof uses `org.kde.
 From the repository root:
 
 ```bash
-python -m unittest tests.test_flatpak_packaging
+python3 -m unittest tests.test_flatpak_packaging
 ```
 
 For the physical Bazzite build, use Flathub's Flatpak Builder package rather than modifying the immutable host:
@@ -23,9 +23,20 @@ For the physical Bazzite build, use Flathub's Flatpak Builder package rather tha
 ```bash
 flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 flatpak install --user -y flathub org.flatpak.Builder
-flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest packaging/flatpak/io.github.Kamui2040.DIRUELinux.json
-flatpak run --command=flathub-build org.flatpak.Builder --install packaging/flatpak/io.github.Kamui2040.DIRUELinux.json
+flatpak run org.flatpak.Builder \
+  --user \
+  --install \
+  --install-deps-from=flathub \
+  --force-clean \
+  --disable-rofiles-fuse \
+  .flatpak-build \
+  packaging/flatpak/io.github.Kamui2040.DIRUELinux.json
+flatpak run --command=python3 io.github.Kamui2040.DIRUELinux \
+  -c 'import dirue, PySide6; print(dirue.__version__, PySide6.__version__)'
+flatpak info --user --show-permissions io.github.Kamui2040.DIRUELinux
 flatpak run io.github.Kamui2040.DIRUELinux
 ```
 
-The proof is not release acceptance. A successful build and launch must still be followed by packaged Bazzite checks for directory selection, native-game validation, candidate Apply, exact Restore, application restart, and artifact-content inspection. A final application icon and full metadata polish belong to the later UI/packaging-polish phase.
+The proof is not a Flathub submission yet. Final iconography, screenshots, release metadata, and Flathub submission lint belong to the later packaging/UI-polish phase rather than this first launch/access proof.
+
+A successful build and launch must still be followed by packaged Bazzite checks for directory selection, native-game validation, candidate Apply, exact Restore, application restart, and artifact-content inspection.
