@@ -13,7 +13,7 @@ Milestone 1 is a faithful native-Linux port of released DIRUE behavior. Released
 
 New gameplay tweaks remain deferred until a separate post-parity decision.
 
-The active release phase is now end-user packaging. The required order is documented in `docs/RELEASE.md`: Flatpak proof, AppImage proof, shared packaging hardening, UI polish, release candidate, packaged Bazzite QA, final rebuild/verification, then explicitly approved release.
+The active release phase is end-user packaging. The required order is documented in `docs/RELEASE.md`: Flatpak proof, AppImage proof, shared packaging hardening, UI polish, release candidate, packaged Bazzite QA, final rebuild/verification, then explicitly approved release.
 
 ## Verified native Linux baseline
 
@@ -86,16 +86,34 @@ Those wheel/sdist results remain development/source-distribution evidence. They 
 
 ## End-user release packaging
 
-The primary release targets are now:
+The primary release targets are:
 
 - **Flatpak first** for SteamOS, Bazzite, and other Flatpak-friendly Linux systems;
 - **AppImage second** as the portable Linux alternative.
 
 Normal users must not be required to install Python, create a virtual environment, install PySide6, or use development commands to launch the GUI.
 
-The current Flatpak proof uses `org.kde.Platform` and `io.qt.PySide.BaseApp` 6.11, packages only `src/dirue` plus public-safe desktop metadata, and intentionally excludes the repository root and inherited game-content payloads from its source boundary. It also starts without blanket host-filesystem or network permission. Physical Bazzite QA must prove portal-backed selection can provide the required read/write access to a user-selected native game installation before that permission model is accepted.
+### Accepted Flatpak proof
 
-The Flatpak proof has not yet passed physical Bazzite build/launch or Apply/Restore QA. AppImage proof work has not started. UI polish follows successful packaging proofs rather than preceding them.
+The Flatpak proof uses `org.kde.Platform` and `io.qt.PySide.BaseApp` 6.11, packages only `src/dirue` plus public-safe desktop metadata, and excludes the repository root and inherited game-content payloads from its source boundary. It requests no blanket host-filesystem or network permission.
+
+Physical Bazzite QA on 2026-08-20 accepted the proof at commit `92bed2cab98d6ecc5c2255a28a5f11bdd7024bab`:
+
+- the six static packaging checks passed;
+- Flatpak Builder completed and installed the application;
+- packaged imports reported DIRUE `0.1.0.dev0` and PySide6 `6.11.1`;
+- permission inspection confirmed no blanket host-filesystem access;
+- the graphical folder chooser granted sufficient scoped access to the selected native DIRDE installation without extra permissions;
+- native game validation passed against the accepted pristine Data0 baseline;
+- a single `Reduce sprint stamina` Apply transaction completed successfully;
+- Restore completed successfully and final status confirmed live Data0 matched the retained pristine backup;
+- the packaged GUI exited normally.
+
+KDE/UDisks D-Bus disconnect warnings were observed during the GUI run, but they did not block Browse, Validate, Apply, Restore, or clean exit. They are not treated as a proof blocker; recurrence during later packaged QA should still be observed.
+
+The initial Flatpak proof is therefore **complete**. Final iconography, screenshots, release metadata, Flathub submission lint, UI polish, and release-candidate artifact checks remain later release work.
+
+AppImage proof work follows next. UI polish remains after both packaging proofs.
 
 SteamOS is treated as an operating-system target, not as a Steam Deck-only target. Hardware-specific Steam Deck or Steam Machine validation is not claimed without corresponding hardware evidence.
 
@@ -107,20 +125,20 @@ SteamOS is treated as an operating-system target, not as a Steam Deck-only targe
 - forced-spawn exclusivity and fail-closed validation pass;
 - application transaction and recovery behavior remain validated;
 - reproducible wheel/sdist packaging and isolated installed-wheel checks pass for the 42-option state;
+- bounded Flatpak build/import/sandbox/portal/Apply/Restore proof passes on physical Bazzite;
 - no GitHub Actions were used.
 
-No further routine gameplay or legacy wheel/sdist QA is required absent a newly identified risk. Flatpak/AppImage packaging, packaged UI behavior, and final release-candidate QA remain separate pending gates.
+No further routine gameplay or legacy wheel/sdist QA is required absent a newly identified risk. AppImage packaging, shared packaging hardening, UI polish, and final release-candidate QA remain separate pending gates.
 
 ## Remaining gates
 
-1. Build and launch the bounded Flatpak proof on Bazzite; validate portal-backed game-directory access and packaged Apply/Restore behavior.
-2. Build and validate the AppImage proof from the same application source without host Python/PySide6 requirements.
-3. Harden shared packaging/resource/config behavior and artifact-content checks for both formats.
-4. Polish the UI and validate it from packaged builds.
-5. Freeze and build a release candidate from one exact source commit.
-6. Complete packaged Bazzite end-to-end QA for Flatpak and AppImage.
-7. Rebuild and verify final-version artifacts after any accepted RC fixes.
-8. Obtain explicit approval before public release, binaries, Nexus publication, upstream submission, announcements, distribution, visibility changes, or GitHub Actions use.
+1. Build and validate the AppImage proof from the same application source without host Python/PySide6 requirements.
+2. Harden shared packaging/resource/config behavior and artifact-content checks for Flatpak and AppImage.
+3. Polish the UI and validate it from packaged builds.
+4. Freeze and build a release candidate from one exact source commit.
+5. Complete packaged Bazzite end-to-end QA for Flatpak and AppImage.
+6. Rebuild and verify final-version artifacts after any accepted RC fixes.
+7. Obtain explicit approval before public release, binaries, Nexus publication, upstream submission, announcements, distribution, visibility changes, or GitHub Actions use.
 
 ## Cleanup and publication
 
