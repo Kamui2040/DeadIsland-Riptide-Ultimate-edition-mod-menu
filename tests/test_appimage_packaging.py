@@ -93,6 +93,7 @@ class AppImagePackagingTests(unittest.TestCase):
         self.assertIn("APPIMAGE_MAX_REQUIRED_GLIBC=", script)
         self.assertIn("APPIMAGE_GLIBC_AUDIT=PASS", script)
         self.assertIn("finished AppImage failed GLIBC compatibility audit", script)
+        self.assertIn("GLIBC_AUDIT_\\(VIOLATION\\|ERROR\\)", script)
 
     def test_baseline_builder_pins_verified_ubi_image(self):
         script = (APPIMAGE_DIR / "build-baseline.sh").read_text(encoding="utf-8")
