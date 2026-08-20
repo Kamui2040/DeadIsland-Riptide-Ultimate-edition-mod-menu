@@ -160,9 +160,9 @@ if ! "$VENV/bin/python" "$ROOT/packaging/appimage/audit_glibc.py" \
 then
     AUDIT_DETAIL="$(
         sed -n '/^GLIBC_AUDIT_\(VIOLATION\|ERROR\)=/p' "$AUDIT_STDERR" |
-            head -n 1
+            head -n 5
     )"
-    [ -n "$AUDIT_DETAIL" ] && echo "$AUDIT_DETAIL" >&2
+    [ -n "$AUDIT_DETAIL" ] && printf '%s\n' "$AUDIT_DETAIL" >&2
     fail "finished AppImage failed GLIBC compatibility audit"
 fi
 AUDIT_OUTPUT="$(cat "$AUDIT_STDOUT")"
