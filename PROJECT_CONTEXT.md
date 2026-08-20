@@ -99,7 +99,7 @@ The initial AppImage proof is complete.
 
 ### Shared packaging hardening
 
-Stage 1 hardening is implemented on `release/packaging-hardening`. Flatpak and AppImage now share one application identity, desktop entry, metainfo, icon, and launcher name. The Flatpak retains its bounded permission model. The AppImage builder pins and verifies `appimagetool` and the type-2 runtime rather than relying on mutable `continuous` assets, and records both the builder glibc and the intended compatibility floor.
+Stage 1 hardening is implemented on `release/packaging-hardening`. Flatpak and AppImage share one application identity, desktop entry, metainfo, icon, and launcher name. The Flatpak retains its bounded permission model. The AppImage builder pins and verifies `appimagetool` and the type-2 runtime rather than relying on mutable `continuous` assets, and records both the builder glibc and the intended compatibility floor.
 
 Physical Bazzite QA on 2026-08-20 accepted hardening stage 1 at commit `15437a1ee0172cb79092fdc5c230759ff2d3d3bb`:
 
@@ -113,7 +113,9 @@ Physical Bazzite QA on 2026-08-20 accepted hardening stage 1 at commit `15437a1e
 - artifact hash verification passed;
 - `PACKAGING_HARDENING_STAGE1=PASS`.
 
-The glibc `2.34` target is not yet enforced by the physical builder environment; the Bazzite-built artifact remains Bazzite execution evidence. The next hardening gate is a reproducible AppImage build environment at the chosen compatibility floor before broader SteamOS/general-Linux portability is claimed.
+Hardening stage 2 now pins the portable AppImage build environment to `quay.io/pypa/manylinux_2_34_x86_64@sha256:64decb8ae4b373180c246525a755c0afb2ca136334f0d64b41cf5f229283a7b6`. A physical Bazzite probe on 2026-08-20 verified that exact image reports glibc `2.34` and CPython `3.11.11`. The new `packaging/appimage/build-baseline.sh` wrapper uses rootless Podman, mounts the repository read-only, checks glibc/Python before building, and invokes the existing hardened AppImage builder inside the digest-pinned environment.
+
+The remaining stage-2 gate is a physical double build through that wrapper with the same `SOURCE_DATE_EPOCH`, followed by byte/hash comparison and packaged launch validation. Broader SteamOS/general-Linux AppImage portability is not claimed until that passes.
 
 ## UI-polish decision carried from packaging QA
 
@@ -131,13 +133,14 @@ Verified now:
 - bounded Flatpak build/import/sandbox/portal/Apply/Restore proof passes on physical Bazzite;
 - bounded AppImage build/payload/launch/Apply/Restore/relaunch proof passes on physical Bazzite;
 - shared packaging hardening stage 1 passes on physical Bazzite;
+- the exact glibc-2.34 baseline image and CPython 3.11 runtime are physically verified on Bazzite;
 - no GitHub Actions were used.
 
 No further routine gameplay or legacy wheel/sdist QA is required absent a newly identified risk.
 
 ## Remaining release gates
 
-1. **Finish shared packaging hardening** — enforce the chosen AppImage compatibility baseline in a reproducible build environment, keep Flatpak/AppImage metadata and payload checks aligned, and complete remaining artifact-integrity checks.
+1. **Finish shared packaging hardening** — validate two baseline AppImage builds for reproducibility, verify packaged launch from the baseline artifact, keep Flatpak/AppImage metadata and payload checks aligned, and complete remaining artifact-integrity checks.
 2. **UI polish** — including manual validation flow, first-run clarity, hierarchy/spacing, status/error presentation, Apply/Restore affordances, iconography, window behavior, and version/about information.
 3. **Release candidate** — freeze one exact source commit and build both primary formats from it.
 4. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
