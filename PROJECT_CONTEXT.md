@@ -88,9 +88,9 @@ The maintainer then supplied a consolidated visual/usability review. The current
 - an inline `NoClip vehicles` warning that appears when enabled because the option can leave the player stuck;
 - source-level regression coverage for naming, validation flow, responsive layout, dropdown sizing, restore wording, hover help, warning behavior, and shared metadata.
 
-The existing shared SVG remains in place only as the current packaging icon. A replacement custom icon is required for UI polish, but no new design will be committed until the maintainer approves that design.
+The maintainer approved the custom red penguin/Ripper icon. The approved artwork is now installed through the shared packaging icon at `packaging/common/io.github.Kamui2040.DIRUELinux.svg` as an optimized 128×128 raster derivative embedded in the existing SVG wrapper, so Flatpak, AppImage, desktop integration, and Qt continue to use the same application identity. Source-level coverage validates the embedded PNG payload and dimensions. Provenance records it as project-generated artwork rather than game-derived content.
 
-This post-review UI revision has **not yet received packaged visual approval**. Because UI and shared metadata changed after the earlier packaged functional passes, run focused static/package smoke checks again before using a newly built package for the next maintainer visual review.
+The earlier packaged UI review approved the non-final-icon appearance. The final icon has not yet been reviewed in newly built packages, so UI polish is not complete until the updated Flatpak/AppImage path passes focused smoke checks and the maintainer approves the packaged icon presentation.
 
 ## Validation boundary
 
@@ -102,17 +102,17 @@ Verified:
 - wheel/sdist reproducibility passes;
 - Flatpak proof and earlier packaged UI functional/portal flow pass;
 - AppImage proof, hardening, reproducibility, and `GLIBC_2.34` audit pass;
+- maintainer-approved custom icon is landed in the shared packaging path with source-level payload validation;
 - no GitHub Actions were used.
 
 Pending:
 
-- maintainer-approved custom icon design and replacement;
-- static/package smoke validation of the latest consolidated UI revision after the final icon is in place;
-- explicit maintainer visual approval of the newly packaged UI.
+- focused static/package smoke validation of the latest consolidated UI revision with the final icon;
+- explicit maintainer visual approval of the newly packaged icon/UI presentation.
 
 ## Remaining release gates
 
-1. **Finish UI polish** — approve and land the custom icon, validate the latest consolidated UI revision in packaged form, obtain explicit maintainer visual approval, and fix any accepted findings.
+1. **Finish UI polish** — validate the final icon and latest consolidated UI revision in packaged form, obtain explicit maintainer visual approval, and fix any accepted findings.
 2. **Release candidate** — freeze one exact source commit and build both primary formats from it.
 3. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
 4. **Final rebuild/verification** after accepted RC fixes.
