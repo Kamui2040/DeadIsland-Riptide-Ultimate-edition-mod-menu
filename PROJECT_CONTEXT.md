@@ -9,131 +9,105 @@
 - Active release branch: `release/ui-polish`
 - License: GNU GPLv3, inherited and preserved
 
-Milestone 1 is a faithful native-Linux port of released DIRUE behavior. Released-option parity is integrated on fork `main`; upstream remains untouched. New gameplay tweaks remain deferred until a separate post-parity decision.
+Milestone 1 is a faithful Linux port of released DIRUE behavior for Dead Island: Riptide Definitive Edition. Released gameplay parity is integrated on fork `main`; upstream remains untouched. New gameplay tweaks remain deferred.
 
 Release sequence: Flatpak proof, AppImage proof, shared packaging hardening, UI polish, release candidate, packaged Bazzite QA, final rebuild/verification, then explicitly approved release.
 
-## Verified native Linux baseline
+## Verified game baseline
 
 Accepted physical evidence for the audited installation:
 
-- native ELF `DeadIslandRiptideGame`;
+- ELF `DeadIslandRiptideGame`;
 - ZIP-compatible `DIR/Data0.pak`;
 - 3060 archive entries;
 - archive size 7,932,941 bytes;
 - SHA-256 `0afeadca8fb84147cc2c815ec37d1f3c940d40fab6c0a343b7b84e7f41d3c991`.
 
-The hash is evidence for the audited installation, not a universal requirement. Raw local reports, machine-specific paths, extracted game content, authentic backups, and temporary candidates are not committed.
+The hash is accepted evidence for the audited installation, not a universal requirement. Raw local reports, machine-specific paths, extracted game content, authentic backups, and temporary candidates are not committed.
 
 ## Gameplay parity and transaction safety
 
-Integrated `main` contains **42 semantic non-default options** covering released DIRUE gameplay controls. All 42 pass disposable native candidate construction against the accepted baseline, including the formerly blocked forced-spawn modes. Representative native gameplay QA and exact pristine restore are accepted.
+Integrated `main` contains **42 semantic non-default options** covering released DIRUE gameplay controls. All 42 pass disposable candidate construction against the accepted baseline. Representative gameplay QA, all released forced-spawn families, transaction safeguards, and exact pristine restore are accepted.
 
-Choice groups fail closed. Runtime transforms validate source state, exact match counts, archive identity, and result state rather than relying on line numbers. The inherited preset ZIP payloads are not copied, installed, or packaged.
+Choice groups fail closed. Runtime transforms validate source state, exact match counts, archive identity, and result state rather than relying on line numbers. Inherited preset ZIP payloads are not copied, installed, or packaged.
 
-The GUI-independent application service validates selections, compatibility, archive identity, and exclusivity before mutation. It preserves a pristine backup, builds candidates in isolated temporary storage, validates before install, rechecks the live source immediately before atomic replacement, and requires pristine restore before applying a different selection over a modified live archive.
+The GUI-independent application service validates compatibility and selection state before mutation, preserves a pristine backup, builds candidates in temporary storage, validates before install, rechecks the live source before atomic replacement, and requires pristine restore before applying a different selection over a modified archive.
 
-The retained pristine backup is recovery material and must not be overwritten or deleted. The GUI catalog exposes all 42 ready options and matches the semantic catalog.
+## Distribution evidence
 
-## Developer/source distribution evidence
+Reproducible developer/source artifacts were accepted:
 
-Reproducible Bazzite packaging produced byte-identical artifacts:
+- wheel SHA-256 `f870e68409fa351caabdacd2566989f2c06b7ca1086658438a1a8105753febd3`;
+- sdist SHA-256 `72d783b2faf73f45346a916490c0bccb0830ff3ea9c0ca56d0cd724bebe7a29a`.
 
-- wheel `dirue_linux-0.1.0.dev0-py3-none-any.whl`: SHA-256 `f870e68409fa351caabdacd2566989f2c06b7ca1086658438a1a8105753febd3`;
-- sdist `dirue_linux-0.1.0.dev0.tar.gz`: SHA-256 `72d783b2faf73f45346a916490c0bccb0830ff3ea9c0ca56d0cd724bebe7a29a`.
-
-These are developer/source artifacts, not the primary one-click release path.
-
-## End-user packaging
-
-Primary targets are **Flatpak first** for SteamOS/Bazzite/Flatpak-friendly systems and **AppImage second** as the portable Linux alternative. Normal users must not need to install Python or PySide6.
+Primary end-user targets are Flatpak first and AppImage second. Normal users must not need to install Python or PySide6.
 
 ### Flatpak
 
-Physical Bazzite QA accepted the Flatpak proof on 2026-08-20. The package built and installed, imported DIRUE `0.1.0.dev0` with PySide6 `6.11.1`, retained the bounded sandbox without blanket host-filesystem or network permission, reached the selected native game through the Qt folder chooser, validated the pristine baseline, applied `Reduce sprint stamina`, restored pristine Data0 exactly, and exited cleanly.
+Physical Bazzite proof QA passed with PySide6 `6.11.1`, bounded sandbox permissions, portal-based game-folder access, Validate, Apply, exact Restore, and clean exit. No blanket host-filesystem or network permission was needed.
 
-The KDE/UDisks D-Bus disconnect warning observed during proof QA was harmless and did not block Browse, Validate, Apply, Restore, or exit.
+### AppImage
 
-### AppImage hardening
+Shared hardening stage 1 passed at `15437a1ee0172cb79092fdc5c230759ff2d3d3bb`.
 
-The initial AppImage proof passed on physical Bazzite. Shared hardening stage 1 was accepted at commit `15437a1ee0172cb79092fdc5c230759ff2d3d3bb`.
-
-Shared hardening stage 2 was accepted at commit `f37d39165212b84954cf60c34b0d97bdec313511`:
+Shared hardening stage 2 passed at `f37d39165212b84954cf60c34b0d97bdec313511` with:
 
 - digest-pinned UBI 9 Python 3.11 baseline;
 - glibc `2.34`, Python `3.11.13`, fixed `PYTHONHASHSEED=1`, and source-derived `SOURCE_DATE_EPOCH`;
 - deterministic AppDir SHA-256 `5741e2dab0460061bc5a1d26187a8eb5323ec30a0b6187757c4cd067d5a175ce`;
-- byte-identical AppImages;
+- byte-identical final AppImages;
 - final AppImage SHA-256 `07284a312c929cd46bcc191ba9f76f3683d2134f36e912622b77656079376dd4`;
 - final size `60,246,520` bytes;
 - 179 ELF files audited with maximum required `GLIBC_2.34`;
 - incompatible container-collected `libgcc_s.so.1` excluded and checker-enforced;
 - direct packaged launch passed.
 
-Issue #5 is closed as resolved. Portability evidence is bounded to x86-64 systems meeting the glibc 2.34 floor and target-system base-library expectations; older pre-x86-64-v2 CPUs are not proven compatible.
+Issue #5 is closed. Portability evidence is bounded to x86-64 systems meeting the glibc 2.34 floor and target-system base-library expectations; older pre-x86-64-v2 CPUs are not proven compatible.
 
 ## UI polish — active
 
-`release/ui-polish` is based on the accepted packaging-hardening checkpoint. The implementation includes:
+Earlier packaged functional checks passed on both AppImage and Flatpak. They established the explicit validation flow, portal Browse behavior, bounded Flatpak permissions, packaged launch, and no game mutation. These passes did **not** constitute maintainer visual approval.
 
-- Browse selects a folder only and does not auto-validate;
-- Validate performs one explicit inspection;
-- editing/changing the selected path invalidates prior validation and disables Apply/Restore;
-- Apply and Restore require the currently selected path to be explicitly validated, while the transaction service still revalidates for safety;
-- transaction failures invalidate GUI validation state;
-- successful Apply leaves Restore enabled and Apply disabled until pristine restore;
-- first-run steps, game-installation grouping, clearer status wording, Activity labeling, shorter Apply/Restore labels, tooltips, packaged icon lookup, minimum window size, version display, and About information;
-- stale text about unresolved forced-spawn modes is removed;
-- source-level regression coverage locks the explicit validation flow without requiring PySide6 during ordinary unit discovery.
+The maintainer then supplied a consolidated visual/usability review. The current `release/ui-polish` implementation now includes:
 
-Physical packaged AppImage UI functional/flow QA on 2026-08-21 passed at commit `fb46e7f9438fb218edd7673ea03621ab0f28dcf2`:
+- app short name **DIRDE UE Linux**;
+- long title **Dead Island: Riptide DE Linux - Ultimate Edition**;
+- FireEyeEian and Kamui2040 author credit;
+- About links for the project GitHub page, Kamui2040 Ko-fi, and the original Nexus mod;
+- a new original project SVG icon with no game assets;
+- removed introductory technical paragraph and removed `native` from user-facing GUI wording;
+- short validation messages such as `Game folder validated.` and `Can't validate game folder.`;
+- Flatpak game-folder field is read-only because portal Browse is the supported access path; non-Flatpak builds still allow typed paths;
+- Activity is limited to three visible recent lines;
+- a taller default window and more vertical space for options;
+- responsive option layout: AI and Firearms stay on one row when space permits and wrap when the window narrows;
+- Gameplay options grouped by Movement, Combat, Gear & loot, Comfort, and Vehicles, with groups reflowing across available width;
+- short natural hover help for every checkbox, choice group, and choice;
+- an inline `NoClip vehicles` warning that appears when enabled because the option can leave the player stuck;
+- source-level regression tests for naming, validation flow, layout, hover help, warning behavior, metadata, and custom icon identity.
 
-- focused GUI/catalog static tests passed;
-- packaged AppImage SHA-256 `90624c9be56b50d39685dc81430a6cebcd99537be774894e557707d6bfb7ea2c`;
-- packaged AppImage size `60,246,520` bytes;
-- packaged launch passed;
-- first-run controls were readable and the option area scrolled correctly during the functional check;
-- Browse did not auto-validate;
-- explicit Validate enabled the appropriate actions;
-- editing the selected path invalidated validation immediately without implicit revalidation;
-- About/version/attribution information was present;
-- no game mutation occurred.
-
-Physical packaged Flatpak UI functional/portal QA on 2026-08-21 passed at commit `ab6682fa33df11d553a06620b2a9b842a029a1d4`:
-
-- focused static tests passed;
-- packaged imports reported DIRUE `0.1.0.dev0` and PySide6 `6.11.1`;
-- sandbox permission inspection passed without broad host filesystem or network access;
-- packaged launch passed;
-- the portal Browse flow reached and selected the native game folder;
-- Browse did not auto-validate and explicit Validate produced the ready state;
-- no game mutation occurred.
-
-The commits after `ab6682fa33df11d553a06620b2a9b842a029a1d4` before this documentation update changed only governance/project documentation, not UI or packaging code, so the Flatpak functional evidence remains applicable to the active implementation.
-
-Functional, packaged, and portal-flow QA does **not** constitute maintainer visual approval. UI polish remains active until the packaged appearance is explicitly approved by the maintainer.
+This post-review UI revision has **not yet received packaged visual approval**. Because UI and shared metadata changed after the earlier packaged functional passes, run focused static/package smoke checks again before using a newly built package for the next maintainer visual review.
 
 ## Validation boundary
 
-Verified now:
+Verified:
 
-- all 42 released non-default options pass native candidate construction;
-- representative native gameplay QA and exact pristine restore pass;
-- UI/catalog accounting passes at 42 options;
+- all 42 released non-default options pass candidate construction;
+- representative gameplay QA and exact pristine restore pass;
 - transaction/recovery behavior is validated;
 - wheel/sdist reproducibility passes;
-- Flatpak build/import/sandbox/portal/Apply/Restore proof passes;
-- AppImage build/payload/launch/Apply/Restore/relaunch proof passes;
-- shared packaging hardening stages 1 and 2 pass;
-- hardened AppImage reproducibility and `GLIBC_2.34` audit pass;
-- packaged AppImage UI-polish functional and explicit-validation QA passes;
-- packaged Flatpak UI-polish functional, sandbox, portal, and explicit-validation QA passes;
-- maintainer visual approval of the UI remains pending;
+- Flatpak proof and earlier packaged UI functional/portal flow pass;
+- AppImage proof, hardening, reproducibility, and `GLIBC_2.34` audit pass;
 - no GitHub Actions were used.
+
+Pending:
+
+- static/package smoke validation of the latest consolidated UI revision;
+- explicit maintainer visual approval of the newly packaged UI.
 
 ## Remaining release gates
 
-1. **Finish UI polish** — obtain explicit maintainer visual approval of the packaged appearance and fix any accepted visual findings.
+1. **Finish UI polish** — validate the latest consolidated UI revision in packaged form, obtain explicit maintainer visual approval, and fix any accepted findings.
 2. **Release candidate** — freeze one exact source commit and build both primary formats from it.
 3. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
 4. **Final rebuild/verification** after accepted RC fixes.
