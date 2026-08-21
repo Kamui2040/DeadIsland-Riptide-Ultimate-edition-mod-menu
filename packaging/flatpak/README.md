@@ -50,4 +50,4 @@ flatpak run org.flatpak.Builder \
 flatpak run io.github.Kamui2040.DIRUELinux
 ```
 
-The package is not a Flathub submission yet. Final iconography, screenshots, release metadata, Flathub submission lint, broader packaged QA, and UI polish remain later release stages.
+The package is not a Flathub submission yet. The maintainer-approved custom icon is now part of the shared packaging metadata; focused packaged smoke validation and final visual approval remain before release-candidate freeze.
