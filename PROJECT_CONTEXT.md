@@ -84,7 +84,7 @@ Accepted UI behavior and presentation include:
 
 The Flatpak exports scalable SVG plus 64x64 and 128x128 PNG icon variants under the standard hicolor paths. Physical checks confirmed both PNG files resolve to the intended dimensions, the SVG is present, and GTK resolves the application ID directly to the exported 128x128 PNG.
 
-Bazaar still displays a generic package icon for this locally installed Flatpak in both the host-packaged and Flatpak Bazaar builds. Because the icon assets, export paths, application ID, raster dimensions, and direct GTK icon-theme resolution all pass, this is accepted as a Bazaar-side sideload/display limitation rather than a DIRDE packaging defect. No Bazaar-specific workaround is required for the release candidate.
+Bazaar still displays a generic package icon for this locally installed Flatpak in both the host-packaged and Flatpak Bazaar builds. Because the icon assets, export paths, application ID, raster dimensions, and direct GTK icon-theme resolution all pass, this is accepted as a Bazaar-side sideload/display limitation rather than a DIRDE packaging defect. No Bazaar-specific workaround is required.
 
 ## Release candidate — complete
 
@@ -102,25 +102,25 @@ The focused RC static suite passed 52 tests before packaging. The Flatpak RC ret
 
 Physical Bazzite QA on 2026-08-22 accepted both exact RC artifacts.
 
-Flatpak:
+Flatpak passed exact hash recheck, per-user install, bounded permission inspection, launch, Browse, explicit Validate, `Reduce sprint stamina` Apply, `Restore original`, close, and restart.
 
-- exact artifact hash rechecked before install;
-- per-user install from the RC bundle passed;
-- bounded permissions inspection passed;
-- launch and restart passed;
-- Browse and explicit Validate passed;
-- `Reduce sprint stamina` Apply passed;
-- `Restore original` passed and returned the game data through the validated transaction path.
+AppImage passed exact hash recheck, direct launch, Browse, explicit Validate, `Reduce sprint stamina` Apply, `Restore original`, close, and restart.
 
-AppImage:
+No RC defect requiring a source fix was found. The frozen RC source commit therefore remained unchanged.
 
-- exact artifact hash rechecked before execution;
-- direct launch and restart passed;
-- Browse and explicit Validate passed;
-- `Reduce sprint stamina` Apply passed;
-- `Restore original` passed and returned the game data through the validated transaction path.
+## Final rebuild/verification — complete
 
-No RC defect requiring a source fix was found. The frozen RC source commit therefore remains unchanged.
+Physical Bazzite final verification on 2026-08-22 rebuilt both formats from the unchanged frozen source commit `c3e3b97494058e8da199658f4f265e3eb84f0201`.
+
+Accepted final-verification evidence:
+
+- focused static/package tests: PASS;
+- final Flatpak: 56,114,672 bytes, SHA-256 `1eec07e171303cf55b2ce4cfd944e543ced05a7ff05ef74a82368560c1bdc073`;
+- final AppImage: 60,262,904 bytes, SHA-256 `0484d85e33707d3ab8701a6c05fc96ad2a980c299a3de1374097b8b6f57bf6a5`;
+- final AppImage is byte-identical to the accepted RC AppImage;
+- finished AppImage ELF audit: PASS with maximum required `GLIBC_2.34`.
+
+The final Flatpak bundle has a different container hash/size from the earlier RC bundle; Flatpak bundle byte reproducibility was not a release requirement. It was rebuilt from the same frozen source and passed the required package build/integrity checks. No source change occurred between RC acceptance and final verification.
 
 ## Validation boundary
 
@@ -137,20 +137,20 @@ Verified:
 - direct GTK icon-theme lookup resolves the exported DIRDE icon; Bazaar's remaining generic sideload icon is classified as an external display limitation;
 - both RC artifacts are tied to frozen commit `c3e3b97494058e8da199658f4f265e3eb84f0201` with recorded hashes and sizes;
 - both exact RC artifacts pass packaged Bazzite launch, validation, Apply, exact Restore, and restart QA;
+- final rebuild/verification from the unchanged frozen commit passes;
+- final AppImage exactly matches the accepted RC AppImage and remains bounded to `GLIBC_2.34`;
 - no GitHub Actions were used.
 
 Pending:
 
-- final rebuild/verification from the unchanged frozen RC source commit;
-- explicit approval before any integration or public release/publication action.
+- explicit approval before main integration or any public release/publication action.
 
-## Remaining release gates
+## Remaining release gate
 
-1. **Final rebuild/verification** — rebuild from frozen commit `c3e3b97494058e8da199658f4f265e3eb84f0201`, re-run package-integrity checks, and verify the deterministic AppImage result against the accepted RC artifact.
-2. **Explicit approval** before main integration, public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
+**Explicit approval** is required before main integration, public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
 
 ## Cleanup and publication
 
 Accepted evidence, provenance material, artifact hashes, and pristine recovery material remain preserved. Disposable worktrees, build environments, temporary candidates, and superseded QA residue are removed when no longer needed. Authentic game content and backups must never be committed.
 
-No public release, binary publication, Nexus publication, upstream submission, announcement, GitHub Actions use, or other external publication has been authorized.
+No public release, binary publication, Nexus publication, upstream submission, announcement, GitHub Actions use, main integration, or other external publication has been authorized.
