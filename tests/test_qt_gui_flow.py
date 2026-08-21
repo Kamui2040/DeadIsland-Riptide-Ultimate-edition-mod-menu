@@ -81,6 +81,31 @@ class QtGuiValidationFlowTests(unittest.TestCase):
         self.assertIn('QPushButton("Restore pristine")', SOURCE)
         self.assertIn("buttons.addStretch(1)", SOURCE)
 
+    def test_intro_paragraph_and_native_wording_are_removed(self):
+        self.assertNotIn("Choose the native Linux game folder", SOURCE)
+        self.assertNotIn("native", SOURCE.lower())
+        self.assertNotIn("transactional patch engine", SOURCE)
+
+    def test_validation_status_is_short_and_user_facing(self):
+        self.assertIn('self._status.setText("Game folder validated.")', SOURCE)
+        self.assertIn('self._status.setText("Can\'t validate game folder.")', SOURCE)
+        self.assertNotIn("Data0 SHA-256", SOURCE)
+        self.assertNotIn("VALIDATION PASS", SOURCE)
+        self.assertNotIn("VALIDATION FAIL", SOURCE)
+
+    def test_flatpak_requires_browse_for_portal_access(self):
+        calls = _call_names(_method("_running_in_flatpak"))
+        self.assertIn("get", calls)
+        self.assertIn("is_file", calls)
+        self.assertIn("self._root_edit.setReadOnly(True)", SOURCE)
+        self.assertIn("Flatpak uses Browse to grant access", SOURCE)
+
+    def test_activity_is_limited_to_three_lines(self):
+        self.assertIn("self._log.setMaximumBlockCount(3)", SOURCE)
+        self.assertIn("self._log.setFixedHeight(activity_height)", SOURCE)
+        self.assertIn("lineSpacing() * 3", SOURCE)
+        self.assertIn("ScrollBarAlwaysOff", SOURCE)
+
 
 if __name__ == "__main__":
     unittest.main()
