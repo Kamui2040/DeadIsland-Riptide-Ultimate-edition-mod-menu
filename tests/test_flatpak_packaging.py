@@ -7,6 +7,8 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 APP_ID = "io.github.Kamui2040.DIRUELinux"
+APP_NAME = "DIRDE UE Linux"
+APP_SUMMARY = "Dead Island: Riptide DE Linux - Ultimate Edition"
 FLATPAK_DIR = ROOT / "packaging" / "flatpak"
 COMMON_DIR = ROOT / "packaging" / "common"
 MANIFEST = FLATPAK_DIR / f"{APP_ID}.json"
@@ -70,6 +72,7 @@ class FlatpakPackagingTests(unittest.TestCase):
         parser.read(COMMON_DIR / f"{APP_ID}.desktop", encoding="utf-8")
         entry = parser["Desktop Entry"]
         self.assertEqual(entry["Type"], "Application")
+        self.assertEqual(entry["Name"], APP_NAME)
         self.assertEqual(entry["Exec"], "dirue-linux")
         self.assertEqual(entry["Icon"], APP_ID)
         self.assertEqual(entry["Terminal"], "false")
@@ -77,12 +80,22 @@ class FlatpakPackagingTests(unittest.TestCase):
     def test_shared_metainfo_matches_identity(self):
         root = ET.parse(COMMON_DIR / f"{APP_ID}.metainfo.xml").getroot()
         self.assertEqual(root.findtext("id"), APP_ID)
+        self.assertEqual(root.findtext("name"), APP_NAME)
+        self.assertEqual(root.findtext("summary"), APP_SUMMARY)
         launchable = root.find("launchable")
         self.assertIsNotNone(launchable)
         self.assertEqual(launchable.text, f"{APP_ID}.desktop")
         self.assertEqual(launchable.attrib["type"], "desktop-id")
         self.assertEqual(root.findtext("project_license"), "GPL-3.0-only")
         self.assertEqual(root.findtext("provides/binary"), "dirue-linux")
+        urls = {node.attrib.get("type"): node.text for node in root.findall("url")}
+        self.assertEqual(urls["donation"], "https://ko-fi.com/k2040")
+
+    def test_shared_icon_is_custom_dirde_ue_artwork(self):
+        icon = (COMMON_DIR / f"{APP_ID}.svg").read_text(encoding="utf-8")
+        self.assertIn('aria-label="DIRDE UE Linux"', icon)
+        self.assertIn(">UE</text>", icon)
+        self.assertNotIn('aria-label="DIRUE Linux"', icon)
 
 
 if __name__ == "__main__":
