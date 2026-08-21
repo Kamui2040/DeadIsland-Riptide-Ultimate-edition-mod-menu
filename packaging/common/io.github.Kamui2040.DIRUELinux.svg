@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="DIRUE Linux">
-  <rect x="8" y="8" width="112" height="112" rx="22" fill="#20242a"/>
-  <path d="M36 30h28c22 0 36 13 36 34S86 98 64 98H36V30zm20 18v32h8c11 0 18-6 18-16s-7-16-18-16h-8z" fill="#f2f2f2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="DIRDE UE Linux">
+  <rect x="6" y="6" width="116" height="116" rx="26" fill="#10151c"/>
+  <circle cx="96" cy="32" r="18" fill="#f28c28"/>
+  <path d="M25 25h31c27 0 45 15 45 39S83 103 56 103H25V25zm21 19v40h10c15 0 24-7 24-20s-9-20-24-20H46z" fill="#f4f7fb"/>
+  <path d="M21 96L103 22" stroke="#f28c28" stroke-width="7" stroke-linecap="round" opacity="0.9"/>
+  <rect x="62" y="76" width="47" height="27" rx="8" fill="#10151c" stroke="#f28c28" stroke-width="3"/>
+  <text x="85.5" y="95" text-anchor="middle" fill="#f28c28" font-family="sans-serif" font-size="18" font-weight="700">UE</text>
 </svg>
