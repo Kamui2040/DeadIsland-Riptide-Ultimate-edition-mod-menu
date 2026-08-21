@@ -74,7 +74,6 @@ The maintainer then supplied a consolidated visual/usability review. The current
 - long title **Dead Island: Riptide DE Linux - Ultimate Edition**;
 - FireEyeEian and Kamui2040 author credit;
 - About links for the project GitHub page, Kamui2040 Ko-fi, and the original Nexus mod;
-- a new original project SVG icon with no game assets;
 - removed introductory technical paragraph and removed `native` from user-facing GUI wording;
 - short validation messages such as `Game folder validated.` and `Can't validate game folder.`;
 - Flatpak game-folder field is read-only because portal Browse is the supported access path; non-Flatpak builds still allow typed paths;
@@ -84,7 +83,9 @@ The maintainer then supplied a consolidated visual/usability review. The current
 - Gameplay options grouped by Movement, Combat, Gear & loot, Comfort, and Vehicles, with groups reflowing across available width;
 - short natural hover help for every checkbox, choice group, and choice;
 - an inline `NoClip vehicles` warning that appears when enabled because the option can leave the player stuck;
-- source-level regression tests for naming, validation flow, layout, hover help, warning behavior, metadata, and custom icon identity.
+- source-level regression coverage for naming, validation flow, responsive layout, hover help, warning behavior, and shared metadata.
+
+The existing shared SVG remains in place only as the current packaging icon. A replacement custom icon is required for UI polish, but no new design will be committed until the maintainer approves that design.
 
 This post-review UI revision has **not yet received packaged visual approval**. Because UI and shared metadata changed after the earlier packaged functional passes, run focused static/package smoke checks again before using a newly built package for the next maintainer visual review.
 
@@ -102,12 +103,13 @@ Verified:
 
 Pending:
 
-- static/package smoke validation of the latest consolidated UI revision;
+- maintainer-approved custom icon design and replacement;
+- static/package smoke validation of the latest consolidated UI revision after the final icon is in place;
 - explicit maintainer visual approval of the newly packaged UI.
 
 ## Remaining release gates
 
-1. **Finish UI polish** — validate the latest consolidated UI revision in packaged form, obtain explicit maintainer visual approval, and fix any accepted findings.
+1. **Finish UI polish** — approve and land the custom icon, validate the latest consolidated UI revision in packaged form, obtain explicit maintainer visual approval, and fix any accepted findings.
 2. **Release candidate** — freeze one exact source commit and build both primary formats from it.
 3. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
 4. **Final rebuild/verification** after accepted RC fixes.
