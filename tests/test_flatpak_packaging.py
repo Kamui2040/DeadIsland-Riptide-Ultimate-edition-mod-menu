@@ -1,6 +1,8 @@
+import base64
 from configparser import ConfigParser
 import json
 from pathlib import Path
+import struct
 import unittest
 import xml.etree.ElementTree as ET
 
@@ -97,6 +99,19 @@ class FlatpakPackagingTests(unittest.TestCase):
         root = ET.parse(COMMON_DIR / f"{APP_ID}.svg").getroot()
         self.assertTrue(root.tag.endswith("svg"))
         self.assertEqual(root.attrib.get("viewBox"), "0 0 128 128")
+
+        image = next((node for node in root if node.tag.endswith("image")), None)
+        self.assertIsNotNone(image)
+        href = next(
+            (value for key, value in image.attrib.items() if key.endswith("href")),
+            None,
+        )
+        self.assertIsNotNone(href)
+        prefix = "data:image/png;base64,"
+        self.assertTrue(href.startswith(prefix))
+        png = base64.b64decode(href[len(prefix):], validate=True)
+        self.assertTrue(png.startswith(b"\x89PNG\r\n\x1a\n"))
+        self.assertEqual(struct.unpack(">II", png[16:24]), (128, 128))
 
 
 if __name__ == "__main__":
