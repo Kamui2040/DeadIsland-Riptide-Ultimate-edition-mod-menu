@@ -43,7 +43,7 @@ from .ui_catalog import CHECKBOX_OPTIONS, CHOICE_GROUPS, CheckboxOption, ChoiceG
 APP_ID = "io.github.Kamui2040.DIRUELinux"
 APP_SHORT_NAME = "DIRDE UE Linux"
 APP_LONG_NAME = "Dead Island: Riptide DE Linux - Ultimate Edition"
-PROJECT_URL = "https://github.com/Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu"
+PROJECT_URL = "https://kamui2040.github.io/gaming-mods/"
 KOFI_URL = "https://ko-fi.com/k2040"
 ORIGINAL_MOD_URL = "https://www.nexusmods.com/deadislandriptide/mods/3"
 SECTION_ORDER = ("Gameplay", "AI", "Firearms", "Camera", "World")
@@ -143,7 +143,7 @@ class _AboutDialog(QDialog):
         layout.addWidget(credits)
 
         links = QLabel(
-            f'<a href="{PROJECT_URL}">Project on GitHub</a><br>'
+            f'<a href="{PROJECT_URL}">Project page</a><br>'
             f'<a href="{KOFI_URL}">Support Kamui2040 on Ko-fi</a><br>'
             f'<a href="{ORIGINAL_MOD_URL}">Original mod on Nexus Mods</a>'
         )
@@ -213,8 +213,8 @@ class MainWindow(QMainWindow):
         self._apply_button.setToolTip("Apply the selected changes.")
         self._apply_button.clicked.connect(self._apply)
         self._apply_button.setEnabled(False)
-        self._restore_button = QPushButton("Restore pristine")
-        self._restore_button.setToolTip("Restore the clean game data backup.")
+        self._restore_button = QPushButton("Restore original")
+        self._restore_button.setToolTip("Restore the original game data from the backup.")
         self._restore_button.clicked.connect(self._restore)
         self._restore_button.setEnabled(False)
         buttons.addWidget(self._apply_button)
@@ -370,6 +370,7 @@ class MainWindow(QMainWindow):
         label = QLabel(group.label + ":")
         label.setToolTip(group.help_text)
         combo = QComboBox()
+        combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
         combo.setToolTip(group.help_text)
         for choice in group.choices:
             combo.addItem(choice.label, choice.option)
@@ -378,10 +379,12 @@ class MainWindow(QMainWindow):
             if model_item is not None:
                 model_item.setEnabled(choice.enabled)
             combo.setItemData(index, choice.note, Qt.ItemDataRole.ToolTipRole)
+        combo.setFixedWidth(combo.sizeHint().width())
         self._combos[group.key] = combo
 
         layout.addWidget(label)
-        layout.addWidget(combo, 1)
+        layout.addWidget(combo)
+        layout.addStretch(1)
         return container
 
     def _root(self) -> Path | None:
@@ -438,7 +441,7 @@ class MainWindow(QMainWindow):
         self._restore_button.setEnabled(can_restore)
         self._append("Game folder validated.")
         if not can_apply:
-            self._append("Restore pristine before applying different changes.")
+            self._append("Restore original before applying different changes.")
 
     def _validate_selected_root(self) -> None:
         root = self._root()
@@ -486,7 +489,7 @@ class MainWindow(QMainWindow):
         answer = QMessageBox.question(
             self,
             "Apply changes",
-            "Apply the selected changes? A clean backup will be kept for Restore.",
+            "Apply the selected changes? A backup of the original game data will be kept for Restore.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -522,8 +525,8 @@ class MainWindow(QMainWindow):
 
         answer = QMessageBox.question(
             self,
-            "Restore pristine",
-            "Restore the clean backup?",
+            "Restore original",
+            "Restore the original game data from the backup?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -532,7 +535,7 @@ class MainWindow(QMainWindow):
 
         self._apply_button.setEnabled(False)
         self._restore_button.setEnabled(False)
-        self._append("Restoring pristine game data…")
+        self._append("Restoring original game data…")
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             restore_pristine(root)
@@ -541,17 +544,17 @@ class MainWindow(QMainWindow):
             self._validated_root = None
             self._status.setText("Restore failed. Validate the game folder again.")
             self._append("Restore failed.")
-            QMessageBox.critical(self, "Restore failed", "The clean backup was not restored.")
+            QMessageBox.critical(self, "Restore failed", "The original game data was not restored.")
         else:
             self._validated_root = root
             self._apply_button.setEnabled(True)
             self._restore_button.setEnabled(True)
             self._status.setText("Game folder validated.")
-            self._append("Pristine game data restored.")
+            self._append("Original game data restored.")
             QMessageBox.information(
                 self,
                 "Restore complete",
-                "Pristine game data restored successfully.",
+                "Original game data restored successfully.",
             )
         finally:
             QApplication.restoreOverrideCursor()
