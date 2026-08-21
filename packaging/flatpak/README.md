@@ -10,6 +10,8 @@ The sandbox has no blanket host-filesystem or network access. The Qt folder choo
 
 The application ID is `io.github.Kamui2040.DIRUELinux`. The package uses `org.kde.Platform` 6.11 with `io.qt.PySide.BaseApp` 6.11 so PySide6 is supplied by the Flatpak base app rather than the host system. Flatpak and AppImage now share the same desktop entry, AppStream metadata, icon identity, and `dirue-linux` launcher name.
 
+For desktop integration the package keeps the shared scalable SVG icon and also installs 64×64 and 128×128 PNG versions under the standard hicolor paths. The raster sizes allow a single-file `.flatpak` bundle to carry direct icon metadata for package frontends such as Bazaar instead of falling back to a generic package icon.
+
 ## Accepted Bazzite proof
 
 Physical Bazzite QA on 2026-08-20 accepted the initial proof at commit `92bed2cab98d6ecc5c2255a28a5f11bdd7024bab`:
@@ -50,4 +52,4 @@ flatpak run org.flatpak.Builder \
 flatpak run io.github.Kamui2040.DIRUELinux
 ```
 
-The package is not a Flathub submission yet. The maintainer-approved custom icon is now part of the shared packaging metadata; focused packaged smoke validation and final visual approval remain before release-candidate freeze.
+The package is not a Flathub submission yet. The maintainer-approved custom icon is now part of the shared packaging metadata; focused packaged smoke validation, including the local-bundle icon presentation, and final visual approval remain before release-candidate freeze.
