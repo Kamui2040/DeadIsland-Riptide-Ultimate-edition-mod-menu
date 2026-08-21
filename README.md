@@ -1,6 +1,6 @@
-# DIRUE Linux
+# DIRDE UE Linux
 
-Native-Linux port of FireEyeEian's **Dead Island Riptide Ultimate Edition (DIRUE)** mod menu for the native Linux build of *Dead Island: Riptide Definitive Edition*.
+Linux port of FireEyeEian's **Dead Island Riptide Ultimate Edition (DIRUE)** mod menu for *Dead Island: Riptide Definitive Edition*.
 
 The original DIRUE project and this Linux port are licensed under GPL-3.0. Linux-port changes preserve FireEyeEian attribution and replace the Windows-only implementation rather than wrapping it with Wine or Proton.
 
@@ -8,20 +8,20 @@ The original DIRUE project and this Linux port are licensed under GPL-3.0. Linux
 
 Milestone 1 released-feature parity is integrated on fork `main`. The four formerly missing forced-spawn choices—Butcher, Ram, Bloater, and Thug—are implemented and have passed native candidate, gameplay, transaction-restore, and reproducible packaging validation. `main` and `linux-port` are aligned at the validated parity commit. No public release or binary has been published; the package version remains pre-release (`0.1.0.dev0`).
 
-The integrated native-Linux port provides:
+The integrated Linux port provides:
 
 - 42 semantic, fail-closed non-default patch options covering the released gameplay controls;
 - a GUI-independent transaction/application layer;
-- a PySide6 native Linux GUI;
+- a PySide6 Linux GUI;
 - pristine-backup preservation, validated candidate construction, atomic Data0 replacement, and exact restore;
-- native gameplay QA across representative direct, AI, camera/POV, firearm-upgrading, zombie-size, weather/time, and all released forced-spawn families;
+- gameplay QA across representative direct, AI, camera/POV, firearm-upgrading, zombie-size, weather/time, and all released forced-spawn families;
 - reproducible wheel/sdist packaging with provenance-sensitive inherited payloads excluded.
 
 Butcher, Ram, Bloater, and Thug forced spawning use only the minimum machine-facing compatibility identifiers required for released behavior. The inherited preset ZIPs remain provenance-sensitive historical material and are not Linux runtime or package payloads.
 
 ## Requirements
 
-- the native Linux version of *Dead Island: Riptide Definitive Edition*;
+- the Linux version of *Dead Island: Riptide Definitive Edition*;
 - Python 3.11 or newer;
 - PySide6 for the GUI.
 
@@ -47,7 +47,7 @@ The CLI entry point is `dirue`. Direct module execution with `python -m dirue.cl
 
 ## Safety model
 
-Before the first modification, the Linux application validates the native game and source archive and preserves a pristine backup. Candidates are built in temporary storage, validated, bound to the source hash, and installed atomically. A modified live archive must be restored to pristine before applying a different selection.
+Before the first modification, the application validates the game and source archive and preserves a pristine backup. Candidates are built in temporary storage, validated, bound to the source hash, and installed atomically. A modified live archive must be restored to pristine before applying a different selection.
 
 The retained pristine backup is recovery material and must not be overwritten or deleted as routine cleanup.
 
@@ -66,6 +66,6 @@ See `docs/PROVENANCE.md` for the redistribution policy and `docs/FEATURE_PARITY.
 
 ## Attribution
 
-DIRUE was created by **FireEyeEian**. This repository's Linux-port work is a modified native-Linux implementation of that project.
+**FireEyeEian** created the original Ultimate Edition mod. **Kamui2040** authors and maintains the Linux port.
 
-Dead Island and Techland game assets are not licensed by this project's GPL notice. Users need their own legitimate native Linux game installation.
+Dead Island and Techland game assets are not licensed by this project's GPL notice. Users need their own legitimate Linux game installation.
