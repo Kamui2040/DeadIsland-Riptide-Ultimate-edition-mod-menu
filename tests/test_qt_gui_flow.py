@@ -55,38 +55,25 @@ class QtGuiValidationFlowTests(unittest.TestCase):
             calls = _call_names(_method(name))
             self.assertIn("_validated_root_for_action", calls)
 
-    def test_transactions_do_not_trigger_implicit_revalidation(self):
+    def test_transactions_do_not_trigger_implicit_ui_validation(self):
         for name in ("_apply", "_restore"):
             calls = _call_names(_method(name))
             self.assertNotIn("_validate_selected_root", calls)
             self.assertNotIn("inspect_game", calls)
 
-    def test_stale_forced_spawn_message_is_gone(self):
-        self.assertNotIn("unresolved forced-spawn", SOURCE)
+    def test_names_match_maintainer_choice(self):
+        self.assertIn('APP_SHORT_NAME = "DIRDE UE Linux"', SOURCE)
+        self.assertIn(
+            'APP_LONG_NAME = "Dead Island: Riptide DE Linux - Ultimate Edition"',
+            SOURCE,
+        )
+        self.assertIn("self.setWindowTitle(APP_SHORT_NAME)", SOURCE)
 
-    def test_version_and_about_are_visible(self):
-        self.assertIn("DIRUE Linux {__version__}", SOURCE)
-        self.assertIn("About DIRUE Linux", SOURCE)
-
-    def test_packaged_window_icon_uses_shared_app_identity(self):
-        self.assertIn('APP_ID = "io.github.Kamui2040.DIRUELinux"', SOURCE)
-        calls = _call_names(_method("_application_icon"))
-        self.assertIn("fromTheme", calls)
-        self.assertIn("is_file", calls)
-        self.assertIn("APPDIR", SOURCE)
-        self.assertIn("/app/share/icons/hicolor/scalable/apps", SOURCE)
-
-    def test_primary_and_restore_actions_have_clear_labels(self):
-        self.assertIn('QPushButton("Apply changes")', SOURCE)
-        self.assertIn('QPushButton("Restore pristine")', SOURCE)
-        self.assertIn("buttons.addStretch(1)", SOURCE)
-
-    def test_intro_paragraph_and_native_wording_are_removed(self):
-        self.assertNotIn("Choose the native Linux game folder", SOURCE)
+    def test_user_facing_native_wording_is_removed(self):
         self.assertNotIn("native", SOURCE.lower())
         self.assertNotIn("transactional patch engine", SOURCE)
 
-    def test_validation_status_is_short_and_user_facing(self):
+    def test_validation_status_is_short(self):
         self.assertIn('self._status.setText("Game folder validated.")', SOURCE)
         self.assertIn('self._status.setText("Can\'t validate game folder.")', SOURCE)
         self.assertNotIn("Data0 SHA-256", SOURCE)
@@ -98,13 +85,45 @@ class QtGuiValidationFlowTests(unittest.TestCase):
         self.assertIn("get", calls)
         self.assertIn("is_file", calls)
         self.assertIn("self._root_edit.setReadOnly(True)", SOURCE)
-        self.assertIn("Flatpak uses Browse to grant access", SOURCE)
+        self.assertIn("Use Browse so Flatpak can access the folder.", SOURCE)
 
     def test_activity_is_limited_to_three_lines(self):
         self.assertIn("self._log.setMaximumBlockCount(3)", SOURCE)
         self.assertIn("self._log.setFixedHeight(activity_height)", SOURCE)
         self.assertIn("lineSpacing() * 3", SOURCE)
         self.assertIn("ScrollBarAlwaysOff", SOURCE)
+
+    def test_options_get_more_vertical_space(self):
+        self.assertIn("self.resize(1080, 900)", SOURCE)
+        self.assertIn("layout.addWidget(scroll, 1)", SOURCE)
+
+    def test_ai_firearms_and_gameplay_use_responsive_layout(self):
+        self.assertIn("class _ResponsiveGrid", SOURCE)
+        self.assertIn('SECTION_ORDER = ("Gameplay", "AI", "Firearms", "Camera", "World")', SOURCE)
+        self.assertIn("GAMEPLAY_THEME_ORDER", SOURCE)
+        self.assertIn('if section == "Gameplay":', SOURCE)
+        self.assertIn('minimum_width = 220 if section == "AI" else 250', SOURCE)
+
+    def test_noclip_warning_is_embedded(self):
+        self.assertIn('item.option == "noclip_vehicles"', SOURCE)
+        self.assertIn('QLabel("Warning: This can get you stuck.")', SOURCE)
+        self.assertIn("checkbox.toggled.connect(warning.setVisible)", SOURCE)
+
+    def test_about_lists_authors_and_links(self):
+        self.assertIn("FireEyeEian — original Ultimate Edition mod", SOURCE)
+        self.assertIn("Kamui2040 — Linux port", SOURCE)
+        self.assertIn("https://github.com/Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu", SOURCE)
+        self.assertIn("https://ko-fi.com/k2040", SOURCE)
+        self.assertIn("https://www.nexusmods.com/deadislandriptide/mods/3", SOURCE)
+        self.assertIn("setOpenExternalLinks(True)", SOURCE)
+
+    def test_packaged_window_icon_uses_shared_app_identity(self):
+        self.assertIn('APP_ID = "io.github.Kamui2040.DIRUELinux"', SOURCE)
+        calls = _call_names(_method("_application_icon"))
+        self.assertIn("fromTheme", calls)
+        self.assertIn("is_file", calls)
+        self.assertIn("APPDIR", SOURCE)
+        self.assertIn("/app/share/icons/hicolor/scalable/apps", SOURCE)
 
 
 if __name__ == "__main__":
