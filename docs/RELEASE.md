@@ -2,14 +2,14 @@
 
 Milestone 1 gameplay parity is complete. Release work follows this order:
 
-1. **Flatpak proof** — prove the existing native GUI launches from a bounded, provenance-safe Flatpak and can reach a user-selected native game installation without depending on host Python or PySide6. **Complete on physical Bazzite.**
-2. **AppImage proof** — prove a portable one-file AppImage can launch the same application without a user-managed Python/PySide6 environment. **Complete on physical Bazzite.**
-3. **Shared packaging hardening** — keep application behavior shared between formats, harden resource/config paths and metadata, pin external build tooling, define the AppImage compatibility baseline, and keep provenance-sensitive inherited content out of both artifacts. **Complete on physical Bazzite.**
-4. **UI polish** — improve first-run flow, game-folder selection, hierarchy, spacing, wording, status/error presentation, Apply/Restore affordances, iconography, window behavior, and version/about information. Validate the packaged UI rather than only a development checkout. **Complete with explicit maintainer visual and behavioral approval on physical Bazzite.**
-5. **Release candidate** — freeze one source commit and build both end-user formats from that exact state. **Complete at `c3e3b97494058e8da199658f4f265e3eb84f0201`.**
-6. **Packaged Bazzite QA** — test the Flatpak and AppImage as users receive them: launch, select/validate native DIRDE, Apply, exact Restore, restart, and artifact/privacy checks. **Complete for both exact RC artifacts.**
-7. **Final rebuild and verification** — rebuild from the unchanged frozen RC source state and repeat package-integrity checks. **Active.**
-8. **Release** — publish only after explicit approval.
+1. **Flatpak proof** — complete on physical Bazzite.
+2. **AppImage proof** — complete on physical Bazzite.
+3. **Shared packaging hardening** — complete on physical Bazzite.
+4. **UI polish** — complete with explicit maintainer visual and behavioral approval on physical Bazzite.
+5. **Release candidate** — complete at frozen source commit `c3e3b97494058e8da199658f4f265e3eb84f0201`.
+6. **Packaged Bazzite QA** — complete for both exact RC artifacts.
+7. **Final rebuild and verification** — complete from the unchanged frozen RC source commit.
+8. **Release** — publication or integration requires explicit approval.
 
 ## End-user acceptance
 
@@ -54,30 +54,32 @@ Physical Bazzite RC QA accepted both exact artifacts on 2026-08-22. Flatpak and 
 
 ## Final verification
 
-Final verification must rebuild from the unchanged frozen RC commit, not from the documentation-only `release/final-verification` branch head. The final rebuild must:
+Final verification rebuilt both end-user formats from the unchanged frozen RC commit `c3e3b97494058e8da199658f4f265e3eb84f0201` on physical Bazzite on 2026-08-22.
 
-- re-run the focused static/package checks;
-- rebuild the Flatpak and AppImage from commit `c3e3b97494058e8da199658f4f265e3eb84f0201`;
-- re-run AppImage payload and finished ELF checks;
-- verify the AppImage remains byte-identical to the accepted RC AppImage;
-- record authoritative host-visible artifact hashes and sizes;
-- preserve the already accepted RC artifacts until verification is complete.
+Accepted final-verification results:
 
-Because no RC source fix was required, a second gameplay or visual QA pass is not required unless the final rebuild differs unexpectedly or a new finding appears.
+- focused static/package tests: PASS;
+- final Flatpak: 56,114,672 bytes, SHA-256 `1eec07e171303cf55b2ce4cfd944e543ced05a7ff05ef74a82368560c1bdc073`;
+- final AppImage: 60,262,904 bytes, SHA-256 `0484d85e33707d3ab8701a6c05fc96ad2a980c299a3de1374097b8b6f57bf6a5`;
+- final AppImage is byte-identical to the accepted RC AppImage;
+- finished AppImage GLIBC audit: PASS with maximum required `GLIBC_2.34`.
+
+The final Flatpak bundle differs in container hash/size from the earlier RC bundle. Flatpak bundle byte reproducibility was not a release gate; both were built from the same frozen source state and passed the required package checks. No source fix occurred between RC acceptance and final verification, so no second gameplay or visual QA pass was required.
 
 ## Release gates
 
-A public release requires all of the following:
+All technical gates are complete. The accepted release state has:
 
 - Flatpak and AppImage launch without user-managed Python/PySide6 setup;
-- both artifacts exclude inherited game archives, preset payloads, replacement assets, private QA, backups, and other non-redistributable or sensitive material;
-- packaged game-folder access is validated without unnecessarily broad permissions;
-- AppImage build tooling is pinned and its compatibility baseline is deliberate rather than inherited accidentally from the developer host;
-- the custom application icon has maintainer-approved artwork;
-- UI polish has passed functional packaged QA and received explicit maintainer visual approval;
-- both RC artifacts are built from one exact source commit and their authoritative identities/hashes/sizes are recorded;
-- packaged Bazzite Apply/Restore behavior passes with the existing transaction safeguards;
-- final rebuild/verification passes from the accepted frozen source state;
-- publication receives explicit approval.
+- packaging excludes inherited game archives, preset payloads, replacement assets, private QA, backups, and other non-redistributable or sensitive material from the end-user artifacts;
+- packaged game-folder access works without unnecessarily broad Flatpak permissions;
+- AppImage build tooling and compatibility baseline are pinned and validated;
+- maintainer-approved custom icon and packaged UI presentation;
+- both RC artifacts tied to one exact frozen source commit with recorded identities;
+- packaged Bazzite Validate/Apply/Restore/restart acceptance for both formats;
+- final rebuild/verification from the unchanged frozen source state;
+- final AppImage byte identity with the accepted RC and `GLIBC_2.34` finished-artifact audit.
+
+The remaining gate is **explicit approval** before main integration, public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
 
 GitHub Actions are not part of this workflow unless separately approved.
