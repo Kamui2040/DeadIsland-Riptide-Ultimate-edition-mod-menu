@@ -16,7 +16,7 @@ The frozen release-candidate source commit is:
 
 Flatpak and AppImage release-candidate builds from that exact source state passed packaged Bazzite validation, including launch, Browse, explicit Validate, representative Apply, exact Restore, close, and restart. Final rebuild/verification also passed from the unchanged frozen source state. The AppImage final rebuild is byte-identical to the accepted RC AppImage and remains bounded to `GLIBC_2.34`.
 
-No public binary release has been published. The package version remains pre-release (`0.1.0.dev0`), and integration/publication still requires explicit approval. See `docs/RELEASE.md` for the recorded release evidence and artifact identities.
+The validated Linux release state was integrated into `main` through PR #7 on 2026-08-22. No public binary release has been published. The package version remains pre-release (`0.1.0.dev0`), and public release/publication still requires explicit approval. See `docs/RELEASE.md` for the recorded release evidence and artifact identities.
 
 ## End-user packages
 
