@@ -73,7 +73,7 @@ The maintainer then supplied a consolidated visual/usability review. The current
 - app short name **DIRDE UE Linux**;
 - long title **Dead Island: Riptide DE Linux - Ultimate Edition**;
 - FireEyeEian and Kamui2040 author credit;
-- About links for the project GitHub page, Kamui2040 Ko-fi, and the original Nexus mod;
+- About links for the project page at `kamui2040.github.io/gaming-mods`, Kamui2040 Ko-fi, and the original Nexus mod;
 - removed introductory technical paragraph and removed `native` from user-facing GUI wording;
 - short validation messages such as `Game folder validated.` and `Can't validate game folder.`;
 - Flatpak game-folder field is read-only because portal Browse is the supported access path; non-Flatpak builds still allow typed paths;
@@ -81,9 +81,12 @@ The maintainer then supplied a consolidated visual/usability review. The current
 - a taller default window and more vertical space for options;
 - responsive option layout: AI and Firearms stay on one row when space permits and wrap when the window narrows;
 - Gameplay options grouped by Movement, Combat, Gear & loot, Comfort, and Vehicles, with groups reflowing across available width;
+- dropdown controls use a fixed width based on their longest available entry rather than stretching across the section;
+- user-facing restore wording is **Restore original**, while the internal pristine-backup transaction terminology remains unchanged;
 - short natural hover help for every checkbox, choice group, and choice;
+- the original AHK option descriptions have been reviewed as the reference for future tooltip wording rather than copied wholesale;
 - an inline `NoClip vehicles` warning that appears when enabled because the option can leave the player stuck;
-- source-level regression coverage for naming, validation flow, responsive layout, hover help, warning behavior, and shared metadata.
+- source-level regression coverage for naming, validation flow, responsive layout, dropdown sizing, restore wording, hover help, warning behavior, and shared metadata.
 
 The existing shared SVG remains in place only as the current packaging icon. A replacement custom icon is required for UI polish, but no new design will be committed until the maintainer approves that design.
 
