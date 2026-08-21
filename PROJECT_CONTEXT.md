@@ -84,7 +84,7 @@ The maintainer then supplied a consolidated visual/usability review. The current
 - dropdown controls use a fixed width based on their longest available entry rather than stretching across the section;
 - user-facing restore wording is **Restore original**, while the internal pristine-backup transaction terminology remains unchanged;
 - short natural hover help for every checkbox, choice group, and choice;
-- the original AHK option descriptions have been reviewed as the reference for future tooltip wording rather than copied wholesale;
+- original-AHK detail is incorporated into the eight maintainer-selected hover descriptions: Bullet penetration, Instantly break doors, Increase durability, Hold more ammo, Even deeper pockets, Improved loot, Better firearms upgrading, and Firearms POV; all other option help remains as previously implemented;
 - an inline `NoClip vehicles` warning that appears when enabled because the option can leave the player stuck;
 - source-level regression coverage for naming, validation flow, responsive layout, dropdown sizing, restore wording, hover help, warning behavior, and shared metadata.
 
