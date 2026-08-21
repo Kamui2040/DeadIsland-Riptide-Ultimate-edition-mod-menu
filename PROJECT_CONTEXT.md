@@ -6,7 +6,7 @@
 - Fork: `Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu`
 - Primary branch: `main`
 - Development branch: `linux-port`
-- Active release branch: `release/ui-polish`
+- Active release branch: `release/rc-0.1.0-dev0`
 - License: GNU GPLv3, inherited and preserved
 
 Milestone 1 is a faithful Linux port of released DIRUE behavior for Dead Island: Riptide Definitive Edition. Released gameplay parity is integrated on fork `main`; upstream remains untouched. New gameplay tweaks remain deferred.
@@ -64,33 +64,30 @@ Shared hardening stage 2 passed at `f37d39165212b84954cf60c34b0d97bdec313511` wi
 
 Issue #5 is closed. Portability evidence is bounded to x86-64 systems meeting the glibc 2.34 floor and target-system base-library expectations; older pre-x86-64-v2 CPUs are not proven compatible.
 
-## UI polish — active
+## UI polish — complete
 
-Earlier packaged functional checks passed on both AppImage and Flatpak. They established the explicit validation flow, portal Browse behavior, bounded Flatpak permissions, packaged launch, and no game mutation. These passes did **not** constitute maintainer visual approval.
+The accepted UI implementation is based on source state `2082bd88bc7960fc68104284d0e8dab7f90733c5`. The maintainer visually approved the packaged main window and About dialog and confirmed the required behavior on physical Bazzite.
 
-The maintainer then supplied a consolidated visual/usability review. The current `release/ui-polish` implementation now includes:
+Accepted UI behavior and presentation include:
 
-- app short name **DIRDE UE Linux**;
-- long title **Dead Island: Riptide DE Linux - Ultimate Edition**;
-- FireEyeEian and Kamui2040 author credit;
-- About links for the project page at `kamui2040.github.io/gaming-mods`, Kamui2040 Ko-fi, and the original Nexus mod;
-- removed introductory technical paragraph and removed `native` from user-facing GUI wording;
-- short validation messages such as `Game folder validated.` and `Can't validate game folder.`;
-- Flatpak game-folder field is read-only because portal Browse is the supported access path; non-Flatpak builds still allow typed paths;
-- Activity is limited to three visible recent lines;
-- a taller default window and more vertical space for options;
-- responsive option layout: AI and Firearms stay on one row when space permits and wrap when the window narrows;
-- Gameplay options grouped by Movement, Combat, Gear & loot, Comfort, and Vehicles, with groups reflowing across available width;
-- dropdown controls use a fixed width based on their longest available entry rather than stretching across the section;
-- user-facing restore wording is **Restore original**, while the internal pristine-backup transaction terminology remains unchanged;
-- short natural hover help for every checkbox, choice group, and choice;
-- original-AHK detail is incorporated into the eight maintainer-selected hover descriptions: Bullet penetration, Instantly break doors, Increase durability, Hold more ammo, Even deeper pockets, Improved loot, Better firearms upgrading, and Firearms POV; all other option help remains as previously implemented;
-- an inline `NoClip vehicles` warning that appears when enabled because the option can leave the player stuck;
-- source-level regression coverage for naming, validation flow, responsive layout, dropdown sizing, restore wording, hover help, warning behavior, and shared metadata.
+- app short name **DIRDE UE Linux** and long title **Dead Island: Riptide DE Linux - Ultimate Edition**;
+- explicit first-run sequence: choose folder, validate, select options, apply changes;
+- Browse selects only; Validate performs explicit validation; Apply stays disabled until validation succeeds; changing the path invalidates prior validation;
+- clear hierarchy and spacing, responsive option layout, bounded Activity area, and sensible dropdown sizing;
+- clear status/error presentation and enabled/disabled Apply/Restore affordances;
+- user-facing restore wording **Restore original**;
+- responsive window behavior under resize/maximize/restore without inaccessible controls;
+- concise hover help and the inline `NoClip vehicles` warning;
+- footer version/authorship/license information and an About dialog with FireEyeEian attribution, Linux-port credit, project/support/original-mod links, and GPLv3 notice;
+- maintainer-approved custom red penguin/Ripper icon shared by Flatpak and AppImage metadata.
 
-The maintainer approved the custom red penguin/Ripper icon. The approved artwork remains the shared icon source, with the 128×128 raster derivative embedded in `packaging/common/io.github.Kamui2040.DIRUELinux.svg`. The Flatpak path now also carries 64×64 and 128×128 PNG derivatives in the standard hicolor raster locations so single-file `.flatpak` bundles can expose icon metadata directly to package frontends such as Bazaar. Source-level coverage validates both raster sizes and requires the 128×128 PNG to match the SVG's embedded raster exactly. Provenance records all of these as project-generated artwork rather than game-derived content.
+The Flatpak exports scalable SVG plus 64x64 and 128x128 PNG icon variants under the standard hicolor paths. Physical checks confirmed both PNG files resolve to the intended dimensions, the SVG is present, and GTK resolves the application ID directly to the exported 128x128 PNG.
 
-Physical sideload review on Bazzite confirmed the downloaded `.flatpak` opens the graphical package installer, installs per-user without touching the game, and exports the application into Plasma. A stale Plasma icon cache initially showed the superseded `D` icon; after rebuilding the icon cache, the launcher displayed the approved custom icon, confirming the installed Flatpak icon export was correct. Bazaar indexed the sideloaded app after a manual library refresh but used its generic package icon; the new raster bundle-icon packaging is intended to remove that fallback and still requires a rebuilt-bundle verification.
+Bazaar still displays a generic package icon for this locally installed Flatpak in both the host-packaged and Flatpak Bazaar builds. Because the icon assets, export paths, application ID, raster dimensions, and direct GTK icon-theme resolution all pass, this is accepted as a Bazaar-side sideload/display limitation rather than a DIRDE packaging defect. No Bazaar-specific workaround is required for the release candidate.
+
+## Release candidate — active
+
+`release/rc-0.1.0-dev0` was created from the accepted UI source state. The branch is the release-candidate freeze line: build both end-user formats from one exact branch-head commit and do not add unrelated changes. Any accepted RC fix must be recorded, validated, and followed by a new exact RC build state.
 
 ## Validation boundary
 
@@ -100,25 +97,26 @@ Verified:
 - representative gameplay QA and exact pristine restore pass;
 - transaction/recovery behavior is validated;
 - wheel/sdist reproducibility passes;
-- Flatpak proof and earlier packaged UI functional/portal flow pass;
+- Flatpak proof and packaged UI functional/portal flow pass;
 - AppImage proof, hardening, reproducibility, and `GLIBC_2.34` audit pass;
-- maintainer-approved custom icon is landed in the shared packaging path with source-level SVG/raster consistency coverage;
+- maintainer-approved custom icon is landed with source-level SVG/raster consistency coverage;
 - downloaded Flatpak sideload/install and Plasma launcher integration were observed on Bazzite with no game mutation;
+- packaged UI first-run clarity, validation flow, status/errors, Apply/Restore states, responsive window behavior, iconography, and About/version presentation received explicit maintainer acceptance;
+- direct GTK icon-theme lookup resolves the exported DIRDE icon; Bazaar's remaining generic sideload icon is classified as an external display limitation;
 - no GitHub Actions were used.
 
 Pending:
 
-- focused static/package smoke validation of the latest consolidated UI revision with the final icon;
-- rebuild and verify that the single-file Flatpak now presents the approved icon in Bazaar rather than the generic package icon;
-- explicit maintainer visual approval of the newly packaged icon/UI presentation.
+- build one Flatpak and one AppImage from the same exact RC branch-head commit;
+- record authoritative artifact identity/hash/size for both;
+- exercise both RC artifacts on physical Bazzite as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
 
 ## Remaining release gates
 
-1. **Finish UI polish** — validate the final icon and latest consolidated UI revision in packaged form, obtain explicit maintainer visual approval, and fix any accepted findings.
-2. **Release candidate** — freeze one exact source commit and build both primary formats from it.
-3. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
-4. **Final rebuild/verification** after accepted RC fixes.
-5. **Explicit approval** before public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
+1. **Release candidate** — build both primary formats from the same frozen `release/rc-0.1.0-dev0` commit and record their identities.
+2. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
+3. **Final rebuild/verification** after any accepted RC fixes.
+4. **Explicit approval** before public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
 
 ## Cleanup and publication
 
