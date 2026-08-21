@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 APP_ID = "io.github.Kamui2040.DIRUELinux"
 APP_NAME = "DIRDE UE Linux"
 APP_SUMMARY = "Dead Island: Riptide DE Linux - Ultimate Edition"
+PROJECT_PAGE = "https://kamui2040.github.io/gaming-mods/"
 FLATPAK_DIR = ROOT / "packaging" / "flatpak"
 COMMON_DIR = ROOT / "packaging" / "common"
 MANIFEST = FLATPAK_DIR / f"{APP_ID}.json"
@@ -89,6 +90,7 @@ class FlatpakPackagingTests(unittest.TestCase):
         self.assertEqual(root.findtext("project_license"), "GPL-3.0-only")
         self.assertEqual(root.findtext("provides/binary"), "dirue-linux")
         urls = {node.attrib.get("type"): node.text for node in root.findall("url")}
+        self.assertEqual(urls["homepage"], PROJECT_PAGE)
         self.assertEqual(urls["donation"], "https://ko-fi.com/k2040")
 
     def test_shared_icon_is_valid_svg(self):
