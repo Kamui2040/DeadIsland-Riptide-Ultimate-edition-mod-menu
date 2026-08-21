@@ -88,9 +88,9 @@ The maintainer then supplied a consolidated visual/usability review. The current
 - an inline `NoClip vehicles` warning that appears when enabled because the option can leave the player stuck;
 - source-level regression coverage for naming, validation flow, responsive layout, dropdown sizing, restore wording, hover help, warning behavior, and shared metadata.
 
-The maintainer approved the custom red penguin/Ripper icon. The approved artwork is now installed through the shared packaging icon at `packaging/common/io.github.Kamui2040.DIRUELinux.svg` as an optimized 128×128 raster derivative embedded in the existing SVG wrapper, so Flatpak, AppImage, desktop integration, and Qt continue to use the same application identity. Source-level coverage validates the embedded PNG payload and dimensions. Provenance records it as project-generated artwork rather than game-derived content.
+The maintainer approved the custom red penguin/Ripper icon. The approved artwork remains the shared icon source, with the 128×128 raster derivative embedded in `packaging/common/io.github.Kamui2040.DIRUELinux.svg`. The Flatpak path now also carries 64×64 and 128×128 PNG derivatives in the standard hicolor raster locations so single-file `.flatpak` bundles can expose icon metadata directly to package frontends such as Bazaar. Source-level coverage validates both raster sizes and requires the 128×128 PNG to match the SVG's embedded raster exactly. Provenance records all of these as project-generated artwork rather than game-derived content.
 
-The earlier packaged UI review approved the non-final-icon appearance. The final icon has not yet been reviewed in newly built packages, so UI polish is not complete until the updated Flatpak/AppImage path passes focused smoke checks and the maintainer approves the packaged icon presentation.
+Physical sideload review on Bazzite confirmed the downloaded `.flatpak` opens the graphical package installer, installs per-user without touching the game, and exports the application into Plasma. A stale Plasma icon cache initially showed the superseded `D` icon; after rebuilding the icon cache, the launcher displayed the approved custom icon, confirming the installed Flatpak icon export was correct. Bazaar indexed the sideloaded app after a manual library refresh but used its generic package icon; the new raster bundle-icon packaging is intended to remove that fallback and still requires a rebuilt-bundle verification.
 
 ## Validation boundary
 
@@ -102,12 +102,14 @@ Verified:
 - wheel/sdist reproducibility passes;
 - Flatpak proof and earlier packaged UI functional/portal flow pass;
 - AppImage proof, hardening, reproducibility, and `GLIBC_2.34` audit pass;
-- maintainer-approved custom icon is landed in the shared packaging path with source-level payload validation;
+- maintainer-approved custom icon is landed in the shared packaging path with source-level SVG/raster consistency coverage;
+- downloaded Flatpak sideload/install and Plasma launcher integration were observed on Bazzite with no game mutation;
 - no GitHub Actions were used.
 
 Pending:
 
 - focused static/package smoke validation of the latest consolidated UI revision with the final icon;
+- rebuild and verify that the single-file Flatpak now presents the approved icon in Bazaar rather than the generic package icon;
 - explicit maintainer visual approval of the newly packaged icon/UI presentation.
 
 ## Remaining release gates
