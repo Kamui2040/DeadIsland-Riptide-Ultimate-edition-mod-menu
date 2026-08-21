@@ -96,4 +96,4 @@ This is still a bounded x86-64 compatibility claim. The UBI/RHEL 9 family may im
 
 ## Remaining release work
 
-The initial AppImage proof and shared packaging hardening stages 1 and 2 are complete. The next release stage is UI polish, followed by release-candidate freeze, packaged Bazzite QA of both primary formats, final rebuild/verification, and an explicitly approved public release.
+The initial AppImage proof, shared packaging hardening, and UI-polish gate are complete. The current stage is the release-candidate build on `release/rc-0.1.0-dev0`. The AppImage and Flatpak must be built from the same exact frozen commit, followed by packaged Bazzite QA, final rebuild/verification after any accepted RC fixes, and explicit approval before public release.
