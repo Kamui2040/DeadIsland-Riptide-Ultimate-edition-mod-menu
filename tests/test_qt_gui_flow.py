@@ -104,15 +104,34 @@ class QtGuiValidationFlowTests(unittest.TestCase):
         self.assertIn('if section == "Gameplay":', SOURCE)
         self.assertIn('minimum_width = 220 if section == "AI" else 250', SOURCE)
 
+    def test_dropdowns_fit_longest_item_instead_of_stretching(self):
+        method = _method("_build_choice_control")
+        calls = _call_names(method)
+        self.assertIn("setSizeAdjustPolicy", calls)
+        self.assertIn("sizeHint", calls)
+        self.assertIn("setFixedWidth", calls)
+        self.assertIn(
+            "QComboBox.SizeAdjustPolicy.AdjustToContents",
+            SOURCE,
+        )
+        self.assertNotIn("layout.addWidget(combo, 1)", SOURCE)
+
     def test_noclip_warning_is_embedded(self):
         self.assertIn('item.option == "noclip_vehicles"', SOURCE)
         self.assertIn('QLabel("Warning: This can get you stuck.")', SOURCE)
         self.assertIn("checkbox.toggled.connect(warning.setVisible)", SOURCE)
 
+    def test_restore_uses_original_wording(self):
+        self.assertIn('QPushButton("Restore original")', SOURCE)
+        self.assertIn('"Restore original",', SOURCE)
+        self.assertIn("Original game data restored.", SOURCE)
+        self.assertNotIn('QPushButton("Restore pristine")', SOURCE)
+
     def test_about_lists_authors_and_links(self):
         self.assertIn("FireEyeEian — original Ultimate Edition mod", SOURCE)
         self.assertIn("Kamui2040 — Linux port", SOURCE)
-        self.assertIn("https://github.com/Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu", SOURCE)
+        self.assertIn("https://kamui2040.github.io/gaming-mods/", SOURCE)
+        self.assertIn("Project page", SOURCE)
         self.assertIn("https://ko-fi.com/k2040", SOURCE)
         self.assertIn("https://www.nexusmods.com/deadislandriptide/mods/3", SOURCE)
         self.assertIn("setOpenExternalLinks(True)", SOURCE)
