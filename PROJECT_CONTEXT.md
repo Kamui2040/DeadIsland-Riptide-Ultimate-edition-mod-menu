@@ -6,13 +6,14 @@
 - Fork: `Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu`
 - Primary branch: `main`
 - Development branch: `linux-port`
-- Active release branch: `release/final-verification`
-- Frozen RC source commit: `c3e3b97494058e8da199658f4f265e3eb84f0201`
+- Release evidence branch: `release/final-verification`
+- Frozen release source commit: `c3e3b97494058e8da199658f4f265e3eb84f0201`
+- Package version: `0.1.0.dev0`
 - License: GNU GPLv3, inherited and preserved
 
 Milestone 1 is a faithful Linux port of released DIRUE behavior for Dead Island: Riptide Definitive Edition. Released gameplay parity is integrated on fork `main`; upstream remains untouched. New gameplay tweaks remain deferred.
 
-Release sequence: Flatpak proof, AppImage proof, shared packaging hardening, UI polish, release candidate, packaged Bazzite QA, final rebuild/verification, then explicitly approved release.
+Technical validation of the frozen release source state is complete. No main integration, public binary release, Nexus publication, upstream submission, announcement, distribution/visibility change, or GitHub Actions use has been authorized.
 
 ## Verified game baseline
 
@@ -41,7 +42,7 @@ Reproducible developer/source artifacts were accepted:
 - wheel SHA-256 `f870e68409fa351caabdacd2566989f2c06b7ca1086658438a1a8105753febd3`;
 - sdist SHA-256 `72d783b2faf73f45346a916490c0bccb0830ff3ea9c0ca56d0cd724bebe7a29a`.
 
-Primary end-user targets are Flatpak first and AppImage second. Normal users must not need to install Python or PySide6.
+Primary end-user targets are Flatpak first and AppImage second. Normal packaged users do not need to install Python or PySide6 separately.
 
 ### Flatpak
 
@@ -57,8 +58,8 @@ Shared hardening stage 2 passed at `f37d39165212b84954cf60c34b0d97bdec313511` wi
 - glibc `2.34`, Python `3.11.13`, fixed `PYTHONHASHSEED=1`, and source-derived `SOURCE_DATE_EPOCH`;
 - deterministic AppDir SHA-256 `5741e2dab0460061bc5a1d26187a8eb5323ec30a0b6187757c4cd067d5a175ce`;
 - byte-identical final AppImages;
-- final AppImage SHA-256 `07284a312c929cd46bcc191ba9f76f3683d2134f36e912622b77656079376dd4`;
-- final size `60,246,520` bytes;
+- stage-2 AppImage SHA-256 `07284a312c929cd46bcc191ba9f76f3683d2134f36e912622b77656079376dd4`;
+- stage-2 size `60,246,520` bytes;
 - 179 ELF files audited with maximum required `GLIBC_2.34`;
 - incompatible container-collected `libgcc_s.so.1` excluded and checker-enforced;
 - direct packaged launch passed.
@@ -86,41 +87,43 @@ The Flatpak exports scalable SVG plus 64x64 and 128x128 PNG icon variants under 
 
 Bazaar still displays a generic package icon for this locally installed Flatpak in both the host-packaged and Flatpak Bazaar builds. Because the icon assets, export paths, application ID, raster dimensions, and direct GTK icon-theme resolution all pass, this is accepted as a Bazaar-side sideload/display limitation rather than a DIRDE packaging defect. No Bazaar-specific workaround is required.
 
-## Release candidate — complete
+## Frozen release candidate — complete
 
-The frozen release-candidate source commit is `c3e3b97494058e8da199658f4f265e3eb84f0201` on `release/rc-0.1.0-dev0`. Both end-user formats were built from that exact state and verified on physical Bazzite.
+The frozen release source commit is `c3e3b97494058e8da199658f4f265e3eb84f0201` on `release/rc-0.1.0-dev0`. Both end-user formats were built from that exact state.
 
-Accepted RC artifacts:
+Accepted RC artifact identities:
 
 - Flatpak: 56,117,784 bytes, SHA-256 `523e4b0921a09a1c05caa20d67cbcfe7e9090bb416d7d0520848665ced204031`;
 - AppImage: 60,262,904 bytes, SHA-256 `0484d85e33707d3ab8701a6c05fc96ad2a980c299a3de1374097b8b6f57bf6a5`;
 - AppImage finished-artifact audit: maximum required `GLIBC_2.34`.
 
-The focused RC static suite passed 52 tests before packaging. The Flatpak RC retained the bounded permission model with no network permission or broad host/home filesystem permission. The AppImage packaging checker and finished ELF audit passed.
+The focused RC static suite passed 52 tests before packaging. The Flatpak retained the bounded permission model with no network permission or broad host/home filesystem permission. The AppImage packaging checker and finished ELF audit passed.
 
 ## Packaged Bazzite RC QA — complete
 
-Physical Bazzite QA on 2026-08-22 accepted both exact RC artifacts.
+Physical Bazzite QA on 2026-08-22 exercised both exact RC artifacts.
 
-Flatpak passed exact hash recheck, per-user install, bounded permission inspection, launch, Browse, explicit Validate, `Reduce sprint stamina` Apply, `Restore original`, close, and restart.
+The RC Flatpak passed exact hash recheck, per-user install, bounded permission inspection, launch, Browse, explicit Validate, `Reduce sprint stamina` Apply, `Restore original`, close, and restart.
 
-AppImage passed exact hash recheck, direct launch, Browse, explicit Validate, `Reduce sprint stamina` Apply, `Restore original`, close, and restart.
+The RC AppImage passed exact hash recheck, direct launch, Browse, explicit Validate, `Reduce sprint stamina` Apply, `Restore original`, close, and restart.
 
-No RC defect requiring a source fix was found. The frozen RC source commit therefore remained unchanged.
+No RC defect requiring a source fix was found, so the frozen release source commit remained unchanged.
 
 ## Final rebuild/verification — complete
 
-Physical Bazzite final verification on 2026-08-22 rebuilt both formats from the unchanged frozen source commit `c3e3b97494058e8da199658f4f265e3eb84f0201`.
+Physical Bazzite final verification on 2026-08-22 rebuilt both formats from the unchanged frozen release source commit.
 
-Accepted final-verification evidence:
+Accepted final-verification results:
 
 - focused static/package tests: PASS;
-- final Flatpak: 56,114,672 bytes, SHA-256 `1eec07e171303cf55b2ce4cfd944e543ced05a7ff05ef74a82368560c1bdc073`;
+- final-verification Flatpak: 56,114,672 bytes, SHA-256 `1eec07e171303cf55b2ce4cfd944e543ced05a7ff05ef74a82368560c1bdc073`;
 - final AppImage: 60,262,904 bytes, SHA-256 `0484d85e33707d3ab8701a6c05fc96ad2a980c299a3de1374097b8b6f57bf6a5`;
-- final AppImage is byte-identical to the accepted RC AppImage;
+- final AppImage is byte-identical to the exact AppImage already accepted in packaged Bazzite QA;
 - finished AppImage ELF audit: PASS with maximum required `GLIBC_2.34`.
 
-The final Flatpak bundle has a different container hash/size from the earlier RC bundle; Flatpak bundle byte reproducibility was not a release requirement. It was rebuilt from the same frozen source and passed the required package build/integrity checks. No source change occurred between RC acceptance and final verification.
+The final-verification Flatpak has a different bundle hash/size from the physically exercised RC Flatpak. Flatpak bundle byte reproducibility was not a release requirement. The exact-artifact boundary is therefore recorded explicitly: Apply/Restore/restart QA applies to RC Flatpak SHA-256 `523e4b...`, while SHA-256 `1eec07...` is the later final-verification rebuild from the same unchanged frozen source state.
+
+No source change occurred between RC acceptance and final verification.
 
 ## Validation boundary
 
@@ -130,7 +133,7 @@ Verified:
 - representative gameplay QA and exact pristine restore pass;
 - transaction/recovery behavior is validated;
 - wheel/sdist reproducibility passes;
-- Flatpak proof and packaged UI functional/portal flow pass;
+- Flatpak proof and packaged portal/functional flow pass;
 - AppImage proof, hardening, reproducibility, and `GLIBC_2.34` audit pass;
 - maintainer-approved custom icon is landed with source-level SVG/raster consistency coverage;
 - packaged UI first-run clarity, validation flow, status/errors, Apply/Restore states, responsive window behavior, iconography, and About/version presentation received explicit maintainer acceptance;
@@ -141,13 +144,18 @@ Verified:
 - final AppImage exactly matches the accepted RC AppImage and remains bounded to `GLIBC_2.34`;
 - no GitHub Actions were used.
 
-Pending:
+Not claimed:
 
-- explicit approval before main integration or any public release/publication action.
+- the final-verification Flatpak is byte-identical to the RC Flatpak;
+- the final-verification Flatpak itself received a second Apply/Restore/restart pass;
+- Steam Deck- or Steam Machine-specific hardware validation;
+- public release or publication.
 
 ## Remaining release gate
 
 **Explicit approval** is required before main integration, public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
+
+Artifact selection for any approved publication must preserve the recorded exact-artifact distinction above rather than implying that the two Flatpak bundle hashes are interchangeable evidence.
 
 ## Cleanup and publication
 
