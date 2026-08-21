@@ -9,7 +9,8 @@ Milestone 1 gameplay parity is complete. Release work follows this order:
 5. **Release candidate** — complete at frozen source commit `c3e3b97494058e8da199658f4f265e3eb84f0201`.
 6. **Packaged Bazzite QA** — complete for both exact RC artifacts.
 7. **Final rebuild and verification** — complete from the unchanged frozen RC source commit.
-8. **Release** — integration or publication requires explicit approval.
+8. **Main integration** — complete through PR #7 on 2026-08-22.
+9. **Public release/publication** — requires separate explicit approval.
 
 ## End-user acceptance
 
@@ -78,11 +79,16 @@ The exact-artifact boundary must remain clear:
 
 No second gameplay or visual pass was required because no source fix occurred after RC acceptance. This does not make the two Flatpak hashes identical evidence; documentation and release handoff must continue to identify which bundle received which validation.
 
-## Release gate
+## Main integration
 
-Technical validation of the frozen release source state is complete. The remaining gate is **explicit approval** before any of the following:
+The validated Linux release state was integrated into `main` through PR #7 on 2026-08-22. The resulting merge commit is `cc62b1d2874ad571e2c17370dca5d43a75adc477`.
 
-- main integration;
+That approval covered main integration only. It did not authorize publication of binaries or other external release actions.
+
+## Remaining release gate
+
+Technical validation and main integration are complete. **Explicit approval** is still required before any of the following:
+
 - public Flatpak or AppImage publication;
 - Nexus publication;
 - upstream submission;

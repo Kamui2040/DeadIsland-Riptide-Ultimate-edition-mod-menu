@@ -8,12 +8,13 @@
 - Development branch: `linux-port`
 - Release evidence branch: `release/final-verification`
 - Frozen release source commit: `c3e3b97494058e8da199658f4f265e3eb84f0201`
+- Main integration merge commit: `cc62b1d2874ad571e2c17370dca5d43a75adc477`
 - Package version: `0.1.0.dev0`
 - License: GNU GPLv3, inherited and preserved
 
 Milestone 1 is a faithful Linux port of released DIRUE behavior for Dead Island: Riptide Definitive Edition. Released gameplay parity is integrated on fork `main`; upstream remains untouched. New gameplay tweaks remain deferred.
 
-Technical validation of the frozen release source state is complete. No main integration, public binary release, Nexus publication, upstream submission, announcement, distribution/visibility change, or GitHub Actions use has been authorized.
+Technical validation of the frozen release source state is complete. The validated Linux release state was integrated into `main` through PR #7 on 2026-08-22. No public binary release, Nexus publication, upstream submission, announcement, distribution/visibility change, or GitHub Actions use has been authorized.
 
 ## Verified game baseline
 
@@ -125,6 +126,10 @@ The final-verification Flatpak has a different bundle hash/size from the physica
 
 No source change occurred between RC acceptance and final verification.
 
+## Main integration — complete
+
+PR #7 integrated `release/final-verification` into `main` on 2026-08-22 at merge commit `cc62b1d2874ad571e2c17370dca5d43a75adc477`. This was an integration-only approval. It did not authorize a public binary release, Nexus publication, upstream submission, announcement, distribution/visibility change, or GitHub Actions use.
+
 ## Validation boundary
 
 Verified:
@@ -142,6 +147,7 @@ Verified:
 - both exact RC artifacts pass packaged Bazzite launch, validation, Apply, exact Restore, and restart QA;
 - final rebuild/verification from the unchanged frozen commit passes;
 - final AppImage exactly matches the accepted RC AppImage and remains bounded to `GLIBC_2.34`;
+- validated release state is integrated into `main` through PR #7;
 - no GitHub Actions were used.
 
 Not claimed:
@@ -153,7 +159,7 @@ Not claimed:
 
 ## Remaining release gate
 
-**Explicit approval** is required before main integration, public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
+**Explicit approval** is required before public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
 
 Artifact selection for any approved publication must preserve the recorded exact-artifact distinction above rather than implying that the two Flatpak bundle hashes are interchangeable evidence.
 
@@ -161,4 +167,4 @@ Artifact selection for any approved publication must preserve the recorded exact
 
 Accepted evidence, provenance material, artifact hashes, and pristine recovery material remain preserved. Disposable worktrees, build environments, temporary candidates, and superseded QA residue are removed when no longer needed. Authentic game content and backups must never be committed.
 
-No public release, binary publication, Nexus publication, upstream submission, announcement, GitHub Actions use, main integration, or other external publication has been authorized.
+Main integration is complete. No public release, binary publication, Nexus publication, upstream submission, announcement, GitHub Actions use, or other external publication has been authorized.
