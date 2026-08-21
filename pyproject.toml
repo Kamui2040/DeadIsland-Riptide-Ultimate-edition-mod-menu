@@ -6,11 +6,14 @@ backend-path = ["."]
 [project]
 name = "dirue-linux"
 version = "0.1.0.dev0"
-description = "Native Linux port core for Dead Island Riptide Ultimate Edition"
+description = "Dead Island: Riptide Definitive Edition Ultimate Edition mod menu for Linux"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "GPL-3.0-only"
-authors = [{ name = "FireEyeEian and DIRUE Linux contributors" }]
+authors = [
+    { name = "FireEyeEian" },
+    { name = "Kamui2040" },
+]
 classifiers = [
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",

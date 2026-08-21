@@ -1,7 +1,7 @@
 import unittest
 
 from dirue.catalog import READY_PATCHES
-from dirue.ui_catalog import CHOICE_GROUPS, ready_ui_options
+from dirue.ui_catalog import CHECKBOX_OPTIONS, CHOICE_GROUPS, ready_ui_options
 
 
 class UICatalogTests(unittest.TestCase):
@@ -27,6 +27,31 @@ class UICatalogTests(unittest.TestCase):
                 ("Bandits with melee", "force_bandits_melee"),
             ],
         )
+
+    def test_every_option_has_short_hover_help(self):
+        self.assertTrue(CHECKBOX_OPTIONS)
+        for item in CHECKBOX_OPTIONS:
+            self.assertTrue(item.help_text.strip(), item.option)
+            self.assertLessEqual(len(item.help_text), 100, item.option)
+
+        self.assertTrue(CHOICE_GROUPS)
+        for group in CHOICE_GROUPS:
+            self.assertTrue(group.help_text.strip(), group.key)
+            self.assertLessEqual(len(group.help_text), 100, group.key)
+            for choice in group.choices:
+                self.assertTrue(choice.note.strip(), f"{group.key}:{choice.label}")
+                self.assertLessEqual(len(choice.note), 100, f"{group.key}:{choice.label}")
+
+    def test_gameplay_options_are_grouped_by_theme(self):
+        themes = {item.theme for item in CHECKBOX_OPTIONS if item.section == "Gameplay"}
+        self.assertEqual(
+            themes,
+            {"Movement", "Combat", "Gear & loot", "Comfort", "Vehicles"},
+        )
+
+    def test_noclip_help_contains_stuck_warning(self):
+        noclip = next(item for item in CHECKBOX_OPTIONS if item.option == "noclip_vehicles")
+        self.assertIn("stuck", noclip.help_text.lower())
 
 
 if __name__ == "__main__":

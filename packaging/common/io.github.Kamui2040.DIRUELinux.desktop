@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=DIRDE UE Linux
+GenericName=Dead Island Riptide mod menu
+Comment=Ultimate Edition mod menu for Dead Island: Riptide Definitive Edition on Linux
+Exec=dirue-linux
+Icon=io.github.Kamui2040.DIRUELinux
+Terminal=false
+Categories=Game;Utility;
+StartupNotify=true
+StartupWMClass=io.github.Kamui2040.DIRUELinux

@@ -39,12 +39,18 @@ The inherited upstream `Data0.pak` is historical upstream material. Linux-port c
 - Do not hand routine repository work to the user when connected tools can do it safely.
 - Ask for manual execution only when work genuinely requires the user's physical Bazzite/game machine and that machine is unavailable to tools, such as native-game execution, local filesystem state, or visual/gameplay QA.
 - Keep manual handoffs minimal and deterministic.
+- Terminal handoffs must start with `clear`, suppress routine command/build/test output, and print only the final concise PASS/FAIL result block. On failure, include only the bounded diagnostics needed to act.
 - For interactive handoffs run as `bash -s <<'EOF'`, read human responses explicitly from `/dev/tty`, never inherited stdin, and verify any required external process actually starts and exits before accepting observations.
 - When embedded Python in a shell handoff reads `os.environ`, pass every required shell value explicitly on that Python invocation; do not rely on unexported shell variables.
 - Before comparing filesystem paths, canonicalize existing paths and compare the canonical values; symlink or mount aliases are not evidence of different locations.
 - Parse command output by fields or delimiters instead of relying on exact whitespace formatting.
+- For containerized packaging, do not infer host artifact paths from container paths. The wrapper must verify the artifact is visible on the host and emit an authoritative host path/hash for handoffs to consume.
+- When a container command reads a here-document or other stdin-driven script, attach stdin explicitly and verify the intended side effect before treating a zero exit as success.
+- ELF compatibility audits must use program/dynamic headers rather than requiring section tables; stripped static runtimes may legitimately omit section headers.
+- If a container-only copy of a base system library raises the intended ABI floor, exclude it explicitly, checker-enforce its absence, and keep the finished-artifact audit; do not silently raise the target baseline.
 - When a handoff invokes a Python CLI module, verify that the invocation executes the CLI entrypoint and produces the expected output or artifact; a zero exit from an import-only module is not evidence of execution.
 - For gameplay QA after candidate installation, use a bounded automatic process-start wait rather than a one-shot keypress-gated start check; accept observations only after verified native-game start and exit.
+- Functional or packaged UI QA does not constitute visual acceptance; UI polish is not complete until the maintainer explicitly approves the packaged appearance.
 - Use simple, natural, direct language in repository submissions and project chat. Avoid needless jargon, robotic phrasing, and long explanations.
 
 ## Data0 transaction rules
@@ -104,7 +110,9 @@ Keep responsibilities separated:
 - Before any QA write to the installed game, verify the target archive and backup state and use the transaction path implemented by the project.
 - When validating numeric gameplay changes through an in-game UI, do not assume a raw data value is displayed directly; establish the pristine-to-UI relationship or use an A/B comparison before asserting an exact displayed value.
 - Reproducible distribution QA must build the wheel and sdist twice from the same head with a fixed `SOURCE_DATE_EPOCH`; source archives must normalize member order, ownership, timestamps, and gzip metadata before byte comparison.
+- Reproducible PyInstaller/AppImage builds must use a fixed `PYTHONHASHSEED`, normalize AppDir timestamps to `SOURCE_DATE_EPOCH`, and expose a deterministic AppDir content fingerprint so payload nondeterminism can be distinguished from container metadata.
 - Packaging handoffs must provision required non-project build tooling in a disposable isolated environment with an explicit version instead of assuming it exists in the host Python environment.
+- Before adopting a PyInstaller container baseline, pin the image by digest and verify its glibc floor, exact Python version, shared `libpython`, required extension modules, and pip; prefer a verified packaged interpreter over an ad hoc source build.
 - When a new runtime module is added, distribution validation must require that module in both wheel and sdist payload checks before packaging can be accepted.
 - Record sanitized validation evidence where useful; do not record personal paths or identifiers in tracked files.
 

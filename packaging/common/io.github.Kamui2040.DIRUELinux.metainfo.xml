@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.Kamui2040.DIRUELinux</id>
+  <name>DIRDE UE Linux</name>
+  <summary>Dead Island: Riptide DE Linux - Ultimate Edition</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <description>
+    <p>DIRDE UE Linux brings FireEyeEian's Ultimate Edition mod menu to the Linux version of Dead Island: Riptide Definitive Edition.</p>
+    <p>It works with the player's own game files and does not include game assets.</p>
+  </description>
+  <launchable type="desktop-id">io.github.Kamui2040.DIRUELinux.desktop</launchable>
+  <provides>
+    <binary>dirue-linux</binary>
+  </provides>
+  <url type="homepage">https://kamui2040.github.io/gaming-mods/</url>
+  <url type="donation">https://ko-fi.com/k2040</url>
+  <content_rating type="oars-1.1"/>
+</component>

@@ -17,6 +17,12 @@ This fork is creating a native Linux implementation for the native Linux build o
 
 Source distributed by this project remains subject to GPLv3 unless a file clearly states another compatible provenance/license.
 
+## Custom Linux icon
+
+The Linux-port icon is project-generated custom artwork selected and approved by the maintainer. It is not extracted from the game, copied from an upstream UI asset, or built from proprietary game files.
+
+Packaging keeps the approved artwork in the shared SVG wrapper at `packaging/common/io.github.Kamui2040.DIRUELinux.svg` and also carries 64×64 and 128×128 PNG derivatives of that same artwork. Flatpak installs the PNGs in the standard hicolor raster-icon locations so single-file `.flatpak` bundles can expose the icon directly to package frontends such as Bazaar, while Flatpak, AppImage, desktop-entry, and Qt continue to use the same application identity. The icon files are distributed as part of the GPLv3 project unless a later file-level notice states otherwise.
+
 ## Game content is separate
 
 The GPLv3 license of the DIRUE source repository does not by itself establish permission to redistribute Techland game binaries, archives, scripts, textures, audio, or other copyrighted game content.

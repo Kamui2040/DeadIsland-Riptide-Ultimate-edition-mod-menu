@@ -6,97 +6,159 @@
 - Fork: `Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu`
 - Primary branch: `main`
 - Development branch: `linux-port`
+- Release evidence branch: `release/final-verification`
+- Frozen release source commit: `c3e3b97494058e8da199658f4f265e3eb84f0201`
+- Package version: `0.1.0.dev0`
 - License: GNU GPLv3, inherited and preserved
 
-Milestone 1 is a faithful native-Linux port of released DIRUE behavior. Released-option parity is now integrated on the fork. On 2026-08-17, approved non-force fast-forwards moved both `main` and `linux-port` to `66a6e9294bd045569683c64947a31bacd0aee421`, the validated 42-option parity commit. PR #3 was recognized by GitHub as merged through that exact fast-forward. Upstream remains untouched.
+Milestone 1 is a faithful Linux port of released DIRUE behavior for Dead Island: Riptide Definitive Edition. Released gameplay parity is integrated on fork `main`; upstream remains untouched. New gameplay tweaks remain deferred.
 
-New gameplay tweaks remain deferred until a separate post-parity decision.
+Technical validation of the frozen release source state is complete. No main integration, public binary release, Nexus publication, upstream submission, announcement, distribution/visibility change, or GitHub Actions use has been authorized.
 
-## Verified native Linux baseline
+## Verified game baseline
 
-Accepted physical evidence:
+Accepted physical evidence for the audited installation:
 
-- native ELF `DeadIslandRiptideGame`;
+- ELF `DeadIslandRiptideGame`;
 - ZIP-compatible `DIR/Data0.pak`;
 - 3060 archive entries;
 - archive size 7,932,941 bytes;
 - SHA-256 `0afeadca8fb84147cc2c815ec37d1f3c940d40fab6c0a343b7b84e7f41d3c991`.
 
-The hash is evidence for the audited installation, not a universal game requirement. Raw local reports, machine-specific paths, extracted game content, authentic backups, and temporary candidates are not committed to Git.
+The hash is accepted evidence for the audited installation, not a universal requirement. Raw local reports, machine-specific paths, extracted game content, authentic backups, and temporary candidates are not committed.
 
-## Current implementation state
+## Gameplay parity and transaction safety
 
-Integrated `main` contains **42 semantic non-default options** covering the released gameplay controls. All 42 pass disposable native candidate construction against the accepted 3060-entry baseline.
+Integrated `main` contains **42 semantic non-default options** covering released DIRUE gameplay controls. All 42 pass disposable candidate construction against the accepted baseline. Representative gameplay QA, all released forced-spawn families, transaction safeguards, and exact pristine restore are accepted.
 
-Validated families include direct gameplay controls, Improved Loot, AI difficulty, Better Firearms Upgrading, Better Firearms POV 62/72/82, camera FOV 72/82, all four non-default zombie-size modes, all eight non-default weather/time modes, and all seven non-default forced-spawn modes.
+Choice groups fail closed. Runtime transforms validate source state, exact match counts, archive identity, and result state rather than relying on line numbers. Inherited preset ZIP payloads are not copied, installed, or packaged.
 
-Choice groups fail closed on incompatible selections. Runtime transforms validate expected source state, exact match counts, archive identity, and result state rather than using historical line numbers.
+The GUI-independent application service validates compatibility and selection state before mutation, preserves a pristine backup, builds candidates in temporary storage, validates before install, rechecks the live source before atomic replacement, and requires pristine restore before applying a different selection over a modified archive.
 
-## Forced-spawn parity and provenance
+## Distribution evidence
 
-Default spawning matches native behavior. Forced-spawn transforms validate the complete pristine 165-call `m_AIPresets` vector before mutation.
+Reproducible developer/source artifacts were accepted:
 
-- **Suiciders**: native donor; Native-validated and gameplay-validated.
-- **Bandits with guns**: native donor; Native-validated.
-- **Bandits with melee**: bounded whole-token reconstruction from validated pristine native values; Native-validated.
-- **Butcher, Ram, Bloater, and Thug**: use only the minimum machine-facing compatibility identifier lists required to reproduce released behavior. Each target is pinned by SHA-256, syntax/identifier count, pristine-vector validation, preserved ordinal 60, exact 164-call replacement count, and post-transform validation.
+- wheel SHA-256 `f870e68409fa351caabdacd2566989f2c06b7ca1086658438a1a8105753febd3`;
+- sdist SHA-256 `72d783b2faf73f45346a916490c0bccb0830ff3ea9c0ca56d0cd724bebe7a29a`.
 
-The four formerly blocked modes were derived read-only from inherited upstream preset blobs as compatibility evidence. The preset ZIPs themselves are not copied, installed, or packaged. This narrow treatment does not assert redistribution rights over those ZIPs, Data0 archives, replacement files, or other Techland-derived content.
+Primary end-user targets are Flatpak first and AppImage second. Normal packaged users do not need to install Python or PySide6 separately.
 
-Issue #2 records the completed provenance, candidate, gameplay, restore, and packaging acceptance path and is closed as completed.
+### Flatpak
 
-## Native candidate and gameplay QA
+Physical Bazzite proof QA passed with PySide6 `6.11.1`, bounded sandbox permissions, portal-based game-folder access, Validate, Apply, exact Restore, and clean exit. No blanket host-filesystem or network permission was needed.
 
-Accepted physical candidate QA for Butcher, Ram, Bloater, and Thug proves each candidate:
+### AppImage
 
-- retains all 3060 entries and archive member order;
-- changes only `data/presets/aispawnbox_pre.def`;
-- preserves active ordinal 60;
-- replaces exactly the other 164 active `m_AIPresets` calls;
-- passes ZIP integrity, candidate-hash, selected-option, and changed-member verification;
-- leaves the live pristine Data0 unchanged during candidate-only QA.
+Shared hardening stage 1 passed at `15437a1ee0172cb79092fdc5c230759ff2d3d3bb`.
 
-Accepted bounded native gameplay QA then installed each mode through the normal application transaction path. Butchers, Rams, Bloaters, and Thugs were each confirmed in the native game. After every run, the native ELF process exited and the exact pristine Data0 was restored before the observation was accepted. The retained pristine backup remained valid and unchanged.
+Shared hardening stage 2 passed at `f37d39165212b84954cf60c34b0d97bdec313511` with:
 
-Representative accepted gameplay evidence also covers camera FOV82, Better Firearms POV82, darker storm/night, Run with weapons, One Hit AI, supersize active infected/walkers, Forced Suiciders, and Better Firearms Upgrading.
+- digest-pinned UBI 9 Python 3.11 baseline;
+- glibc `2.34`, Python `3.11.13`, fixed `PYTHONHASHSEED=1`, and source-derived `SOURCE_DATE_EPOCH`;
+- deterministic AppDir SHA-256 `5741e2dab0460061bc5a1d26187a8eb5323ec30a0b6187757c4cd067d5a175ce`;
+- byte-identical final AppImages;
+- stage-2 AppImage SHA-256 `07284a312c929cd46bcc191ba9f76f3683d2134f36e912622b77656079376dd4`;
+- stage-2 size `60,246,520` bytes;
+- 179 ELF files audited with maximum required `GLIBC_2.34`;
+- incompatible container-collected `libgcc_s.so.1` excluded and checker-enforced;
+- direct packaged launch passed.
 
-## Application and transaction safety
+Issue #5 is closed. Portability evidence is bounded to x86-64 systems meeting the glibc 2.34 floor and target-system base-library expectations; older pre-x86-64-v2 CPUs are not proven compatible.
 
-The GUI-independent application service validates selections, compatibility, archive identity, and exclusivity before mutation. It preserves a pristine backup from a recognized baseline, builds candidates in isolated temporary storage, validates candidates before installation, rechecks live source identity immediately before atomic replacement, and requires pristine restore before applying a different selection over a modified live archive.
+## UI polish — complete
 
-The retained pristine backup is recovery material and must not be deleted or overwritten.
+The accepted UI implementation is based on source state `2082bd88bc7960fc68104284d0e8dab7f90733c5`. The maintainer visually approved the packaged main window and About dialog and confirmed the required behavior on physical Bazzite.
 
-The integrated GUI exposes all 42 ready options, including the four formerly disabled forced-spawn choices. UI/catalog tests verify the ready options match the semantic catalog exactly.
+Accepted UI behavior and presentation include:
 
-## Packaging and distribution validation
+- app short name **DIRDE UE Linux** and long title **Dead Island: Riptide DE Linux - Ultimate Edition**;
+- explicit first-run sequence: choose folder, validate, select options, apply changes;
+- Browse selects only; Validate performs explicit validation; Apply stays disabled until validation succeeds; changing the path invalidates prior validation;
+- clear hierarchy and spacing, responsive option layout, bounded Activity area, and sensible dropdown sizing;
+- clear status/error presentation and enabled/disabled Apply/Restore affordances;
+- user-facing restore wording **Restore original**;
+- responsive window behavior under resize/maximize/restore without inaccessible controls;
+- concise hover help and the inline `NoClip vehicles` warning;
+- footer version/authorship/license information and an About dialog with FireEyeEian attribution, Linux-port credit, project/support/original-mod links, and GPLv3 notice;
+- maintainer-approved custom red penguin/Ripper icon shared by Flatpak and AppImage metadata.
 
-The build system pins `setuptools==83.0.0`, uses a repo-local deterministic PEP 517 backend wrapper, disables implicit package-data inclusion, and excludes provenance-sensitive inherited payloads from Linux distributions. `tools/check_distribution.py` requires `forced_spawn_compat.py` in both wheel and sdist so the runtime module cannot be silently omitted.
+The Flatpak exports scalable SVG plus 64x64 and 128x128 PNG icon variants under the standard hicolor paths. Physical checks confirmed both PNG files resolve to the intended dimensions, the SVG is present, and GTK resolves the application ID directly to the exported 128x128 PNG.
 
-A physical Bazzite packaging run for the 42-option state used an isolated PyPA `build==1.5.0` frontend and a commit-derived `SOURCE_DATE_EPOCH`. Two clean builds were byte-identical:
+Bazaar still displays a generic package icon for this locally installed Flatpak in both the host-packaged and Flatpak Bazaar builds. Because the icon assets, export paths, application ID, raster dimensions, and direct GTK icon-theme resolution all pass, this is accepted as a Bazaar-side sideload/display limitation rather than a DIRDE packaging defect. No Bazaar-specific workaround is required.
 
-- wheel `dirue_linux-0.1.0.dev0-py3-none-any.whl`: SHA-256 `f870e68409fa351caabdacd2566989f2c06b7ca1086658438a1a8105753febd3`;
-- sdist `dirue_linux-0.1.0.dev0.tar.gz`: SHA-256 `72d783b2faf73f45346a916490c0bccb0830ff3ea9c0ca56d0cd724bebe7a29a`.
+## Frozen release candidate — complete
 
-Both artifact copies passed the distribution payload checker. The built wheel installed in an isolated environment; `pip check`, the `dirue` console entry point, direct `python -m dirue.cli`, the 42-option semantic/UI catalog, all four compatibility-mode registrations, and CLI/GUI entry-point metadata passed. The primary working branch, HEAD, and status remained unchanged, and disposable worktrees/build artifacts/QA environments were removed.
+The frozen release source commit is `c3e3b97494058e8da199658f4f265e3eb84f0201` on `release/rc-0.1.0-dev0`. Both end-user formats were built from that exact state.
+
+Accepted RC artifact identities:
+
+- Flatpak: 56,117,784 bytes, SHA-256 `523e4b0921a09a1c05caa20d67cbcfe7e9090bb416d7d0520848665ced204031`;
+- AppImage: 60,262,904 bytes, SHA-256 `0484d85e33707d3ab8701a6c05fc96ad2a980c299a3de1374097b8b6f57bf6a5`;
+- AppImage finished-artifact audit: maximum required `GLIBC_2.34`.
+
+The focused RC static suite passed 52 tests before packaging. The Flatpak retained the bounded permission model with no network permission or broad host/home filesystem permission. The AppImage packaging checker and finished ELF audit passed.
+
+## Packaged Bazzite RC QA — complete
+
+Physical Bazzite QA on 2026-08-22 exercised both exact RC artifacts.
+
+The RC Flatpak passed exact hash recheck, per-user install, bounded permission inspection, launch, Browse, explicit Validate, `Reduce sprint stamina` Apply, `Restore original`, close, and restart.
+
+The RC AppImage passed exact hash recheck, direct launch, Browse, explicit Validate, `Reduce sprint stamina` Apply, `Restore original`, close, and restart.
+
+No RC defect requiring a source fix was found, so the frozen release source commit remained unchanged.
+
+## Final rebuild/verification — complete
+
+Physical Bazzite final verification on 2026-08-22 rebuilt both formats from the unchanged frozen release source commit.
+
+Accepted final-verification results:
+
+- focused static/package tests: PASS;
+- final-verification Flatpak: 56,114,672 bytes, SHA-256 `1eec07e171303cf55b2ce4cfd944e543ced05a7ff05ef74a82368560c1bdc073`;
+- final AppImage: 60,262,904 bytes, SHA-256 `0484d85e33707d3ab8701a6c05fc96ad2a980c299a3de1374097b8b6f57bf6a5`;
+- final AppImage is byte-identical to the exact AppImage already accepted in packaged Bazzite QA;
+- finished AppImage ELF audit: PASS with maximum required `GLIBC_2.34`.
+
+The final-verification Flatpak has a different bundle hash/size from the physically exercised RC Flatpak. Flatpak bundle byte reproducibility was not a release requirement. The exact-artifact boundary is therefore recorded explicitly: Apply/Restore/restart QA applies to RC Flatpak SHA-256 `523e4b...`, while SHA-256 `1eec07...` is the later final-verification rebuild from the same unchanged frozen source state.
+
+No source change occurred between RC acceptance and final verification.
 
 ## Validation boundary
 
-- all 42 integrated non-default options pass native disposable candidate construction;
-- the four formerly blocked forced-spawn modes pass bounded native gameplay QA with exact pristine restore;
-- UI/catalog accounting passes at 42 options;
-- forced-spawn exclusivity and fail-closed validation pass;
-- application transaction and recovery behavior remain validated;
-- reproducible wheel/sdist packaging and isolated installed-wheel checks pass for the 42-option state;
+Verified:
+
+- all 42 released non-default options pass candidate construction;
+- representative gameplay QA and exact pristine restore pass;
+- transaction/recovery behavior is validated;
+- wheel/sdist reproducibility passes;
+- Flatpak proof and packaged portal/functional flow pass;
+- AppImage proof, hardening, reproducibility, and `GLIBC_2.34` audit pass;
+- maintainer-approved custom icon is landed with source-level SVG/raster consistency coverage;
+- packaged UI first-run clarity, validation flow, status/errors, Apply/Restore states, responsive window behavior, iconography, and About/version presentation received explicit maintainer acceptance;
+- direct GTK icon-theme lookup resolves the exported DIRDE icon; Bazaar's remaining generic sideload icon is classified as an external display limitation;
+- both RC artifacts are tied to frozen commit `c3e3b97494058e8da199658f4f265e3eb84f0201` with recorded hashes and sizes;
+- both exact RC artifacts pass packaged Bazzite launch, validation, Apply, exact Restore, and restart QA;
+- final rebuild/verification from the unchanged frozen commit passes;
+- final AppImage exactly matches the accepted RC AppImage and remains bounded to `GLIBC_2.34`;
 - no GitHub Actions were used.
 
-No further routine gameplay or packaging QA is required absent a newly identified risk.
+Not claimed:
 
-## Remaining gates
+- the final-verification Flatpak is byte-identical to the RC Flatpak;
+- the final-verification Flatpak itself received a second Apply/Restore/restart pass;
+- Steam Deck- or Steam Machine-specific hardware validation;
+- public release or publication.
 
-Public releases/binaries, Nexus publication, upstream submission, announcements, distribution or visibility changes, and GitHub Actions remain unauthorized unless separately approved.
+## Remaining release gate
+
+**Explicit approval** is required before main integration, public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
+
+Artifact selection for any approved publication must preserve the recorded exact-artifact distinction above rather than implying that the two Flatpak bundle hashes are interchangeable evidence.
 
 ## Cleanup and publication
 
-Accepted evidence, provenance material, artifact hashes, and the pristine recovery backup remain preserved. Temporary candidates, build environments, disposable worktrees, and superseded QA residue are removed when no longer needed. Authentic game content and backups must never be committed.
+Accepted evidence, provenance material, artifact hashes, and pristine recovery material remain preserved. Disposable worktrees, build environments, temporary candidates, and superseded QA residue are removed when no longer needed. Authentic game content and backups must never be committed.
 
-No public release, binary publication, Nexus publication, upstream submission, announcement, GitHub Actions use, or other external publication has been authorized.
+No public release, binary publication, Nexus publication, upstream submission, announcement, GitHub Actions use, main integration, or other external publication has been authorized.

@@ -1,0 +1,66 @@
+{
+  "id": "io.github.Kamui2040.DIRUELinux",
+  "runtime": "org.kde.Platform",
+  "runtime-version": "6.11",
+  "sdk": "org.kde.Sdk",
+  "base": "io.qt.PySide.BaseApp",
+  "base-version": "6.11",
+  "command": "dirue-linux",
+  "build-options": {
+    "env": {
+      "BASEAPP_REMOVE_WEBENGINE": "1",
+      "BASEAPP_DISABLE_NUMPY": "1"
+    }
+  },
+  "cleanup-commands": [
+    "/app/cleanup-BaseApp.sh"
+  ],
+  "finish-args": [
+    "--share=ipc",
+    "--socket=wayland",
+    "--socket=fallback-x11",
+    "--device=dri"
+  ],
+  "modules": [
+    {
+      "name": "dirue-linux",
+      "buildsystem": "simple",
+      "build-commands": [
+        "SITE_PACKAGES=\"$(python3 -c 'import sysconfig; print(sysconfig.get_path(\"purelib\", vars={\"base\": \"/app\", \"platbase\": \"/app\"}))')\" && install -d \"${SITE_PACKAGES}\" && cp -a src/dirue \"${SITE_PACKAGES}/\"",
+        "printf '%s\\n' '#!/bin/sh' 'exec python3 -m dirue.gui \"$@\"' > dirue-linux && install -Dm755 dirue-linux /app/bin/dirue-linux",
+        "install -Dm644 io.github.Kamui2040.DIRUELinux.desktop /app/share/applications/io.github.Kamui2040.DIRUELinux.desktop",
+        "install -Dm644 io.github.Kamui2040.DIRUELinux.metainfo.xml /app/share/metainfo/io.github.Kamui2040.DIRUELinux.metainfo.xml",
+        "install -Dm644 io.github.Kamui2040.DIRUELinux.svg /app/share/icons/hicolor/scalable/apps/io.github.Kamui2040.DIRUELinux.svg",
+        "install -Dm644 io.github.Kamui2040.DIRUELinux.64.png /app/share/icons/hicolor/64x64/apps/io.github.Kamui2040.DIRUELinux.png",
+        "install -Dm644 io.github.Kamui2040.DIRUELinux.128.png /app/share/icons/hicolor/128x128/apps/io.github.Kamui2040.DIRUELinux.png"
+      ],
+      "sources": [
+        {
+          "type": "dir",
+          "path": "../../src",
+          "dest": "src"
+        },
+        {
+          "type": "file",
+          "path": "../common/io.github.Kamui2040.DIRUELinux.desktop"
+        },
+        {
+          "type": "file",
+          "path": "../common/io.github.Kamui2040.DIRUELinux.metainfo.xml"
+        },
+        {
+          "type": "file",
+          "path": "../common/io.github.Kamui2040.DIRUELinux.svg"
+        },
+        {
+          "type": "file",
+          "path": "../common/io.github.Kamui2040.DIRUELinux.64.png"
+        },
+        {
+          "type": "file",
+          "path": "../common/io.github.Kamui2040.DIRUELinux.128.png"
+        }
+      ]
+    }
+  ]
+}
