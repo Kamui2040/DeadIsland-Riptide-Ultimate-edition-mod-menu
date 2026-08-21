@@ -30,7 +30,9 @@
         "printf '%s\\n' '#!/bin/sh' 'exec python3 -m dirue.gui \"$@\"' > dirue-linux && install -Dm755 dirue-linux /app/bin/dirue-linux",
         "install -Dm644 io.github.Kamui2040.DIRUELinux.desktop /app/share/applications/io.github.Kamui2040.DIRUELinux.desktop",
         "install -Dm644 io.github.Kamui2040.DIRUELinux.metainfo.xml /app/share/metainfo/io.github.Kamui2040.DIRUELinux.metainfo.xml",
-        "install -Dm644 io.github.Kamui2040.DIRUELinux.svg /app/share/icons/hicolor/scalable/apps/io.github.Kamui2040.DIRUELinux.svg"
+        "install -Dm644 io.github.Kamui2040.DIRUELinux.svg /app/share/icons/hicolor/scalable/apps/io.github.Kamui2040.DIRUELinux.svg",
+        "install -Dm644 io.github.Kamui2040.DIRUELinux.64.png /app/share/icons/hicolor/64x64/apps/io.github.Kamui2040.DIRUELinux.png",
+        "install -Dm644 io.github.Kamui2040.DIRUELinux.128.png /app/share/icons/hicolor/128x128/apps/io.github.Kamui2040.DIRUELinux.png"
       ],
       "sources": [
         {
@@ -49,6 +51,14 @@
         {
           "type": "file",
           "path": "../common/io.github.Kamui2040.DIRUELinux.svg"
+        },
+        {
+          "type": "file",
+          "path": "../common/io.github.Kamui2040.DIRUELinux.64.png"
+        },
+        {
+          "type": "file",
+          "path": "../common/io.github.Kamui2040.DIRUELinux.128.png"
         }
       ]
     }
