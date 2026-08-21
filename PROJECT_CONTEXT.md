@@ -6,7 +6,8 @@
 - Fork: `Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu`
 - Primary branch: `main`
 - Development branch: `linux-port`
-- Active release branch: `release/rc-0.1.0-dev0`
+- Active release branch: `release/final-verification`
+- Frozen RC source commit: `c3e3b97494058e8da199658f4f265e3eb84f0201`
 - License: GNU GPLv3, inherited and preserved
 
 Milestone 1 is a faithful Linux port of released DIRUE behavior for Dead Island: Riptide Definitive Edition. Released gameplay parity is integrated on fork `main`; upstream remains untouched. New gameplay tweaks remain deferred.
@@ -85,9 +86,41 @@ The Flatpak exports scalable SVG plus 64x64 and 128x128 PNG icon variants under 
 
 Bazaar still displays a generic package icon for this locally installed Flatpak in both the host-packaged and Flatpak Bazaar builds. Because the icon assets, export paths, application ID, raster dimensions, and direct GTK icon-theme resolution all pass, this is accepted as a Bazaar-side sideload/display limitation rather than a DIRDE packaging defect. No Bazaar-specific workaround is required for the release candidate.
 
-## Release candidate — active
+## Release candidate — complete
 
-`release/rc-0.1.0-dev0` was created from the accepted UI source state. The branch is the release-candidate freeze line: build both end-user formats from one exact branch-head commit and do not add unrelated changes. Any accepted RC fix must be recorded, validated, and followed by a new exact RC build state.
+The frozen release-candidate source commit is `c3e3b97494058e8da199658f4f265e3eb84f0201` on `release/rc-0.1.0-dev0`. Both end-user formats were built from that exact state and verified on physical Bazzite.
+
+Accepted RC artifacts:
+
+- Flatpak: 56,117,784 bytes, SHA-256 `523e4b0921a09a1c05caa20d67cbcfe7e9090bb416d7d0520848665ced204031`;
+- AppImage: 60,262,904 bytes, SHA-256 `0484d85e33707d3ab8701a6c05fc96ad2a980c299a3de1374097b8b6f57bf6a5`;
+- AppImage finished-artifact audit: maximum required `GLIBC_2.34`.
+
+The focused RC static suite passed 52 tests before packaging. The Flatpak RC retained the bounded permission model with no network permission or broad host/home filesystem permission. The AppImage packaging checker and finished ELF audit passed.
+
+## Packaged Bazzite RC QA — complete
+
+Physical Bazzite QA on 2026-08-22 accepted both exact RC artifacts.
+
+Flatpak:
+
+- exact artifact hash rechecked before install;
+- per-user install from the RC bundle passed;
+- bounded permissions inspection passed;
+- launch and restart passed;
+- Browse and explicit Validate passed;
+- `Reduce sprint stamina` Apply passed;
+- `Restore original` passed and returned the game data through the validated transaction path.
+
+AppImage:
+
+- exact artifact hash rechecked before execution;
+- direct launch and restart passed;
+- Browse and explicit Validate passed;
+- `Reduce sprint stamina` Apply passed;
+- `Restore original` passed and returned the game data through the validated transaction path.
+
+No RC defect requiring a source fix was found. The frozen RC source commit therefore remains unchanged.
 
 ## Validation boundary
 
@@ -100,23 +133,21 @@ Verified:
 - Flatpak proof and packaged UI functional/portal flow pass;
 - AppImage proof, hardening, reproducibility, and `GLIBC_2.34` audit pass;
 - maintainer-approved custom icon is landed with source-level SVG/raster consistency coverage;
-- downloaded Flatpak sideload/install and Plasma launcher integration were observed on Bazzite with no game mutation;
 - packaged UI first-run clarity, validation flow, status/errors, Apply/Restore states, responsive window behavior, iconography, and About/version presentation received explicit maintainer acceptance;
 - direct GTK icon-theme lookup resolves the exported DIRDE icon; Bazaar's remaining generic sideload icon is classified as an external display limitation;
+- both RC artifacts are tied to frozen commit `c3e3b97494058e8da199658f4f265e3eb84f0201` with recorded hashes and sizes;
+- both exact RC artifacts pass packaged Bazzite launch, validation, Apply, exact Restore, and restart QA;
 - no GitHub Actions were used.
 
 Pending:
 
-- build one Flatpak and one AppImage from the same exact RC branch-head commit;
-- record authoritative artifact identity/hash/size for both;
-- exercise both RC artifacts on physical Bazzite as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
+- final rebuild/verification from the unchanged frozen RC source commit;
+- explicit approval before any integration or public release/publication action.
 
 ## Remaining release gates
 
-1. **Release candidate** — build both primary formats from the same frozen `release/rc-0.1.0-dev0` commit and record their identities.
-2. **Packaged Bazzite QA** — exercise both release-candidate artifacts as users receive them, including launch, validation, Apply, exact Restore, restart, and artifact/privacy checks.
-3. **Final rebuild/verification** after any accepted RC fixes.
-4. **Explicit approval** before public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
+1. **Final rebuild/verification** — rebuild from frozen commit `c3e3b97494058e8da199658f4f265e3eb84f0201`, re-run package-integrity checks, and verify the deterministic AppImage result against the accepted RC artifact.
+2. **Explicit approval** before main integration, public release/binaries, Nexus publication, upstream submission, announcements, distribution/visibility changes, or GitHub Actions use.
 
 ## Cleanup and publication
 
