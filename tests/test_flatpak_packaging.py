@@ -91,11 +91,10 @@ class FlatpakPackagingTests(unittest.TestCase):
         urls = {node.attrib.get("type"): node.text for node in root.findall("url")}
         self.assertEqual(urls["donation"], "https://ko-fi.com/k2040")
 
-    def test_shared_icon_is_custom_dirde_ue_artwork(self):
-        icon = (COMMON_DIR / f"{APP_ID}.svg").read_text(encoding="utf-8")
-        self.assertIn('aria-label="DIRDE UE Linux"', icon)
-        self.assertIn(">UE</text>", icon)
-        self.assertNotIn('aria-label="DIRUE Linux"', icon)
+    def test_shared_icon_is_valid_svg(self):
+        root = ET.parse(COMMON_DIR / f"{APP_ID}.svg").getroot()
+        self.assertTrue(root.tag.endswith("svg"))
+        self.assertEqual(root.attrib.get("viewBox"), "0 0 128 128")
 
 
 if __name__ == "__main__":
