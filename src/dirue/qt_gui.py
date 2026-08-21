@@ -12,8 +12,10 @@ from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QComboBox,
+    QDialog,
+    QDialogButtonBox,
     QFileDialog,
-    QFormLayout,
+    QGridLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -35,10 +37,17 @@ from .application import (
     restore_pristine,
 )
 from .errors import DirueError
-from .ui_catalog import CHECKBOX_OPTIONS, CHOICE_GROUPS
+from .ui_catalog import CHECKBOX_OPTIONS, CHOICE_GROUPS, CheckboxOption, ChoiceGroup
 
 
 APP_ID = "io.github.Kamui2040.DIRUELinux"
+APP_SHORT_NAME = "DIRDE UE Linux"
+APP_LONG_NAME = "Dead Island: Riptide DE Linux - Ultimate Edition"
+PROJECT_URL = "https://github.com/Kamui2040/DeadIsland-Riptide-Ultimate-edition-mod-menu"
+KOFI_URL = "https://ko-fi.com/k2040"
+ORIGINAL_MOD_URL = "https://www.nexusmods.com/deadislandriptide/mods/3"
+SECTION_ORDER = ("Gameplay", "AI", "Firearms", "Camera", "World")
+GAMEPLAY_THEME_ORDER = ("Movement", "Combat", "Gear & loot", "Comfort", "Vehicles")
 
 
 def _application_icon() -> QIcon:
@@ -73,106 +82,127 @@ def _running_in_flatpak() -> bool:
     return bool(os.environ.get("FLATPAK_ID")) or Path("/.flatpak-info").is_file()
 
 
+class _ResponsiveGrid(QWidget):
+    """Keep compact groups side by side and wrap them when space gets tight."""
+
+    def __init__(
+        self,
+        widgets: list[QWidget],
+        *,
+        minimum_item_width: int,
+        max_columns: int | None = None,
+    ) -> None:
+        super().__init__()
+        self._widgets = widgets
+        self._minimum_item_width = minimum_item_width
+        self._max_columns = max_columns or max(1, len(widgets))
+        self._columns = 0
+        self._grid = QGridLayout(self)
+        self._grid.setContentsMargins(0, 0, 0, 0)
+        self._grid.setHorizontalSpacing(8)
+        self._grid.setVerticalSpacing(8)
+        self._reflow(10_000)
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        self._reflow(event.size().width())
+
+    def _reflow(self, width: int) -> None:
+        if not self._widgets:
+            return
+        columns = max(1, width // self._minimum_item_width)
+        columns = min(columns, self._max_columns, len(self._widgets))
+        if columns == self._columns:
+            return
+        self._columns = columns
+        for widget in self._widgets:
+            self._grid.removeWidget(widget)
+        for index, widget in enumerate(self._widgets):
+            self._grid.addWidget(widget, index // columns, index % columns)
+        for column in range(self._max_columns):
+            self._grid.setColumnStretch(column, 1 if column < columns else 0)
+
+
+class _AboutDialog(QDialog):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowTitle(f"About {APP_SHORT_NAME}")
+        self.setMinimumWidth(520)
+
+        layout = QVBoxLayout(self)
+        title = QLabel(f"<b>{APP_LONG_NAME}</b><br>{APP_SHORT_NAME} {__version__}")
+        title.setTextFormat(Qt.TextFormat.RichText)
+        layout.addWidget(title)
+
+        credits = QLabel(
+            "Authors:<br>"
+            "• FireEyeEian — original Ultimate Edition mod<br>"
+            "• Kamui2040 — Linux port"
+        )
+        credits.setWordWrap(True)
+        layout.addWidget(credits)
+
+        links = QLabel(
+            f'<a href="{PROJECT_URL}">Project on GitHub</a><br>'
+            f'<a href="{KOFI_URL}">Support Kamui2040 on Ko-fi</a><br>'
+            f'<a href="{ORIGINAL_MOD_URL}">Original mod on Nexus Mods</a>'
+        )
+        links.setTextFormat(Qt.TextFormat.RichText)
+        links.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
+        links.setOpenExternalLinks(True)
+        layout.addWidget(links)
+
+        license_text = QLabel("GPLv3. Game assets are not included.")
+        license_text.setWordWrap(True)
+        layout.addWidget(license_text)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("DIRUE Linux")
+        self.setWindowTitle(APP_SHORT_NAME)
         icon = _application_icon()
         if not icon.isNull():
             self.setWindowIcon(icon)
-        self.setMinimumSize(760, 640)
-        self.resize(940, 800)
+        self.setMinimumSize(780, 700)
+        self.resize(1080, 900)
 
         self._checkboxes: dict[str, QCheckBox] = {}
         self._combos: dict[str, QComboBox] = {}
         self._validated_root: Path | None = None
+        self._noclip_warning: QLabel | None = None
 
         central = QWidget()
         layout = QVBoxLayout(central)
-        layout.setSpacing(10)
+        layout.setContentsMargins(10, 10, 10, 8)
+        layout.setSpacing(8)
 
-        title = QLabel("Dead Island: Riptide Ultimate Edition — Linux port")
+        title = QLabel(APP_LONG_NAME)
         title.setWordWrap(True)
         title.setStyleSheet("font-size: 18px; font-weight: 600;")
         layout.addWidget(title)
 
         steps = QLabel("1. Choose folder   2. Validate   3. Select options   4. Apply changes")
         steps.setWordWrap(True)
-        steps.setStyleSheet("font-weight: 600;")
         layout.addWidget(steps)
 
-        game_box = QGroupBox("Game installation")
-        game_layout = QVBoxLayout(game_box)
-        folder_row = QHBoxLayout()
-        self._root_edit = QLineEdit()
-        if _running_in_flatpak():
-            self._root_edit.setReadOnly(True)
-            self._root_edit.setPlaceholderText("Choose the game folder with Browse…")
-            self._root_edit.setToolTip(
-                "Flatpak uses Browse to grant access to the selected game folder."
-            )
-        else:
-            self._root_edit.setPlaceholderText(
-                "Dead Island Riptide Definitive Edition folder"
-            )
-            self._root_edit.setToolTip("Choose or type the game folder.")
-        self._root_edit.textChanged.connect(self._invalidate_validation)
-        self._browse_button = QPushButton("Browse…")
-        self._browse_button.setToolTip("Choose a folder without validating it yet.")
-        self._browse_button.clicked.connect(self._browse)
-        self._validate_button = QPushButton("Validate")
-        self._validate_button.setToolTip("Validate the selected game folder.")
-        self._validate_button.clicked.connect(self._validate_selected_root)
-        folder_row.addWidget(self._root_edit, 1)
-        folder_row.addWidget(self._browse_button)
-        folder_row.addWidget(self._validate_button)
-        game_layout.addLayout(folder_row)
-
-        self._status = QLabel("Choose a game folder.")
-        self._status.setWordWrap(True)
-        game_layout.addWidget(self._status)
-        layout.addWidget(game_box)
+        layout.addWidget(self._build_game_box())
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         options_widget = QWidget()
         options_layout = QVBoxLayout(options_widget)
+        options_layout.setContentsMargins(0, 0, 0, 0)
+        options_layout.setSpacing(8)
 
-        sections = sorted(
-            {item.section for item in CHECKBOX_OPTIONS}
-            | {group.section for group in CHOICE_GROUPS}
-        )
-        for section in sections:
-            box = QGroupBox(section)
-            form = QFormLayout(box)
-
-            for item in CHECKBOX_OPTIONS:
-                if item.section != section:
-                    continue
-                checkbox = QCheckBox(item.label)
-                self._checkboxes[item.option] = checkbox
-                form.addRow(checkbox)
-
-            for group in CHOICE_GROUPS:
-                if group.section != section:
-                    continue
-                combo = QComboBox()
-                for choice in group.choices:
-                    combo.addItem(choice.label, choice.option)
-                    index = combo.count() - 1
-                    model_item = combo.model().item(index)
-                    if model_item is not None:
-                        model_item.setEnabled(choice.enabled)
-                    if choice.note:
-                        combo.setItemData(
-                            index,
-                            choice.note,
-                            Qt.ItemDataRole.ToolTipRole,
-                        )
-                self._combos[group.key] = combo
-                form.addRow(group.label + ":", combo)
-
-            options_layout.addWidget(box)
+        for section in SECTION_ORDER:
+            section_widget = self._build_option_section(section)
+            if section_widget is not None:
+                options_layout.addWidget(section_widget)
 
         options_layout.addStretch(1)
         scroll.setWidget(options_widget)
@@ -180,11 +210,11 @@ class MainWindow(QMainWindow):
 
         buttons = QHBoxLayout()
         self._apply_button = QPushButton("Apply changes")
-        self._apply_button.setToolTip("Apply the selected modifications.")
+        self._apply_button.setToolTip("Apply the selected changes.")
         self._apply_button.clicked.connect(self._apply)
         self._apply_button.setEnabled(False)
         self._restore_button = QPushButton("Restore pristine")
-        self._restore_button.setToolTip("Restore the pristine game data backup.")
+        self._restore_button.setToolTip("Restore the clean game data backup.")
         self._restore_button.clicked.connect(self._restore)
         self._restore_button.setEnabled(False)
         buttons.addWidget(self._apply_button)
@@ -209,18 +239,150 @@ class MainWindow(QMainWindow):
 
         footer_row = QHBoxLayout()
         footer = QLabel(
-            f"DIRUE Linux {__version__}. Original DIRUE by FireEyeEian. GPLv3 Linux port; "
-            "game assets are not redistributed."
+            f"{APP_SHORT_NAME} {__version__} · FireEyeEian + Kamui2040 · GPLv3"
         )
         footer.setWordWrap(True)
         footer_row.addWidget(footer, 1)
         about = QPushButton("About")
-        about.setToolTip("Show version, attribution, and license information.")
+        about.setToolTip("Credits, links, version, and license.")
         about.clicked.connect(self._show_about)
         footer_row.addWidget(about)
         layout.addLayout(footer_row)
 
         self.setCentralWidget(central)
+
+    def _build_game_box(self) -> QGroupBox:
+        game_box = QGroupBox("Game installation")
+        game_layout = QVBoxLayout(game_box)
+        game_layout.setSpacing(6)
+
+        folder_row = QHBoxLayout()
+        self._root_edit = QLineEdit()
+        if _running_in_flatpak():
+            self._root_edit.setReadOnly(True)
+            self._root_edit.setPlaceholderText("Choose the game folder with Browse…")
+            self._root_edit.setToolTip("Use Browse so Flatpak can access the folder.")
+        else:
+            self._root_edit.setPlaceholderText("Dead Island Riptide Definitive Edition folder")
+            self._root_edit.setToolTip("Choose or type the game folder.")
+        self._root_edit.textChanged.connect(self._invalidate_validation)
+
+        self._browse_button = QPushButton("Browse…")
+        self._browse_button.setToolTip("Choose the game folder.")
+        self._browse_button.clicked.connect(self._browse)
+        self._validate_button = QPushButton("Validate")
+        self._validate_button.setToolTip("Check that this is the right game folder.")
+        self._validate_button.clicked.connect(self._validate_selected_root)
+
+        folder_row.addWidget(self._root_edit, 1)
+        folder_row.addWidget(self._browse_button)
+        folder_row.addWidget(self._validate_button)
+        game_layout.addLayout(folder_row)
+
+        self._status = QLabel("Choose a game folder.")
+        self._status.setWordWrap(True)
+        game_layout.addWidget(self._status)
+        return game_box
+
+    def _build_option_section(self, section: str) -> QGroupBox | None:
+        checkbox_items = [item for item in CHECKBOX_OPTIONS if item.section == section]
+        choice_groups = [group for group in CHOICE_GROUPS if group.section == section]
+        if not checkbox_items and not choice_groups:
+            return None
+
+        box = QGroupBox(section)
+        outer = QVBoxLayout(box)
+        outer.setContentsMargins(8, 10, 8, 8)
+
+        if section == "Gameplay":
+            theme_boxes = []
+            for theme in GAMEPLAY_THEME_ORDER:
+                items = [item for item in checkbox_items if item.theme == theme]
+                if items:
+                    theme_boxes.append(self._build_gameplay_theme(theme, items))
+            outer.addWidget(
+                _ResponsiveGrid(
+                    theme_boxes,
+                    minimum_item_width=195,
+                    max_columns=len(theme_boxes),
+                )
+            )
+            return box
+
+        controls: list[QWidget] = []
+        for item in checkbox_items:
+            controls.append(self._build_checkbox_control(item))
+        for group in choice_groups:
+            controls.append(self._build_choice_control(group))
+
+        minimum_width = 220 if section == "AI" else 250
+        outer.addWidget(
+            _ResponsiveGrid(
+                controls,
+                minimum_item_width=minimum_width,
+                max_columns=len(controls),
+            )
+        )
+        return box
+
+    def _build_gameplay_theme(
+        self,
+        theme: str,
+        items: list[CheckboxOption],
+    ) -> QGroupBox:
+        box = QGroupBox(theme)
+        layout = QVBoxLayout(box)
+        layout.setSpacing(4)
+        for item in items:
+            checkbox = self._make_checkbox(item)
+            layout.addWidget(checkbox)
+            if item.option == "noclip_vehicles":
+                warning = QLabel("Warning: This can get you stuck.")
+                warning.setWordWrap(True)
+                warning.setStyleSheet("font-weight: 600;")
+                warning.setVisible(False)
+                checkbox.toggled.connect(warning.setVisible)
+                self._noclip_warning = warning
+                layout.addWidget(warning)
+        layout.addStretch(1)
+        return box
+
+    def _build_checkbox_control(self, item: CheckboxOption) -> QWidget:
+        container = QWidget()
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(2, 2, 2, 2)
+        layout.addWidget(self._make_checkbox(item))
+        layout.addStretch(1)
+        return container
+
+    def _make_checkbox(self, item: CheckboxOption) -> QCheckBox:
+        checkbox = QCheckBox(item.label)
+        checkbox.setToolTip(item.help_text)
+        self._checkboxes[item.option] = checkbox
+        return checkbox
+
+    def _build_choice_control(self, group: ChoiceGroup) -> QWidget:
+        container = QWidget()
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(2, 2, 2, 2)
+        layout.setSpacing(6)
+
+        label = QLabel(group.label + ":")
+        label.setToolTip(group.help_text)
+        combo = QComboBox()
+        combo.setToolTip(group.help_text)
+        for choice in group.choices:
+            combo.addItem(choice.label, choice.option)
+            index = combo.count() - 1
+            model_item = combo.model().item(index)
+            if model_item is not None:
+                model_item.setEnabled(choice.enabled)
+            combo.setItemData(index, choice.note, Qt.ItemDataRole.ToolTipRole)
+        self._combos[group.key] = combo
+
+        layout.addWidget(label)
+        layout.addWidget(combo, 1)
+        return container
 
     def _root(self) -> Path | None:
         value = self._root_edit.text().strip()
@@ -230,7 +392,6 @@ class MainWindow(QMainWindow):
         self._validated_root = None
         self._apply_button.setEnabled(False)
         self._restore_button.setEnabled(False)
-        self._status.setToolTip("")
         if self._root() is None:
             self._status.setText("Choose a game folder.")
         else:
@@ -272,16 +433,12 @@ class MainWindow(QMainWindow):
             can_restore = True
 
         self._validated_root = root
-        if can_apply:
-            self._status.setText("Game folder validated.")
-        else:
-            self._status.setText(
-                "Game folder validated. Restore pristine before applying changes."
-            )
-        self._status.setToolTip("")
+        self._status.setText("Game folder validated.")
         self._apply_button.setEnabled(can_apply)
         self._restore_button.setEnabled(can_restore)
         self._append("Game folder validated.")
+        if not can_apply:
+            self._append("Restore pristine before applying different changes.")
 
     def _validate_selected_root(self) -> None:
         root = self._root()
@@ -293,13 +450,12 @@ class MainWindow(QMainWindow):
         self._apply_button.setEnabled(False)
         self._restore_button.setEnabled(False)
         self._status.setText("Validating game folder…")
-        self._status.setToolTip("")
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             status = inspect_game(root)
         except DirueError as exc:
+            print(f"Validation failed: {exc}", file=sys.stderr)
             self._status.setText("Can't validate game folder.")
-            self._status.setToolTip(str(exc))
             self._append("Can't validate game folder.")
         else:
             self._render_validated_status(root, status)
@@ -311,7 +467,7 @@ class MainWindow(QMainWindow):
         if root is None or self._validated_root is None or root != self._validated_root:
             QMessageBox.warning(
                 self,
-                "DIRUE Linux",
+                APP_SHORT_NAME,
                 "Validate the selected game folder before continuing.",
             )
             return None
@@ -324,13 +480,13 @@ class MainWindow(QMainWindow):
 
         selected = self._selected_options()
         if not selected:
-            QMessageBox.warning(self, "DIRUE Linux", "Select at least one modification.")
+            QMessageBox.warning(self, APP_SHORT_NAME, "Select at least one change.")
             return
 
         answer = QMessageBox.question(
             self,
             "Apply changes",
-            "Apply the selected changes? A pristine backup will be kept for Restore.",
+            "Apply the selected changes? A clean backup will be kept for Restore.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -344,25 +500,18 @@ class MainWindow(QMainWindow):
         try:
             apply_selection(root, selected)
         except DirueError as exc:
+            print(f"Apply failed: {exc}", file=sys.stderr)
             self._validated_root = None
             self._status.setText("Apply failed. Validate the game folder again.")
-            self._status.setToolTip(str(exc))
             self._append("Apply failed.")
             QMessageBox.critical(self, "Apply failed", "Changes were not applied.")
         else:
             self._validated_root = root
             self._apply_button.setEnabled(False)
             self._restore_button.setEnabled(True)
-            self._status.setText(
-                "Changes applied. Restore pristine before applying a different selection."
-            )
-            self._status.setToolTip("")
+            self._status.setText("Changes applied.")
             self._append("Changes applied.")
-            QMessageBox.information(
-                self,
-                "Apply complete",
-                "Changes applied successfully.",
-            )
+            QMessageBox.information(self, "Apply complete", "Changes applied successfully.")
         finally:
             QApplication.restoreOverrideCursor()
 
@@ -374,7 +523,7 @@ class MainWindow(QMainWindow):
         answer = QMessageBox.question(
             self,
             "Restore pristine",
-            "Restore the pristine backup?",
+            "Restore the clean backup?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -388,17 +537,16 @@ class MainWindow(QMainWindow):
         try:
             restore_pristine(root)
         except DirueError as exc:
+            print(f"Restore failed: {exc}", file=sys.stderr)
             self._validated_root = None
             self._status.setText("Restore failed. Validate the game folder again.")
-            self._status.setToolTip(str(exc))
             self._append("Restore failed.")
-            QMessageBox.critical(self, "Restore failed", "The pristine backup was not restored.")
+            QMessageBox.critical(self, "Restore failed", "The clean backup was not restored.")
         else:
             self._validated_root = root
             self._apply_button.setEnabled(True)
             self._restore_button.setEnabled(True)
             self._status.setText("Game folder validated.")
-            self._status.setToolTip("")
             self._append("Pristine game data restored.")
             QMessageBox.information(
                 self,
@@ -409,13 +557,7 @@ class MainWindow(QMainWindow):
             QApplication.restoreOverrideCursor()
 
     def _show_about(self) -> None:
-        QMessageBox.information(
-            self,
-            "About DIRUE Linux",
-            f"DIRUE Linux {__version__}\n\n"
-            "Linux port of Dead Island: Riptide Ultimate Edition by FireEyeEian.\n"
-            "Licensed under GPLv3. Game assets are not redistributed.",
-        )
+        _AboutDialog(self).exec()
 
 
 def run() -> int:
