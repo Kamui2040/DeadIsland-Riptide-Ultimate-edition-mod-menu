@@ -15,6 +15,28 @@ PROJECT_PAGE = "https://kamui2040.github.io/gaming-mods/"
 FLATPAK_DIR = ROOT / "packaging" / "flatpak"
 COMMON_DIR = ROOT / "packaging" / "common"
 MANIFEST = FLATPAK_DIR / f"{APP_ID}.json"
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+
+def _png_dimensions(data: bytes) -> tuple[int, int]:
+    if not data.startswith(PNG_SIGNATURE):
+        raise AssertionError("not a PNG")
+    return struct.unpack(">II", data[16:24])
+
+
+def _embedded_svg_png() -> bytes:
+    root = ET.parse(COMMON_DIR / f"{APP_ID}.svg").getroot()
+    image = next((node for node in root if node.tag.endswith("image")), None)
+    if image is None:
+        raise AssertionError("shared SVG has no embedded image")
+    href = next(
+        (value for key, value in image.attrib.items() if key.endswith("href")),
+        None,
+    )
+    prefix = "data:image/png;base64,"
+    if href is None or not href.startswith(prefix):
+        raise AssertionError("shared SVG does not contain an embedded PNG")
+    return base64.b64decode(href[len(prefix):], validate=True)
 
 
 class FlatpakPackagingTests(unittest.TestCase):
@@ -43,6 +65,8 @@ class FlatpakPackagingTests(unittest.TestCase):
                 f"../common/{APP_ID}.desktop",
                 f"../common/{APP_ID}.metainfo.xml",
                 f"../common/{APP_ID}.svg",
+                f"../common/{APP_ID}.64.png",
+                f"../common/{APP_ID}.128.png",
             ],
         )
         manifest_text = MANIFEST.read_text(encoding="utf-8")
@@ -69,6 +93,8 @@ class FlatpakPackagingTests(unittest.TestCase):
         self.assertIn("python3 -m dirue.gui", commands)
         self.assertIn("/app/bin/dirue-linux", commands)
         self.assertIn(f"/app/share/icons/hicolor/scalable/apps/{APP_ID}.svg", commands)
+        self.assertIn(f"/app/share/icons/hicolor/64x64/apps/{APP_ID}.png", commands)
+        self.assertIn(f"/app/share/icons/hicolor/128x128/apps/{APP_ID}.png", commands)
 
     def test_shared_desktop_entry_matches_identity(self):
         parser = ConfigParser(interpolation=None)
@@ -99,19 +125,16 @@ class FlatpakPackagingTests(unittest.TestCase):
         root = ET.parse(COMMON_DIR / f"{APP_ID}.svg").getroot()
         self.assertTrue(root.tag.endswith("svg"))
         self.assertEqual(root.attrib.get("viewBox"), "0 0 128 128")
+        self.assertEqual(_png_dimensions(_embedded_svg_png()), (128, 128))
 
-        image = next((node for node in root if node.tag.endswith("image")), None)
-        self.assertIsNotNone(image)
-        href = next(
-            (value for key, value in image.attrib.items() if key.endswith("href")),
-            None,
-        )
-        self.assertIsNotNone(href)
-        prefix = "data:image/png;base64,"
-        self.assertTrue(href.startswith(prefix))
-        png = base64.b64decode(href[len(prefix):], validate=True)
-        self.assertTrue(png.startswith(b"\x89PNG\r\n\x1a\n"))
-        self.assertEqual(struct.unpack(">II", png[16:24]), (128, 128))
+    def test_shared_raster_icons_cover_flatpak_bundle_sizes(self):
+        raster = {}
+        for size in (64, 128):
+            data = (COMMON_DIR / f"{APP_ID}.{size}.png").read_bytes()
+            self.assertEqual(_png_dimensions(data), (size, size))
+            raster[size] = data
+
+        self.assertEqual(raster[128], _embedded_svg_png())
 
 
 if __name__ == "__main__":
