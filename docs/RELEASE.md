@@ -10,8 +10,7 @@ Milestone 1 gameplay parity is complete. Release work follows this order:
 6. **Packaged Bazzite QA** — complete for both exact RC artifacts.
 7. **Final rebuild and verification** — complete from the unchanged frozen RC source commit.
 8. **Main integration** — complete through PR #7 on 2026-08-22.
-9. **Publication preparation** — complete; manual publisher copy, checksums, and artifact selection are recorded in `docs/PUBLICATION.md`.
-10. **Public release/publication** — remains a manual external action and has not been performed.
+9. **Public release/publication** — requires separate explicit approval.
 
 ## End-user acceptance
 
@@ -86,22 +85,17 @@ The validated Linux release state was integrated into `main` through PR #7 on 20
 
 That approval covered main integration only. It did not authorize publication of binaries or other external release actions.
 
-## Publication preparation
-
-Manual publication materials are prepared in:
-
-- `docs/PUBLICATION.md` — recommended artifact selection, install text, Nexus Mods copy, Ko-fi announcement copy, compatibility boundaries, and manual checklist;
-- `docs/RELEASE_NOTES_0.1.0.dev0.md` — public-facing release notes;
-- `docs/RELEASE_CHECKSUMS_0.1.0.dev0.txt` — SHA-256 manifest for the recommended exact artifacts.
-
-The recommended Flatpak is the exact RC bundle that received physical Apply/Restore/restart QA. The recommended AppImage is the hash that was both physically exercised and reproduced byte-identically during final verification.
-
 ## Remaining release gate
 
-Technical validation, main integration, and publication preparation are complete. Public upload/publishing remains a manual external action and has not occurred.
+Technical validation and main integration are complete. **Explicit approval** is still required before any of the following:
 
-Before publication, the maintainer must verify the local upload files against the recorded sizes and `docs/RELEASE_CHECKSUMS_0.1.0.dev0.txt`. After publication, the public downloads must be rechecked against those same hashes before the release is recorded as available.
+- public Flatpak or AppImage publication;
+- Nexus publication;
+- upstream submission;
+- announcements;
+- distribution or repository visibility changes;
+- GitHub Actions use.
 
-No release artifact should be described as published or generally available until publication actually occurs. The exact-artifact QA distinction must remain intact.
+No release artifact should be described as published or generally available until that approval and publication actually occur. Artifact selection for an approved release must use the recorded hashes above and preserve the exact-artifact QA distinction.
 
 GitHub Actions are not part of this workflow unless separately approved.
